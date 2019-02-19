@@ -1,0 +1,55 @@
+﻿<Window x:Class="TeacherAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TeacherAssistant"
+        mc:Ignorable="d"
+        Title="Assistant" MinHeight="450" MinWidth="800"
+        >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition  Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Выбрать базу данных" Click="SelectDatabase_Click"></MenuItem>
+                    <MenuItem Header="Подключить считыватель" Click="ConnectReader_Click"></MenuItem>
+                    <MenuItem Header="Отключить считыватель" Click="DiconnectReader_Click"></MenuItem>
+                </MenuItem>
+            </Menu>
+        </DockPanel>
+        <TabControl Name="Tabs" Grid.Row="1" HorizontalAlignment="Stretch">
+            <TabItem >
+                <TabItem.Header>
+                    <StackPanel Width="100">
+                        <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center">Регистрация</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <UserControl >
+                    <Grid  Name="FirstTab">
+                    </Grid>
+                </UserControl>
+            </TabItem>
+            <TabItem Name="TestItem" >
+                <TabItem.Header>
+                    <Grid Name="Header2" MouseEnter="TabHeader_OnMouseEnter" MouseLeave="TabHeader_OnMouseLeave">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" TextAlignment="Left">Просмотр</TextBlock>
+                    </Grid>
+                </TabItem.Header>
+                <UserControl >
+                    <Grid  Name="SecondTab">
+                    </Grid>
+                </UserControl>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+
+</Window>
