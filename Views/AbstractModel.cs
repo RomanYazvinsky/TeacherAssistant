@@ -1,7 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using Redux;
 using TeacherAssistant.Annotations;
 using TeacherAssistant.State;
 
@@ -9,19 +12,22 @@ namespace TeacherAssistant.ComponentsImpl
 {
     public class AbstractModel : INotifyPropertyChanged, IDisposable
     {
-        private List<IDisposable> _internalSubscriptions;
         protected string _id;
         public event PropertyChangedEventHandler PropertyChanged;
+        protected IStore<ImmutableDictionary<string, DataContainer>> _store;
+        protected Subject<bool> _disposer;
 
-        protected AbstractModel(string id)
+        protected AbstractModel(string id = null)
         {
+            _disposer = new Subject<bool>();
             _id = id;
-            _internalSubscriptions = new List<IDisposable>();
+            _store = DataExchangeManagement.GetInstance().PublishedDataStore;
         }
 
-        protected void S<T>(string id, Action<T> action)
+        protected void SimpleSubscribe<T>(string id, Action<T> action)
         {
-            _internalSubscriptions.Add(new Subscriber<T>(id, action).SubscribeOnChanges());
+            _store.DistinctUntilChanged(containers => containers.GetOrDefault<T>(id)).TakeUntil(_disposer).Skip(1) // skip init null
+                .Subscribe(containers => action(containers.GetOrDefault<T>(id)));
         }
 
         [NotifyPropertyChangedInvocator]
@@ -32,7 +38,8 @@ namespace TeacherAssistant.ComponentsImpl
 
         public void Dispose()
         {
-            _internalSubscriptions.ForEach(disposable => disposable.Dispose());
+            _disposer.Next();
+            _disposer.Dispose();
         }
     }
 }

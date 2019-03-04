@@ -96,76 +96,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractModel.cs" />
-    <Compile Include="Combobox\ComboboxConfig.cs" />
-    <Compile Include="Combobox\FilterComponentFactory.cs" />
-    <Compile Include="Combobox\ComboboxModel.cs" />
-    <Compile Include="Combobox\GenericComboboxControl.cs" />
-    <Compile Include="CommonButton\CommandHandler.cs" />
-    <Compile Include="CommonButton\CommonButton.xaml.cs">
-      <DependentUpon>CommonButton.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="CommonButton\CommonButtonComponentFactory.cs" />
-    <Compile Include="CommonButton\CommonButtonModel.cs" />
-    <Compile Include="Logger\LoggerComponentFactory.cs" />
-    <Compile Include="Logger\LoggerLayout.xaml.cs">
-      <DependentUpon>LoggerLayout.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Logger\LoggerModel.cs" />
-    <Compile Include="Photo\Photo.xaml.cs">
-      <DependentUpon>Photo.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Photo\PhotoComponentFactory.cs" />
-    <Compile Include="Photo\PhotoModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\Annotations1.cs" />
-    <Compile Include="Table\GenericTableControl.cs" />
-    <Compile Include="Table\TableConfig.cs" />
-    <Compile Include="Table\TableComponentFactory.cs" />
-    <Compile Include="Table\TableEventHandlerConfig.cs" />
-    <Compile Include="Table\TableModel.cs" />
+    <Compile Include="RegistrationPage\RegisteredStudentModel.cs" />
+    <Compile Include="RegistrationPage\RegistrationPage.xaml.cs">
+      <DependentUpon>RegistrationPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RegistrationPage\RegistrationPageModel.cs" />
+    <Compile Include="SchedulePage\SchedulePage.xaml.cs">
+      <DependentUpon>SchedulePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SchedulePage\SchedulePageModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TextInput\TextInput.xaml.cs">
-      <DependentUpon>TextInput.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="TextInput\TextInputComponentFactory.cs" />
-    <Compile Include="TextInput\TextInputModel.cs" />
-    <Compile Include="Text\Text.xaml.cs">
-      <DependentUpon>Text.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Text\TextComponentFactory.cs" />
-    <Compile Include="Text\TextModel.cs" />
-    <Compile Include="Toolbar\Toolbar.xaml.cs">
-      <DependentUpon>Toolbar.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Toolbar\ToolbarComponentFactory.cs" />
-    <Compile Include="Toolbar\ToolbarModel.cs" />
+    <Compile Include="SortAdorner.cs" />
+    <Compile Include="Tabs\Tab.cs" />
+    <Compile Include="Tabs\TabManagerModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="CommonButton\CommonButton.xaml">
+    <Page Include="RegistrationPage\RegistrationPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Logger\LoggerLayout.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Photo\Photo.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TextInput\TextInput.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Text\Text.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Toolbar\Toolbar.xaml">
+    <Page Include="SchedulePage\SchedulePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -174,10 +130,6 @@
     <ProjectReference Include="..\ClassLibrary1\Reader.csproj">
       <Project>{0e540879-8d37-495a-a02c-9dd4c202870a}</Project>
       <Name>Reader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Components\Components.csproj">
-      <Project>{e31d9b8d-dd7f-439b-8c2d-153799dbcbc0}</Project>
-      <Name>Components</Name>
     </ProjectReference>
     <ProjectReference Include="..\Dao\Dao.csproj">
       <Project>{eb2bf29c-e9d4-4ae8-b65f-9a9275b65293}</Project>
@@ -196,5 +148,6 @@
       <Name>State</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

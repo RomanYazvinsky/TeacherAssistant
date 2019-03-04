@@ -19,6 +19,12 @@ namespace Model.Models
 
         public String create_date { get; set; }
 
+        /// <summary>
+        /// Use type_id instead
+        /// 1 = Lecture
+        /// 2 = Practical
+        /// 3 = Lab
+        /// </summary>
         [ForeignKey("type_id")]
         public LessonTypeModel LessonType { get; set; }
 

@@ -1,35 +1,12 @@
-using Model.Models;
 using Redux;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 
 namespace TeacherAssistant.State
 {
     public class DataExchangeManagement
     {
         private static DataExchangeManagement _instance;
-
-        public class DataContainer
-        {
-            private object _data;
-
-            public DataContainer(object data)
-            {
-                _data = data;
-            }
-
-            public T GetData<T>()
-            {
-                return (T)_data;
-            }
-
-            public void SetData<T>(T value)
-            {
-                _data = value;
-            }
-        }
         public IStore<ImmutableDictionary<string, DataContainer>> PublishedDataStore { get; }
 
         public class Publish : IAction

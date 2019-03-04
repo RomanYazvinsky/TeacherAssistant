@@ -21,5 +21,6 @@ namespace Model
         public Decimal? volume { get; set; }
 
         public string sound { get; set; }
+        
     }
 }

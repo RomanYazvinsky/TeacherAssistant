@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Data.SQLite;
 using Model;
 using Model.Models;
@@ -9,6 +10,7 @@ namespace Dao
     public class GeneralDbContext : DbContext
     {
         public DbSet<DepartmentModel> DepartmentModels { get; set; }
+        public DbSet<AlarmModel> AlarmModels { get; set; }
         public DbSet<StudentModel> StudentModels { get; set; }
         public DbSet<StreamGroupModel> StreamGroupModels { get; set; }
         public DbSet<StudentLessonModel> StudentLessonModels { get; set; }
@@ -17,7 +19,7 @@ namespace Dao
         public DbSet<GroupModel> GroupModels { get; set; }
         public DbSet<StudentGroupModel> StudentGroupModels { get; set; }
         private static GeneralDbContext _instance;
-
+        public static event EventHandler DatabaseChanged;
 
         private GeneralDbContext(string dataSource) : base(
             new SQLiteConnection
@@ -34,11 +36,10 @@ namespace Dao
 
         public static GeneralDbContext GetInstance(string dataSource = "./db.s3db")
         {
-            if (dataSource != "./db.s3db")
-            {
-                _instance?.Dispose();
-                return _instance = new GeneralDbContext(dataSource);
-            }
+            if (dataSource == "./db.s3db") return _instance ?? (_instance = new GeneralDbContext(dataSource));
+            _instance?.Dispose();
+            _instance = new GeneralDbContext(dataSource);
+            DatabaseChanged?.Invoke(null, null);
             return _instance ?? (_instance = new GeneralDbContext(dataSource));
         }
 

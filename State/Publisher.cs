@@ -17,14 +17,15 @@ namespace TeacherAssistant.State
             });
         }
 
-        public static V Get<V>(ImmutableDictionary<string, DataExchangeManagement.DataContainer> state, string key)
+        public static V Get<V>(ImmutableDictionary<string, DataContainer> state, string key)
         {
-            if (state.ContainsKey(key))
-            {
-                return state[key].GetData<V>();
-            }
+            return state.ContainsKey(key) ? state[key].GetData<V>() : default(V);
+        }
 
-            return default(V);
+        public static V Get<V>(string key)
+        {
+            var state = DataExchangeManagement.GetInstance().PublishedDataStore.GetState();
+            return state.ContainsKey(key) ? state[key].GetData<V>() : default(V);
         }
     }
 }

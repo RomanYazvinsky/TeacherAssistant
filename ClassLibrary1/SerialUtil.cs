@@ -14,14 +14,14 @@ namespace TeacherAssistant.ReaderPlugin
     /**
      * Manages connection to Card reader
      */
-    public class SerialUtil
+    public class SerialUtil : ISerialUtil
     {
-        private static CancellationToken _cancellationToken;
-
         private SerialPort _serialPort;
-
-        private static SerialUtil _serialUtil;
-
+        public event EventHandler<string> DataReceivedSuccess;
+        public event EventHandler<string> DataReceivedError;
+        public event EventHandler<string> Connected;
+        public event EventHandler Disconnected;
+        private CancellationTokenSource _cancellationTokenSource;
         private static string HexToString(string hex)
         {
             var buffer = new byte[hex.Length / 2];
@@ -34,89 +34,122 @@ namespace TeacherAssistant.ReaderPlugin
             return Encoding.GetEncoding("Windows-1251").GetString(buffer);
         }
 
+
         private static string ParseData(string data)
         {
             return HexToString(Regex.Replace(data, @"\s+", ""));
         }
 
+        private static string CleanData(string data)
+        {
+            return data.Replace("\r", "").Replace("\0", "");
+        }
+
+        public void Start()
+        {
+            Task.Run(async () =>
+            {
+                EventHandler<string> connectedHandler = null;
+                connectedHandler = async (sender, s) =>
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                    try
+                    {
+                        while (true)
+                        {
+                            var result = await _serialPort.ReadAsync(_cancellationTokenSource.Token);
+                            if (!result.StartsWith("Card"))
+                            {
+                                result = ParseData(result);
+                            }
+
+                            result = CleanData(result);
+                            DataReceivedSuccess?.Invoke(this, result);
+
+                        }
+                    }
+                    catch (OperationCanceledException e)
+                    {
+                        _serialPort.Close();
+                        Debug.WriteLine(e);
+                        Connected -= connectedHandler;
+                        Disconnected?.Invoke(this, null);
+                    }
+                };
+                Connected += connectedHandler;
+                foreach (var portName in SerialPort.GetPortNames())
+                {
+                    try
+                    {
+                        Debug.WriteLine($"Trying to access '{portName}' port - ");
+                        await TryConnect(portName);
+                        Connected?.Invoke(this, portName);
+                    }
+                    catch (OperationCanceledException e)
+                    {
+                        Debug.Write("Timeout exceed, trying one more time");
+                        _serialPort.Close();
+                        try
+                        {
+                            await TryConnect(portName);
+                            Connected?.Invoke(this, portName);
+                        }
+                        catch (OperationCanceledException exception)
+                        {
+                            _serialPort.Close();
+                        }
+
+                    }
+                }
+            });
+        }
+
+        private async Task<bool> TryConnect(string portName)
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            _serialPort.PortName = portName;
+            _serialPort.Open();
+            _serialPort.Write("get info");
+            Timer timer = null;
+            timer = new Timer(obj =>
+            {
+                _cancellationTokenSource.Cancel(true);
+                timer.Dispose();
+            }, null, 2000, Timeout.Infinite);
+            var result = await _serialPort.ReadAsync(_cancellationTokenSource.Token);
+            timer.Dispose();
+            return result.StartsWith("RFID");
+        }
+
         private static SerialPort Initialize()
         {
-            SerialPort port = new SerialPort();
-            port.BaudRate = 57600;
-            port.DataBits = 8;
-            port.StopBits = StopBits.One;
-            port.Parity = Parity.None;
-            port.RtsEnable = false;
-            port.DtrEnable = false;
-            port.Handshake = Handshake.None;
-            port.ReadTimeout = 1000;
-            port.WriteTimeout = 500;
+            var port = new SerialPort
+            {
+                BaudRate = 57600,
+                DataBits = 8,
+                StopBits = StopBits.One,
+                Parity = Parity.None,
+                RtsEnable = false,
+                DtrEnable = false,
+                Handshake = Handshake.None,
+                ReadTimeout = 1000,
+                WriteTimeout = 500
+            };
             return port;
         }
 
-        private SerialUtil()
+        public SerialUtil()
         {
             _serialPort = Initialize();
-        }
-
-        public static async Task<SerialUtil> GetInstance()
-        {
-            if (_serialUtil == null)
-            {
-                _serialUtil = new SerialUtil();
-                await _serialUtil.Reconnect();
-            }
-
-            return _serialUtil;
-        }
-
-        public async Task Reconnect()
-        {
-            string port = await GetActivePort();
-            if (port != null)
-            {
-                _serialPort.PortName = port;
-                _serialPort.Open();
-            }
         }
 
         public void Close()
         {
             _serialPort.Close();
+            _cancellationTokenSource?.Cancel(true);
         }
 
-        public bool IsOpen()
-        {
-            return _serialPort.IsOpen;
-        }
-        public static async Task<string> GetActivePort()
-        {
-            SerialPort port = Initialize();
-            foreach (var portName in SerialPort.GetPortNames())
-            {
-                try
-                {
-                    port.PortName = portName;
-                    port.Open();
-                    port.Write("get info");
-                    string report = await port.ReadAsync();
-                    port.Close();
-                    if (report.StartsWith("RFID Reader"))
-                    {
-                        return portName;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e);
-                    port.Close();
-                }
-               
-            }
 
-            return null;
-        }
-        
         public async Task<string> ReadAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             return await _serialPort.ReadAsync(cancellationToken);

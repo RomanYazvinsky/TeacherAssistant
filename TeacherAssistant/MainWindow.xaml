@@ -17,37 +17,11 @@
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Click="SelectDatabase_Click"></MenuItem>
                     <MenuItem Header="Подключить считыватель" Click="ConnectReader_Click"></MenuItem>
-                    <MenuItem Header="Отключить считыватель" Click="DiconnectReader_Click"></MenuItem>
+                    <MenuItem Header="Отключить считыватель" Click="DisconnectReader_Click"></MenuItem>
                 </MenuItem>
             </Menu>
         </DockPanel>
-        <TabControl Name="Tabs" Grid.Row="1" HorizontalAlignment="Stretch">
-            <TabItem >
-                <TabItem.Header>
-                    <StackPanel Width="100">
-                        <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center">Регистрация</TextBlock>
-                    </StackPanel>
-                </TabItem.Header>
-                <UserControl >
-                    <Grid  Name="FirstTab">
-                    </Grid>
-                </UserControl>
-            </TabItem>
-            <TabItem Name="TestItem" >
-                <TabItem.Header>
-                    <Grid Name="Header2" MouseEnter="TabHeader_OnMouseEnter" MouseLeave="TabHeader_OnMouseLeave">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition></ColumnDefinition>
-                            <ColumnDefinition></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" TextAlignment="Left">Просмотр</TextBlock>
-                    </Grid>
-                </TabItem.Header>
-                <UserControl >
-                    <Grid  Name="SecondTab">
-                    </Grid>
-                </UserControl>
-            </TabItem>
+        <TabControl Grid.Row="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Path=Tabs}" SelectedItem="{Binding Path=ActiveTab}">
         </TabControl>
 
     </Grid>
