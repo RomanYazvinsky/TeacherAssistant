@@ -17,7 +17,7 @@ namespace TeacherAssistant
         [Inject]
         public ISerialUtil SerialUtil { get; set; }
 
-        public MainWindow(ISerialUtil serialUtil)
+        public MainWindow()
         {
             InitializeComponent();
             DataContext = new TabManagerModel();
@@ -26,8 +26,8 @@ namespace TeacherAssistant
                 var tabs = new ObservableCollection<Tab>();
                 var tab = new Tab
                 {
-                    Id = "RegistrationPage",
-                    Header = "Регистрация",
+                    Id = "SchedulePage",
+                    Header = "Расписание",
                     Component = new SchedulePage.SchedulePage("")
                 };
                 tabs.Add(tab);
@@ -48,18 +48,11 @@ namespace TeacherAssistant
         private void ConnectReader_Click(object sender, RoutedEventArgs e)
         {
             SerialUtil.Start();
-            SerialUtil.DataReceivedSuccess += Write;
-        }
-
-        private void Write(object sender, string e)
-        {
-            Debug.WriteLine(e);
         }
 
         private void DisconnectReader_Click(object sender, RoutedEventArgs e)
         {
             SerialUtil.Close();
-            SerialUtil.Disconnected += (o, args) => SerialUtil.Connected -= Write;
         }
        
 

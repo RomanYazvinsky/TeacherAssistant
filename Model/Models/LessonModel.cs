@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
+using System.Globalization;
 
 namespace Model.Models
 {
@@ -13,7 +15,7 @@ namespace Model.Models
         public String name { get; set; }
 
         public String description { get; set; }
-    
+
         [ForeignKey("stream_id")]
         public StreamModel Stream { get; set; }
 
@@ -35,11 +37,10 @@ namespace Model.Models
         {
             get
             {
-                return DateTime.Parse(DATE);
+                return DateTime.ParseExact(DATE.Substring(0, 10), "yyyy-MM-dd", CultureInfo.InvariantCulture);
             }
 
         }
-
         public string DATE { get; set; }
 
         [ForeignKey("SCHEDULE_ID")]
@@ -54,5 +55,5 @@ namespace Model.Models
         [Required]
         [Column("checked")]
         public int Checked { get; set; }
-}
+    }
 }

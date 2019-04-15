@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.State;
 
@@ -30,11 +29,13 @@ namespace TeacherAssistant
         {
             SimpleSubscribe<Tab>(ACTIVE_TAB, tab =>
             {
+                if (tab == null) return;
                 ActiveTab = GetTabItemByTab(tab);
                 Debug.WriteLine(tab.Header);
             });
             SimpleSubscribe<ObservableCollection<Tab>>(TABS, tabs =>
             {
+                if (tabs == null) return;
                 Tabs.Clear();
                 var tabItems = tabs.Select(tab =>
                 {
@@ -44,7 +45,7 @@ namespace TeacherAssistant
                     header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
                     header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
                     header.Children.Add(headerName);
-                    tabItem.MouseEnter += (sender, args) =>
+                    header.MouseEnter += (sender, args) =>
                     {
                         if (Tabs.Count <= 1)
                         {
@@ -61,7 +62,7 @@ namespace TeacherAssistant
                         header.Children.Add(closeButton);
                         Grid.SetColumn(closeButton, 1);
                     };
-                    tabItem.MouseLeave += (sender, args) =>
+                    header.MouseLeave += (sender, args) =>
                     {
                         if (Tabs.Count < 2 || header.Children.Count < 2)
                         {

@@ -26,7 +26,7 @@ namespace TeacherAssistant.ComponentsImpl
 
         protected void SimpleSubscribe<T>(string id, Action<T> action)
         {
-            _store.DistinctUntilChanged(containers => containers.GetOrDefault<T>(id)).TakeUntil(_disposer).Skip(1) // skip init null
+            _store.DistinctUntilChanged(containers => containers.GetOrDefault<T>(id)).TakeUntil(_disposer)
                 .Subscribe(containers => action(containers.GetOrDefault<T>(id)));
         }
 

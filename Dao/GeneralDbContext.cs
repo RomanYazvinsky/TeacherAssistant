@@ -16,10 +16,13 @@ namespace Dao
         public DbSet<StudentLessonModel> StudentLessonModels { get; set; }
         public DbSet<StreamModel> StreamModels { get; set; }
         public DbSet<LessonModel> LessonModels { get; set; }
+        public DbSet<LessonTypeModel> LessonTypeModels { get; set; }
         public DbSet<GroupModel> GroupModels { get; set; }
+        public DbSet<DisciplineModel> DisciplineModels { get; set; }
         public DbSet<StudentGroupModel> StudentGroupModels { get; set; }
+        public DbSet<ScheduleModel> ScheduleModels { get; set; }
         private static GeneralDbContext _instance;
-        public static event EventHandler DatabaseChanged;
+        public static event EventHandler<string> DatabaseChanged;
 
         private GeneralDbContext(string dataSource) : base(
             new SQLiteConnection
@@ -39,7 +42,7 @@ namespace Dao
             if (dataSource == "./db.s3db") return _instance ?? (_instance = new GeneralDbContext(dataSource));
             _instance?.Dispose();
             _instance = new GeneralDbContext(dataSource);
-            DatabaseChanged?.Invoke(null, null);
+            DatabaseChanged?.Invoke(null, dataSource);
             return _instance ?? (_instance = new GeneralDbContext(dataSource));
         }
 

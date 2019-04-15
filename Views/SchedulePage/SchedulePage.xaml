@@ -7,31 +7,42 @@
              mc:Ignorable="d" 
              d:DesignHeight="720" d:DesignWidth="1280">
     <Grid>
-        <ListView Name="LessonList" HorizontalAlignment="Left" Height="452" Margin="10,258,0,0" VerticalAlignment="Top" Width="1260" ItemsSource="{Binding Path=Items}" MouseDoubleClick="OnSelectItem">
+        <ListView Name="LessonList" HorizontalAlignment="Left" Height="642" Margin="10,68,0,0" VerticalAlignment="Top" Width="1260" ItemsSource="{Binding Path=Items}" MouseDoubleClick="OnSelectItem">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Date}">
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Date, StringFormat=dd-MM-yyyy}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Дата" Tag="Date" ></GridViewColumnHeader>
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Stream.name}">
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Schedule}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Время" Tag="Schedule" ></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="300" DisplayMemberBinding="{Binding Path=Stream.name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Поток" Tag="Stream.name" ></GridViewColumnHeader>
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=name}" Width="200">
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=LessonType.name}" Width="100">
                         <GridViewColumn.Header>
-                            <GridViewColumnHeader Content="Дисциплина" Tag="name" ></GridViewColumnHeader>
+                            <GridViewColumnHeader Content="Тип" Tag="LessonType.name" ></GridViewColumnHeader>
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
-        <ComboBox ItemsSource="{Binding Path=Streams}" DisplayMemberPath="name" SelectedValuePath="id" SelectedItem="{Binding Path=SelectedStream}" HorizontalAlignment="Left" Margin="55,54,0,0" VerticalAlignment="Top" Width="120"/>
-        <ComboBox HorizontalAlignment="Left" Margin="295,54,0,0" VerticalAlignment="Top" Width="120"/>
-        <ComboBox HorizontalAlignment="Left" Margin="522,54,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button Name="ShowButton" Content="Показать" HorizontalAlignment="Left" Margin="748,54,0,0" VerticalAlignment="Top" Width="74" Command="{Binding Path=Show}"/>
+        <ComboBox ItemsSource="{Binding Path=Streams}" DisplayMemberPath="name" SelectedValuePath="id" SelectedItem="{Binding Path=SelectedStream}" HorizontalAlignment="Left" Margin="355,40,0,0" VerticalAlignment="Top" Width="120" />
+        <ComboBox ItemsSource="{Binding Path=Schedules}" SelectedValuePath="id" SelectedItem="{Binding Path=SelectedSchedule}" HorizontalAlignment="Left" Margin="610,40,0,0" VerticalAlignment="Top" Width="120"/>
+        <ComboBox  ItemsSource="{Binding Path=LessonTypes}" DisplayMemberPath="name" SelectedValuePath="id" SelectedItem="{Binding Path=SelectedLessonType}" HorizontalAlignment="Left" Margin="862,40,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button Name="ShowButton" Content="Показать" HorizontalAlignment="Left" Margin="1108,40,0,0" VerticalAlignment="Top" Width="80" Command="{Binding Path=Show}"/>
+        <DatePicker SelectedDate="{Binding Path=DateFrom}" HorizontalAlignment="Left" Margin="20,40,0,0" VerticalAlignment="Top"/>
+
+        <DatePicker SelectedDate="{Binding Path=DateUntil}" HorizontalAlignment="Left" Margin="165,40,0,0" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="302,40,0,0" TextWrapping="Wrap" Text="Поток" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="536,40,0,0" TextWrapping="Wrap" Text="Время" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="774,40,0,0" TextWrapping="Wrap" Text="Тип занятия" VerticalAlignment="Top"/>
 
     </Grid>
 </UserControl>

@@ -41,5 +41,10 @@ namespace Model.Models
 
         [ForeignKey("version_id")]
         public ScheduleVersionModel Version { get; set; }
+
+        public override string ToString()
+        {
+            return begin + " - " + end;
+        }
     }
 }

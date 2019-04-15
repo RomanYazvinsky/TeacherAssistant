@@ -30,9 +30,9 @@ namespace Model.Models
         public Int64? lecturer_id { get; set; }
         public Int64? discipline_id { get; set; }
         public Int64? department_id { get; set; }
-        public int course { get; set; }
+        public int? course { get; set; }
 
-        public int active { get; set; }
+        public int? active { get; set; }
 
         public string expiration_date { get; set; }
 

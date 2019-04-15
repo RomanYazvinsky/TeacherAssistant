@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Dao;
 using Ninject;
+using Ninject.Extensions.Conventions;
 using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.State;
 
@@ -31,13 +32,12 @@ namespace TeacherAssistant
 
         private void ConfigureContainer()
         {
-            container = new StandardKernel();
-            container.Bind<ISerialUtil>().To<SerialUtil>().InSingletonScope();
+            container = Injector.GetInstance().Kernel;
         }
 
         private void ComposeObjects()
         {
-            Current.MainWindow = this.container.Get<MainWindow>();
+            Current.MainWindow = container.Get<MainWindow>();
         }
     }
 }

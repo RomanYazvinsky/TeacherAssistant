@@ -13,12 +13,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
     public class SchedulePageModel : AbstractModel
     {
         public static readonly string SELECTED_LESSON = "SelectedLesson";
-        private ObservableCollection<LessonModel> _items = new ObservableCollection<LessonModel>();
         private LessonModel _selectedLesson;
-        private List<StreamModel> _streams;
-        private ICommand _show;
 
-        public class CommandHandler: ICommand
+        public class CommandHandler : ICommand
         {
             private readonly Action _action;
 
@@ -35,33 +32,63 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
 
             public event EventHandler CanExecuteChanged;
         }
+
+        public class ScheduleComboboxItem : ScheduleModel
+        {
+            public override string ToString()
+            {
+                return "--Пусто--";
+            }
+        }
         public SchedulePageModel(string id) : base(id)
         {
             GeneralDbContext.GetInstance().StreamModels.Load();
-            Streams = new List<StreamModel>(GeneralDbContext.GetInstance().StreamModels);
-            _show = new CommandHandler(() =>
+            var streamModels = new List<StreamModel>(GeneralDbContext.GetInstance().StreamModels);
+            streamModels.Insert(0, new StreamModel { name = "---Пусто---", id = -1 }); // default value);
+            Streams = streamModels;
+            var schedules = new List<ScheduleModel>(GeneralDbContext.GetInstance().ScheduleModels);
+            schedules.Insert(0, new ScheduleComboboxItem { id = -1 });
+            Schedules = schedules;
+            var lessonTypeModels = new List<LessonTypeModel>(GeneralDbContext.GetInstance().LessonTypeModels);
+            lessonTypeModels.Insert(0, new LessonTypeModel { name = "--Пусто--", id = -1 });
+            LessonTypes = lessonTypeModels;
+            Show = new CommandHandler(() =>
             {
                 Items.Clear();
-                foreach (var model in from model in GeneralDbContext.GetInstance().LessonModels
-                                      where model.stream_id == SelectedStream.id
-                                      select model)
+                foreach (var model in BuildQuery())
                 {
                     Items.Add(model);
                 }
             });
         }
 
-        public ObservableCollection<LessonModel> Items
+
+        /// <summary>
+        /// SQLite EF6 provider does not support TruncateTime and other functions.
+        /// </summary>
+        private IEnumerable<LessonModel> BuildQuery()
         {
-            get => _items;
-            set => _items = value;
+            var query = GeneralDbContext.GetInstance()
+                .LessonModels.Where(model =>
+                    model.DATE != null);
+            if (SelectedStream != null && SelectedStream.id != -1)
+            {
+                query = query.Where(model => model.stream_id == SelectedStream.id);
+            }
+            if (SelectedSchedule != null && SelectedSchedule.id != -1)
+            {
+                query = query.Where(model => model.SCHEDULE_ID == SelectedSchedule.id);
+            }
+            if (SelectedLessonType != null && SelectedLessonType.id != -1)
+            {
+                query = query.Where(model => model.type_id == SelectedLessonType.id);
+            }
+            return query.AsEnumerable().Where(model => model.Date >= DateFrom && model.Date <= DateUntil);
         }
 
-        public List<StreamModel> Streams
-        {
-            get => _streams;
-            set => _streams = value;
-        }
+        public ObservableCollection<LessonModel> Items { get; set; } = new ObservableCollection<LessonModel>();
+
+        public List<StreamModel> Streams { get; set; }
 
         public LessonModel SelectedLesson
         {
@@ -84,12 +111,20 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
             }
         }
 
-        public ICommand Show
-        {
-            get => _show;
-            set => _show = value;
-        }
+        public ICommand Show { get; set; }
 
         public StreamModel SelectedStream { get; set; }
+
+        public List<ScheduleModel> Schedules { get; set; }
+
+        public ScheduleModel SelectedSchedule { get; set; }
+
+        public List<LessonTypeModel> LessonTypes { get; set; }
+
+        public LessonTypeModel SelectedLessonType { get; set; }
+
+        public DateTime DateFrom { get; set; } = DateTime.Today;
+
+        public DateTime DateUntil { get; set; } = DateTime.Today;
     }
 }

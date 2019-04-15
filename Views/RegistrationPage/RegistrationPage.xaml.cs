@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Model.Models;
+using Ninject;
+using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.State;
 
 namespace TeacherAssistant.RegistrationPage
 {
@@ -22,32 +15,78 @@ namespace TeacherAssistant.RegistrationPage
     /// </summary>
     public partial class RegistrationPage : UserControl
     {
+        private RegistrationPageModel _model;
         public RegistrationPage(string id)
         {
             InitializeComponent();
-            DataContext = new RegistrationPageModel(id);
+            Injector.GetInstance().Kernel.Rebind<RegistrationPageModel>().ToSelf().InSingletonScope().WithConstructorArgument(id);
+            _model = Injector.GetInstance().Kernel.Get<RegistrationPageModel>();
+            DataContext = _model;
+
+            SortAdorner.AddColumnSorting(RegisteredStudentsList);
+            SortAdorner.AddColumnSorting(LessonStudentsList);
         }
 
         private void OnRegisteredStudentsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var studentModels = new ObservableCollection<StudentModel>(); 
-            foreach (StudentModel selectedItem in RegisteredStudentsList.SelectedItems)
-            {
-                studentModels.Add(selectedItem);
-            }
+            _model.SelectedRegisteredStudents.Clear();
 
-            ((RegistrationPageModel) DataContext).SelectedRegisteredStudents = studentModels;
+            foreach (StudentLessonModel item in RegisteredStudentsList.SelectedItems)
+            {
+                _model.SelectedRegisteredStudents.Add(item);
+            }
         }
 
         private void OnLessonStudentsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var studentModels = new ObservableCollection<StudentModel>();
-            foreach (StudentModel selectedItem in LessonStudentsList.SelectedItems)
+            _model.SelectedLessonStudents.Clear();
+            foreach (StudentLessonModel item in LessonStudentsList.SelectedItems)
             {
-                studentModels.Add(selectedItem);
+                _model.SelectedLessonStudents.Add(item);
             }
+        }
 
-            ((RegistrationPageModel)DataContext).SelectedLessonStudents = studentModels;
+        private void OnLessonStudentsMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var selectedItem = (StudentLessonModel)LessonStudentsList.SelectedItem;
+            if (selectedItem == null || (_model.LessonStudentsSelectedItem != null && selectedItem.student_id == _model.LessonStudentsSelectedItem.id))
+            {
+                return;
+            }
+            _model.LessonStudentsSelectedItem = selectedItem.Student;
+        }
+
+        private void List_OnMouseEnter(object sender, MouseEventArgs e)
+        {
+            ScrollViewer.SetVerticalScrollBarVisibility((DependencyObject)e.Source, ScrollBarVisibility.Auto);
+        }
+
+        private void List_OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            ScrollViewer.SetVerticalScrollBarVisibility((DependencyObject)e.Source, ScrollBarVisibility.Hidden);
+        }
+
+        private void Toggle_AutoRegistration(object sender, RoutedEventArgs e)
+        {
+            _model.IsAutoRegistrationEnabled = IsAutoRegistrationEnabled.IsChecked ?? false;
+        }
+
+        private void OnRegisteredStudentsListDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var selectedItem = (StudentLessonModel)RegisteredStudentsList.SelectedItem;
+            if (selectedItem == null || (_model.LessonStudentsSelectedItem != null && selectedItem.student_id == _model.LessonStudentsSelectedItem.id))
+            {
+                return;
+            }
+            _model.LessonStudentsSelectedItem = selectedItem.Student;
+        }
+
+        private void LessonStudentsList_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key.Equals(Key.Delete))
+            {
+                _model.Remove((StudentLessonModel)LessonStudentsList.SelectedItem);
+            }
         }
     }
 }

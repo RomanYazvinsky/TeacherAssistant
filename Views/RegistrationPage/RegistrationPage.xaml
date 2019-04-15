@@ -5,29 +5,59 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TeacherAssistant.RegistrationPage"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="680" d:DesignWidth="1280">
     <Grid>
-        <ListView Name="RegisteredStudentsList" SelectionChanged="OnRegisteredStudentsSelectionChanged" HorizontalAlignment="Left" Height="170" Margin="10,269,0,0" VerticalAlignment="Bottom" Width="250">
+        <ListView Name="RegisteredStudentsList" ScrollViewer.VerticalScrollBarVisibility="Hidden" MouseLeave="List_OnMouseLeave" MouseEnter="List_OnMouseEnter" ItemsSource="{Binding Path=RegisteredStudents}" SelectionChanged="OnRegisteredStudentsSelectionChanged" MouseDoubleClick="OnRegisteredStudentsListDoubleClick" HorizontalAlignment="Left"  Margin="10,0,0,0" VerticalAlignment="Bottom" Width="443" Height="386">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Фамилия" DisplayMemberBinding="{Binding Path=StudentLessonModel.Student.last_name}"/>
-                    <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding Path=StudentLessonModel.Student.first_name}"/>
-                    <GridViewColumn Header="Л/П/ЛБ" DisplayMemberBinding="{Binding Path=StudentLessonModel.MissedLessons}"/>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.last_name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Фамилия" Tag="Student.last_name"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.first_name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Имя" Tag="Student.first_name"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.patronymic}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Отчество" Tag="Student.patronymic"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <!--<GridViewColumn Header="Л/П/ЛБ" DisplayMemberBinding="{Binding Path=MissedLessons}"/>-->
                 </GridView>
             </ListView.View>
         </ListView>
-        <ListView  Name="LessonStudentsList" ItemsSource="{Binding Path=SelectedLessonStudents}" SelectedItem ="{Binding Path=LessonStudentsSelectedItem}" SelectionChanged="OnLessonStudentsSelectionChanged" HorizontalAlignment="Left" Height="170" Margin="300,269,0,0" VerticalAlignment="Bottom" Width="250">
+        <ListView KeyDown="LessonStudentsList_OnKeyDown" Name="LessonStudentsList" ScrollViewer.VerticalScrollBarVisibility="Hidden"  MouseLeave="List_OnMouseLeave" MouseEnter="List_OnMouseEnter" ItemsSource="{Binding Path=LessonStudents}" MouseDoubleClick="OnLessonStudentsMouseDoubleClick" SelectionChanged="OnLessonStudentsSelectionChanged" HorizontalAlignment="Left" Height="386" Margin="574,0,0,0" VerticalAlignment="Bottom" Width="483">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Фамилия" DisplayMemberBinding="{Binding Path=last_name}"/>
-                    <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding Path=first_name}"/>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.last_name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Фамилия" Tag="Student.last_name"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.first_name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Имя" Tag="Student.first_name"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.patronymic}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Отчество" Tag="Student.patronymic"></GridViewColumnHeader>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+
                 </GridView>
             </ListView.View>
         </ListView>
-        <Image HorizontalAlignment="Left" Height="168" Margin="10,10,0,0" VerticalAlignment="Top" Width="131"/>
-        <Button Content="Авторегистрация" HorizontalAlignment="Left" Margin="350,10,0,0" VerticalAlignment="Top" Width="113"/>
-        <TextBlock HorizontalAlignment="Left" Margin="161,12,0,0" TextWrapping="Wrap" Text="{Binding Path=ActiveStudentInfo}" VerticalAlignment="Top" Height="108" Width="156"/>
-        <TextBox HorizontalAlignment="Left" Height="23" Margin="350,234,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <Image Source="{Binding Path=StudentPhoto, Mode=OneWay}" HorizontalAlignment="Left" Height="240" Margin="10,12,0,0" VerticalAlignment="Top" Width="237"/>
+        <TextBlock HorizontalAlignment="Left" Margin="252,49,0,0" TextWrapping="Wrap" Text="{Binding Path=ActiveStudentInfo, Mode=OneWay}" VerticalAlignment="Top" Height="108" Width="156"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="937,271,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="10,271,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <Button Content="->" Command="{Binding Path=DoUnRegister}" HorizontalAlignment="Left" Height="37" Margin="350,252,0,0" VerticalAlignment="Top" Width="107"/>
+        <Button Content="&lt;-" Command="{Binding Path=DoRegister}" HorizontalAlignment="Left" Height="37" Margin="574,252,0,0" VerticalAlignment="Top" Width="107"/>
+        <CheckBox Name="IsAutoRegistrationEnabled" Content="Авторегистрация" Click="Toggle_AutoRegistration" HorizontalAlignment="Left" Margin="574,49,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </UserControl>
