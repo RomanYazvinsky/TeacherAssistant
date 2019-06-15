@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Dao;
 using Model.Models;
-using Ninject;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.ComponentsImpl.SchedulePage;
@@ -20,15 +22,16 @@ namespace TeacherAssistant.RegistrationPage
 {
     public class RegistrationPageModel : AbstractModel
     {
-        public ISerialUtil SerialUtil { get; set; }
+        private ISerialUtil SerialUtil { get; }
+        private IPhotoService PhotoService { get; }
         private List<StudentLessonModel> _studentLessonModels;
         private LessonModel _currentLesson;
         private StudentModel _selectedStudent;
         private StudentModel _lessonStudentsSelectedItem;
         private BitmapImage _studentPhoto;
         private string _activeStudentInfo;
-        private StudentModel _accumulatedStudent;
         private bool _isUidAccepted = false;
+
         private ObservableCollection<StudentLessonModel> _registeredStudents =
             new ObservableCollection<StudentLessonModel>();
 
@@ -39,157 +42,107 @@ namespace TeacherAssistant.RegistrationPage
 
         private ICommand _doUnRegister;
         private StudentModel _registeredStudentsSelectedItem;
-
-        [Inject]
-        public RegistrationPageModel(ISerialUtil serialUtil, string id) : base(id)
+        private bool _isAutoRegistrationEnabled;
+        private string _lessonStudentsFilterText = "";
+        private string _registeredStudentsFilterText = "";
+        private ListCollectionView _lessonStudentsView = new ListCollectionView(new List<StudentLessonModel>());
+        private ListCollectionView _registeredStudentsView = new ListCollectionView(new List<StudentLessonModel>());
+     
+        public RegistrationPageModel(ISerialUtil serialUtil, IPhotoService photoService)
         {
             SerialUtil = serialUtil;
-            _doRegister = new SchedulePageModel.CommandHandler(() =>
-            {
-                Register(new List<StudentLessonModel>(SelectedLessonStudents));
-            });
-            _doUnRegister = new SchedulePageModel.CommandHandler(() =>
-            {
-                UnRegister(new List<StudentLessonModel>(SelectedRegisteredStudents));
-            });
-            SimpleSubscribe<LessonModel>(id + "." + SchedulePageModel.SELECTED_LESSON, model =>
-            {
-                if (model == null) return;
-                _currentLesson = model;
-                LessonStudents.Clear();
-                RegisteredStudents.Clear();
-                var studentModels = GetStudentLessonModels(model);
-                AddMissingStudents(studentModels, _currentLesson);
-                _studentLessonModels = studentModels;
-                LessonStudents =
-                    new ObservableCollection<StudentLessonModel>(
-                        _studentLessonModels.Where(lessonModel =>
-                            !lessonModel.registered.HasValue || lessonModel.registered.Value == 0));
-                RegisteredStudents = new ObservableCollection<StudentLessonModel>(
-                    _studentLessonModels.Where(lessonModel =>
-                        lessonModel.registered.HasValue && lessonModel.registered.Value != 0));
-
-            });
-            SimpleSubscribe<StudentModel>("LastReadStudentCard", model => SelectedStudent = model);
-            SerialUtil.DataReceivedSuccess += ReadData;
+            PhotoService = photoService;
         }
 
         private List<StudentLessonModel> GetStudentMissedLessons(StudentModel model)
         {
             var now = DateTime.Now.Date;
-            var studentLessonModels = new List<StudentLessonModel>(from x in GeneralDbContext.GetInstance().StudentLessonModels.Include(lessonModel => lessonModel.Lesson)
-                                                                   where x.student_id == model.id
-                                                                         && x.registered.HasValue
-                                                                         && x.registered.Value == 0
-                                                                         && x.Lesson.stream_id == _currentLesson.stream_id
-                                                                   select x);
-            if (studentLessonModels.Count == 0) return studentLessonModels;
-            studentLessonModels = new List<StudentLessonModel>(studentLessonModels.Where(lessonModel => lessonModel.Lesson.Date < now));
-            return studentLessonModels;
+            var studentLessonStreamModels = new List<StudentLessonModel>(
+                from x in GeneralDbContext.Instance.StudentLessonModels.Include(lessonModel => lessonModel.Lesson)
+                where x.student_id == model.id
+                      && ((x.registered.HasValue
+                           && x.registered.Value == 0) || !x.registered.HasValue)
+                      && x.Lesson.stream_id == _currentLesson.stream_id
+                select x);
+            if (studentLessonStreamModels.Count == 0) return studentLessonStreamModels;
+            studentLessonStreamModels =
+                new List<StudentLessonModel>(
+                    studentLessonStreamModels.Where(lessonModel =>
+                        lessonModel.Lesson.Date < now));
+            return studentLessonStreamModels;
         }
-
-        private void AccumulateUid(string data)
-        {
-            _accumulatedStudent = new StudentModel
-            {
-                card_uid = data,
-                card_id = int.Parse(data, System.Globalization.NumberStyles.HexNumber).ToString()
-            };
-            _isUidAccepted = true;
-            Task.Delay(1000).ContinueWith(task => { _isUidAccepted = false; });
-        }
-
-        private void AccumulateStudentData(string data)
-        {
-            if (_accumulatedStudent == null || !_isUidAccepted)
-            {
-                return;
-            }
-            int studyInfoLength = 7;
-            if (!char.IsDigit(data[studyInfoLength]))
-            {
-                studyInfoLength--;
-            }
-
-            var studyBeginning = data.Substring(0, studyInfoLength);
-            var fullName = data.Substring(studyInfoLength, data.Length - studyInfoLength).Split(' ');
-            _accumulatedStudent.last_name = fullName[0];
-            _accumulatedStudent.first_name = fullName[1];
-            _accumulatedStudent.patronymic = fullName[2];
-            UpdatePhoto(_accumulatedStudent);
-            UpdateDescription(_accumulatedStudent);
-            _isUidAccepted = false;
-        }
+        
+        
 
         private List<StudentLessonModel> GetStudentLessonModels(LessonModel lessonModel)
         {
             return new List<StudentLessonModel>(
-                from studentLessonModel in GeneralDbContext.GetInstance().StudentLessonModels
+                from studentLessonModel in GeneralDbContext.Instance.StudentLessonModels
                 where studentLessonModel.lesson_id == lessonModel.id
                 select studentLessonModel);
         }
 
+        /// <summary>
+        /// Compares the current list of student lesson entities (group or whole stream) with already created
+        /// list and creates if some where added
+        /// </summary>
+        /// <param name="studentLessonModels">already created list of student lesson entities</param>
+        /// <param name="lessonModel">lesson</param> 
         private void AddMissingStudents(List<StudentLessonModel> studentLessonModels, LessonModel lessonModel)
         {
-            List<StudentGroupModel> students;
-            if (_currentLesson.group_id == null)
+            List<StudentModel> students;
+            if (lessonModel.group_id == null)
             {
-                students = new List<StudentGroupModel>(
-                    from studentGroupModel in GeneralDbContext.GetInstance().StudentGroupModels
-                    join streamGroupModel in GeneralDbContext.GetInstance().StreamGroupModels
-                        on studentGroupModel.group_id equals streamGroupModel.group_id
-                    where streamGroupModel.stream_id == lessonModel.stream_id
-                    select studentGroupModel);
+                students = new List<StudentModel>(
+                    GeneralDbContext.Instance.StreamModels.Include(model => model.Groups)
+                        .First(model => lessonModel.stream_id.Value == model.id)?.Groups.Aggregate(
+                            new List<StudentModel>(), (list, model) =>
+                            {
+                                list.AddRange(model.Students);
+                                return list;
+                            }) ?? new List<StudentModel>());
             }
             else
             {
-                students = new List<StudentGroupModel>(
-                    from studentGroupModel in GeneralDbContext.GetInstance().StudentGroupModels
-                    join streamGroupModel in GeneralDbContext.GetInstance().StreamGroupModels
-                        on studentGroupModel.group_id equals streamGroupModel.group_id
-                    where streamGroupModel.group_id == lessonModel.group_id
-                    select studentGroupModel);
+                students = new List<StudentModel>(GeneralDbContext.Instance.GroupModels
+                                                      .Find(lessonModel.group_id)?.Students ??
+                                                  new List<StudentModel>());
             }
+
             var newStudentLessonModels = students
-                .Where(studentGroupModel =>
-                    studentLessonModels.All(model => model.student_id != studentGroupModel.student_id)).Select(model =>
+                .Where(studentModel =>
+                    studentLessonModels.All(model => model.student_id != studentModel.id)).Select(model =>
                     new StudentLessonModel
                     {
                         lesson_id = lessonModel.id,
-                        student_id = model.student_id,
+                        student_id = model.id,
                         registered = 0
                     });
-            if (students.Count <= 0) return;
-            GeneralDbContext.GetInstance().StudentLessonModels.AddRange(newStudentLessonModels);
-            GeneralDbContext.GetInstance().SaveChanges();
-            studentLessonModels.AddRange(newStudentLessonModels);
-
+            if (students.Count == 0) return;
+            var lessonModels = newStudentLessonModels as StudentLessonModel[] ?? newStudentLessonModels.ToArray();
+            GeneralDbContext.Instance.StudentLessonModels.AddRange(lessonModels);
+            GeneralDbContext.Instance.SaveChanges();
+            studentLessonModels.AddRange(lessonModels);
         }
 
-        private void ReadData(object sender, string readData)
+        private void ReadStudentData(StudentCard readData)
         {
-            if (readData == null) return;
-            if (!readData.StartsWith("Card"))
-            {
-                AccumulateStudentData(readData);
-                return;
-            }
-            var cardUid = readData.Substring(9, 8);
-            var student = LessonStudents
-                .FirstOrDefault(studentModel => studentModel.Student.card_uid.Equals(cardUid));
+            var student = _lessonStudents
+                .FirstOrDefault(studentModel => studentModel.Student.card_uid.Equals(readData.CardUid));
             if (student != null)
             {
                 UpdatePhoto(student.Student);
                 UpdateDescription(student.Student);
                 if (IsAutoRegistrationEnabled)
                 {
-                    Register(new List<StudentLessonModel> { student });
+                    Application.Current.Dispatcher.Invoke(() => { Register(new List<StudentLessonModel> { student }); });
                 }
+
                 return;
             }
 
-            var studentFromDatabase = GeneralDbContext.GetInstance().StudentModels
-                .FirstOrDefault(model => model.card_uid.Equals(cardUid));
+            var studentFromDatabase = GeneralDbContext.Instance.StudentModels
+                .FirstOrDefault(model => model.card_uid.Equals(readData.CardUid));
             if (studentFromDatabase != null)
             {
                 UpdatePhoto(studentFromDatabase);
@@ -198,23 +151,25 @@ namespace TeacherAssistant.RegistrationPage
                 {
                     Application.Current.Dispatcher.Invoke(() => { RegisterExtStudent(studentFromDatabase); });
                 }
+
                 return;
             }
-            AccumulateUid(cardUid);
-            //var model = new StudentModel { card_uid = readData.Substring(9, 8) };
-            //model.card_id = int.Parse(model.card_uid, System.Globalization.NumberStyles.HexNumber).ToString();
-            //int studyInfoLength = 7;
-            //var dateAndName = readData.Split('\n')[1];
-            //if (!char.IsDigit(dateAndName[studyInfoLength]))
-            //{
-            //    studyInfoLength--;
-            //}
 
-            //var studyBeginning = dateAndName.Substring(0, studyInfoLength);
-            //var fullName = dateAndName.Substring(studyInfoLength, dateAndName.Length - studyInfoLength).Split(' ');
-            //model.last_name = fullName[0];
-            //model.first_name = fullName[1];
-            //model.patronymic = fullName[2];
+            var unknownStudent = new StudentModel
+            {
+                card_uid = readData.CardUid,
+                card_id = readData.CardId,
+                first_name = readData.FirstName,
+                last_name = readData.LastName,
+                patronymic = readData.SecondName
+            };
+            if (readData.FullName != null)
+            {
+                UpdateDescription(unknownStudent);
+
+            }
+
+            UpdatePhoto(unknownStudent);
         }
 
         private void Register(List<StudentLessonModel> models)
@@ -222,15 +177,16 @@ namespace TeacherAssistant.RegistrationPage
             foreach (var studentLessonModel in models)
             {
                 studentLessonModel.registered = 1;
-                LessonStudents.Remove(studentLessonModel);
+                LessonStudentsView.Remove(studentLessonModel);
                 if (SelectedLessonStudents.Contains(studentLessonModel))
                 {
                     SelectedLessonStudents.Remove(studentLessonModel);
                 }
-                RegisteredStudents.Add(studentLessonModel);
+
+                _registeredStudents.Add(studentLessonModel);
             }
 
-            GeneralDbContext.GetInstance().SaveChanges();
+            GeneralDbContext.Instance.SaveChanges();
         }
 
         private void RegisterExtStudent(StudentModel studentModel)
@@ -241,9 +197,9 @@ namespace TeacherAssistant.RegistrationPage
                 student_id = studentModel.id,
                 registered = 1
             };
-            RegisteredStudents.Add(studentLessonModel);
-            GeneralDbContext.GetInstance().StudentLessonModels.Add(studentLessonModel);
-            GeneralDbContext.GetInstance().SaveChanges();
+            _registeredStudents.Add(studentLessonModel);
+            GeneralDbContext.Instance.StudentLessonModels.Add(studentLessonModel);
+            GeneralDbContext.Instance.SaveChanges();
         }
 
         private void UnRegister(List<StudentLessonModel> models)
@@ -251,31 +207,36 @@ namespace TeacherAssistant.RegistrationPage
             foreach (var studentLessonModel in models)
             {
                 studentLessonModel.registered = 0;
-                RegisteredStudents.Remove(studentLessonModel);
+                RegisteredStudentsView.Remove(studentLessonModel);
                 if (SelectedRegisteredStudents.Contains(studentLessonModel))
                 {
                     SelectedRegisteredStudents.Remove(studentLessonModel);
                 }
-                LessonStudents.Add(studentLessonModel);
+
+                _lessonStudents.Add(studentLessonModel);
             }
 
-            GeneralDbContext.GetInstance().SaveChanges();
+            GeneralDbContext.Instance.SaveChanges();
         }
 
         private void UpdatePhoto(StudentModel model)
         {
             if (model == null) return;
             StudentPhoto = null;
+            // Запускаем асинхронную задачу
             Task.Run(async () =>
             {
-                var photoPath = await PhotoService.GetInstance().DownloadPhoto(model.card_id);
+                // Скачиваем фото студента и получаем путь к файлу
+                string photoPath = await PhotoService.DownloadPhoto(model.card_id);
                 if (photoPath == null)
                 {
                     return;
                 }
 
-                var uriSource = new Uri(photoPath);
-                Application.Current.Dispatcher.Invoke(() => { StudentPhoto = new BitmapImage(uriSource); },
+                // Если путь вернулся успешно, то мы можем считать загруженный файл в объект изображения
+                BitmapImage image = await PhotoService.GetImage(photoPath);
+                // Возвращаемся в основной поток - тот при первой же возможности отобразит изображение в программе
+                Application.Current.Dispatcher.Invoke(() => { StudentPhoto = image; },
                     DispatcherPriority.DataBind);
             });
         }
@@ -283,7 +244,18 @@ namespace TeacherAssistant.RegistrationPage
         private void UpdateDescription(StudentModel model)
         {
             if (model == null) return;
-            ActiveStudentInfo = $"{model.last_name}  {model.first_name} {(model.patronymic ?? "")} \nПропуски: {GetStudentMissedLessons(model).Count}";
+            var missedLessons = GetStudentMissedLessons(model);
+            var missedLectures = missedLessons.Where(lessonModel =>
+                lessonModel.Lesson.type_id.HasValue && lessonModel.Lesson.type_id.Value == (long)LessonType.Lecture);
+            var missedPractices = missedLessons.Where(lessonModel =>
+                lessonModel.Lesson.type_id.HasValue && lessonModel.Lesson.type_id.Value == (long)LessonType.Practice);
+            var missedLabs = missedLessons.Where(lessonModel =>
+                lessonModel.Lesson.type_id.HasValue &&
+                lessonModel.Lesson.type_id.Value == (long)LessonType.Laboratory);
+            ActiveStudentInfo =
+                $"{model.last_name} {model.first_name} {(model.patronymic ?? "")} \n" +
+                $"Пропуски: {missedLessons.Count} -> Л {missedLectures.Count()} | " +
+                $"П {missedPractices.Count()} | Лб {missedLabs.Count()}";
         }
 
         public void Remove(StudentLessonModel model)
@@ -293,9 +265,9 @@ namespace TeacherAssistant.RegistrationPage
                 return;
             }
 
-            LessonStudents.Remove(model);
-            GeneralDbContext.GetInstance().StudentLessonModels.Remove(model);
-            GeneralDbContext.GetInstance().SaveChanges();
+            LessonStudentsView.Remove(model);
+            GeneralDbContext.Instance.StudentLessonModels.Remove(model);
+            GeneralDbContext.Instance.SaveChanges();
         }
 
         public string ActiveStudentInfo
@@ -308,13 +280,13 @@ namespace TeacherAssistant.RegistrationPage
             }
         }
 
-        public ObservableCollection<StudentLessonModel> RegisteredStudents
+        public ListCollectionView RegisteredStudentsView
         {
-            get => _registeredStudents;
+            get => _registeredStudentsView;
             set
             {
-                _registeredStudents = value;
-                OnPropertyChanged(nameof(RegisteredStudents));
+                _registeredStudentsView = value;
+                OnPropertyChanged(nameof(RegisteredStudentsView));
             }
         }
 
@@ -332,6 +304,7 @@ namespace TeacherAssistant.RegistrationPage
 
         public ObservableCollection<StudentLessonModel> SelectedRegisteredStudents { get; set; } =
             new ObservableCollection<StudentLessonModel>();
+
         public ObservableCollection<StudentLessonModel> SelectedLessonStudents { get; set; } =
             new ObservableCollection<StudentLessonModel>();
 
@@ -358,13 +331,13 @@ namespace TeacherAssistant.RegistrationPage
         }
 
 
-        public ObservableCollection<StudentLessonModel> LessonStudents
+        public ListCollectionView LessonStudentsView
         {
-            get => _lessonStudents;
+            get => _lessonStudentsView;
             set
             {
-                _lessonStudents = value;
-                OnPropertyChanged(nameof(LessonStudents));
+                _lessonStudentsView = value;
+                OnPropertyChanged(nameof(LessonStudentsView));
             }
         }
 
@@ -390,6 +363,102 @@ namespace TeacherAssistant.RegistrationPage
             set => _doUnRegister = value;
         }
 
-        public bool IsAutoRegistrationEnabled { get; set; }
+        public bool IsAutoRegistrationEnabled
+        {
+            get => _isAutoRegistrationEnabled;
+            set
+            {
+                _isAutoRegistrationEnabled = value;
+                OnPropertyChanged(nameof(IsAutoRegistrationEnabled));
+            }
+        }
+
+        public string LessonStudentsFilterText
+        {
+            get => _lessonStudentsFilterText;
+            set
+            {
+                _lessonStudentsFilterText = value.ToLowerInvariant();
+                OnPropertyChanged(nameof(LessonStudentsFilterText));
+                if (_lessonStudentsFilterText != "")
+                {
+                    LessonStudentsView.Filter = o =>
+                    {
+                        var student = ((StudentLessonModel)o).Student;
+                        return student.first_name != null &&
+                               student.first_name.ToLowerInvariant().Contains(_lessonStudentsFilterText)
+                               || student.last_name != null && student.last_name.ToLowerInvariant()
+                                   .Contains(_lessonStudentsFilterText)
+                               || student.patronymic != null && student.patronymic.ToLowerInvariant()
+                                   .Contains(_lessonStudentsFilterText);
+                    };
+                }
+                else
+                {
+                    LessonStudentsView.Filter = null;
+                }
+            }
+        }
+
+        public string RegisteredStudentsFilterText
+        {
+            get => _registeredStudentsFilterText;
+            set
+            {
+                _registeredStudentsFilterText = value.ToLowerInvariant();
+                OnPropertyChanged(nameof(RegisteredStudentsFilterText));
+                if (_registeredStudentsFilterText != "")
+                {
+                    RegisteredStudentsView.Filter = o =>
+                    {
+                        var student = ((StudentLessonModel)o).Student;
+                        return (student.first_name != null && student.first_name.ToLowerInvariant()
+                                    .Contains(_registeredStudentsFilterText))
+                               || (student.last_name != null && student.last_name.ToLowerInvariant()
+                                       .Contains(_registeredStudentsFilterText))
+                               || (student.patronymic != null && student.patronymic.ToLowerInvariant()
+                                       .Contains(_registeredStudentsFilterText));
+                    };
+                }
+                else
+                {
+                    RegisteredStudentsView.Filter = null;
+                }
+            }
+        }
+
+        public override async Task Init(string id)
+        {
+            _doRegister = new CommandHandler(() =>
+            {
+                Register(new List<StudentLessonModel>(SelectedLessonStudents));
+            });
+            _doUnRegister = new CommandHandler(() =>
+            {
+                UnRegister(new List<StudentLessonModel>(SelectedRegisteredStudents));
+            });
+            SimpleSubscribe<LessonModel>(id + "." + SchedulePageModel.SELECTED_LESSON, model =>
+            {
+                if (model == null) return;
+                _currentLesson = model;
+                _lessonStudents.Clear();
+                _registeredStudents.Clear();
+                var studentModels = GetStudentLessonModels(model);
+                AddMissingStudents(studentModels, _currentLesson);
+                _studentLessonModels = studentModels;
+                _lessonStudents =
+                    new ObservableCollection<StudentLessonModel>(
+                        _studentLessonModels.Where(lessonModel =>
+                            !lessonModel.registered.HasValue || lessonModel.registered.Value == 0));
+                _registeredStudents = new ObservableCollection<StudentLessonModel>(
+                    _studentLessonModels.Where(lessonModel =>
+                        lessonModel.registered.HasValue && lessonModel.registered.Value != 0));
+                LessonStudentsView = new ListCollectionView(_lessonStudents);
+                RegisteredStudentsView = new ListCollectionView(_registeredStudents);
+            });
+            SimpleSubscribe<StudentModel>("LastReadStudentCard", model => SelectedStudent = model);
+
+            SerialUtil.OnRead().Subscribe(ReadStudentData);
+        }
     }
 }

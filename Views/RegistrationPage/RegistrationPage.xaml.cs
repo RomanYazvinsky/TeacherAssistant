@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,12 +18,12 @@ namespace TeacherAssistant.RegistrationPage
         public RegistrationPage(string id)
         {
             InitializeComponent();
-            Injector.GetInstance().Kernel.Rebind<RegistrationPageModel>().ToSelf().InSingletonScope().WithConstructorArgument(id);
             _model = Injector.GetInstance().Kernel.Get<RegistrationPageModel>();
+            _model.Init(id);
             DataContext = _model;
 
-            SortAdorner.AddColumnSorting(RegisteredStudentsList);
-            SortAdorner.AddColumnSorting(LessonStudentsList);
+            SortHelper.AddColumnSorting(RegisteredStudentsList);
+            SortHelper.AddColumnSorting(LessonStudentsList);
         }
 
         private void OnRegisteredStudentsSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -87,6 +86,11 @@ namespace TeacherAssistant.RegistrationPage
             {
                 _model.Remove((StudentLessonModel)LessonStudentsList.SelectedItem);
             }
+        }
+
+        private void OnRegisteredStudentsFilterChanged(object sender, TextChangedEventArgs textChangedEventArgs)
+        {
+            Debug.WriteLine(textChangedEventArgs.Changes);
         }
     }
 }

@@ -39,7 +39,6 @@ namespace Model.Models
             {
                 return DateTime.ParseExact(DATE.Substring(0, 10), "yyyy-MM-dd", CultureInfo.InvariantCulture);
             }
-
         }
         public string DATE { get; set; }
 

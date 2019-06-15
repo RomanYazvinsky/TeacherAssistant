@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using TeacherAssistant.ComponentsImpl;
@@ -22,18 +22,70 @@ namespace TeacherAssistant
 
         private Tab GetTabByTabItem(TabItem tab)
         {
-            return tab == null ? null : _store.GetState().GetOrDefault<ObservableCollection<Tab>>(TABS).FirstOrDefault(item => tab.Content.Equals(item.Component));
+            return tab == null
+                ? null
+                : _store.GetState().GetOrDefault<ObservableCollection<Tab>>(TABS)
+                    .FirstOrDefault(item => tab.Content.Equals(item.Component));
         }
 
-        public TabManagerModel()
+        private void CloseTab(Tab tab)
         {
+            var tabs = _store.GetState().GetOrDefault<ObservableCollection<Tab>>(TABS);
+            var index = tabs.IndexOf(tab);
+           
+            bool isLast = index == tabs.Count - 1;
+            if (index == 0 && isLast)
+            {
+                return;
+            }
+            tabs.Remove(tab);
+            Publisher.Publish(TABS, new ObservableCollection<Tab>(tabs)); // For DistinctUntilChanged
+            if (isLast)
+            {
+                Publisher.Publish(ACTIVE_TAB, tabs[tabs.Count - 1]);
+            }
+            else
+            {
+                Publisher.Publish(ACTIVE_TAB, GetTabByTabItem(ActiveTab));
+            }
+        }
+
+        public ObservableCollection<TabItem> Tabs
+        {
+            get => _tabs;
+            set
+            {
+                _tabs = value;
+                OnPropertyChanged(nameof(Tabs));
+            }
+        }
+
+        public TabItem ActiveTab
+        {
+            get => _activeTab;
+            set
+            {
+                if (value == null || _activeTab == value)
+                {
+                    return;
+                }
+
+                _activeTab = value;
+                value.IsSelected = true;
+                Publisher.Publish(ACTIVE_TAB, GetTabByTabItem(value));
+                OnPropertyChanged(nameof(ActiveTab));
+            }
+        }
+
+        public override async Task Init(string id)
+        {
+
             SimpleSubscribe<Tab>(ACTIVE_TAB, tab =>
             {
                 if (tab == null) return;
                 ActiveTab = GetTabItemByTab(tab);
-                Debug.WriteLine(tab.Header);
             });
-            SimpleSubscribe<ObservableCollection<Tab>>(TABS, tabs =>
+            SimpleSubscribeCollection<Tab>(TABS, tabs =>
             {
                 if (tabs == null) return;
                 Tabs.Clear();
@@ -45,32 +97,33 @@ namespace TeacherAssistant
                     header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(80) });
                     header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
                     header.Children.Add(headerName);
+                    var closeButton = new TextBlock
+                    {
+                        Text = "X",
+                        Width = 20,
+                        TextAlignment = TextAlignment.Right
+                    };
                     header.MouseEnter += (sender, args) =>
                     {
                         if (Tabs.Count <= 1)
                         {
                             return;
                         }
-
-                        var closeButton = new TextBlock
-                        {
-                            Text = "X",
-                            Width = 20,
-                            TextAlignment = TextAlignment.Center
-                        };
-                        closeButton.MouseDown += (o, args1) => { CloseTab(tab); };
-                        header.Children.Add(closeButton);
-                        Grid.SetColumn(closeButton, 1);
+                        
+                     
                     };
-                    header.MouseLeave += (sender, args) =>
-                    {
-                        if (Tabs.Count < 2 || header.Children.Count < 2)
-                        {
-                            return;
-                        }
+                    closeButton.MouseDown += (o, args1) => { CloseTab(tab); };
+                    header.Children.Add(closeButton);
+                    Grid.SetColumn(closeButton, 1);
+                    //header.MouseLeave += (sender, args) =>
+                    //{
+                    //    if (Tabs.Count < 2 || header.Children.Count < 2)
+                    //    {
+                    //        return;
+                    //    }
 
-                        header.Children.RemoveAt(1);
-                    };
+                    //    header.Children.RemoveAt(1);
+                    //};
                     tabItem.Header = header;
                     tabItem.Content = tab.Component;
                     return tabItem;
@@ -80,34 +133,6 @@ namespace TeacherAssistant
                     Tabs.Add(item);
                 }
             });
-        }
-
-        private void CloseTab(Tab tab)
-        {
-            var tabs = _store.GetState().GetOrDefault<ObservableCollection<Tab>>(TABS);
-            tabs.Remove(tab);
-            Publisher.Publish(TABS, new ObservableCollection<Tab>(tabs)); // For DistinctUntilChanged
-        }
-
-        public ObservableCollection<TabItem> Tabs
-        {
-            get => _tabs;
-            set => _tabs = value;
-        }
-
-        public TabItem ActiveTab
-        {
-            get => _activeTab;
-            set
-            {
-                if (value == null)
-                {
-                    return;
-                }
-                _activeTab = value;
-                value.IsSelected = true;
-                Publisher.Publish(ACTIVE_TAB, GetTabByTabItem(value));
-            }
         }
     }
 }

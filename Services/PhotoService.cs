@@ -1,42 +1,36 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Dao;
-using Model.Models;
 using Newtonsoft.Json.Linq;
 using System.Linq;
-using TeacherAssistant.State;
+using System.Windows.Media.Imaging;
 using static System.IO.Directory;
 
 namespace TeacherAssistant.Components
 {
-    public class PhotoService
+    public class PhotoService : IPhotoService
     {
-        private static PhotoService _instance;
-        private PhotoService()
-        {
-        }
+        private const int CacheCapacity = 60;
+        private readonly Dictionary<string, BitmapImage> _cache = new Dictionary<string, BitmapImage>(CacheCapacity);
+        private bool _exist = false;
 
-        public static PhotoService GetInstance()
-        {
-            return _instance ?? (_instance = new PhotoService());
-        }
+        public string Directory = Path.Combine(Environment.CurrentDirectory, "photos");
 
-        private static readonly string Directory = Path.Combine(Environment.CurrentDirectory, "photos");
-
-        private static string GetPersonalId(string cardUid)
+        private async Task<string> GetPersonalId(string cardUid)
         {
-            HttpWebRequest request =
-                (HttpWebRequest)WebRequest.Create("http://api.grsu.by/1.x/app3/getStudentByCard?cardid=" + cardUid);
+            var request =
+                (HttpWebRequest) WebRequest.Create("http://api.grsu.by/1.x/app3/getStudentByCard?cardid=" + cardUid);
+            var response = await request.GetResponseAsync().ConfigureAwait(false);
             try
             {
-                WebResponse response = request.GetResponse();
                 using (Stream responseStream = response.GetResponseStream())
                 {
-                    StreamReader reader = new StreamReader(responseStream ?? throw new InvalidOperationException(), System.Text.Encoding.UTF8);
-                    string s = reader.ReadToEnd().Replace("[", "").Replace("]", "");
+                    var reader = new StreamReader(responseStream ?? throw new InvalidOperationException(),
+                        System.Text.Encoding.UTF8);
+                    var s = reader.ReadToEnd().Replace("[", "").Replace("]", "");
                     return JObject.Parse(s)["TN"].Value<string>();
                 }
             }
@@ -46,51 +40,86 @@ namespace TeacherAssistant.Components
             }
         }
 
-        private static async Task SaveImage(string path, byte[] image)
+        private async Task SaveImage(string path, byte[] image)
         {
             using (var sourceStream = File.Open(path, FileMode.OpenOrCreate))
             {
                 sourceStream.Seek(0, SeekOrigin.End);
-                await sourceStream.WriteAsync(image, 0, image.Length);
+                await sourceStream.WriteAsync(image, 0, image.Length).ConfigureAwait(false);
             }
         }
 
-        public async Task<string> DownloadPhoto(string id)
+        public async Task<BitmapImage> GetImage(string path)
+        {
+            if (path == null) return null;
+            BitmapImage bitmapImage = null;
+            if (_cache.ContainsKey(path))
+            {
+                return _cache[path];
+            }
+
+            await Task.Run(() =>
+            {
+                using (var stream = File.OpenRead(path))
+                {
+                    bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.StreamSource = stream;
+                    bitmapImage.EndInit();
+                }
+
+                bitmapImage.Freeze();
+            }).ConfigureAwait(false);
+            if (_cache.Count == CacheCapacity)
+            {
+                _cache.Remove(_cache.Keys.First());
+            }
+
+            _cache.Add(path, bitmapImage);
+            return bitmapImage;
+        }
+
+        public async Task<string> DownloadPhoto(string cardId)
         {
             string path = null;
             try
             {
-                if (!Exists(Directory))
+                if (!_exist || !Exists(Directory))
                 {
-                    CreateDirectory(Directory);
+                    _exist = CreateDirectory(Directory).Exists;
                 }
-                path = Path.Combine(Directory, id + ".jpg");
+
+                path = Path.Combine(Directory, cardId + ".jpg");
                 if (File.Exists(path))
                 {
                     return path;
                 }
 
-                var personalId = GetPersonalId(id);
+                var personalId = await GetPersonalId(cardId).ConfigureAwait(false);
                 if (personalId == null)
                 {
                     return null;
                 }
+
                 using (var client = new WebClient())
                 {
                     try
                     {
-                        var image = await client.DownloadDataTaskAsync(new Uri("https://intra.grsu.by/photos/" + personalId + ".jpg"));
-                        await SaveImage(path, image);
+                        var image = await client.DownloadDataTaskAsync(
+                            new Uri("https://intra.grsu.by/photos/" + personalId + ".jpg")).ConfigureAwait(false);
+                        await SaveImage(path, image).ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
+                        Debug.WriteLine(e);
                         return null;
                     }
-
                 }
             }
             catch (Exception e)
             {
+                Debug.WriteLine(e);
             }
 
             return path;

@@ -4,22 +4,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Models
 {
-    [Table("STUDENT_GROUP")]
+  // [Table("STUDENT_GROUP")]
     public class StudentGroupModel
     {
-        [Key]
+      //  [Key]
         public long id { get; set; }
 
-        [ForeignKey("student_id")]
-        public StudentModel Student { get; set; }
+        public virtual StudentModel Student { get; set; }
 
-        [ForeignKey("group_id")]
-        public GroupModel Group { get; set; }
-
-        [ForeignKey("praepostor")]
-        public StudentModel Praepostor { get; set; }
-
+        public virtual GroupModel Group { get; set; }
+        
+        [Key, Column("student_id")]
         public long? student_id { get; set; }
+        [Key, Column("group_id")]
         public long? group_id { get; set; }
         public long? praepostor { get; set; }
     }

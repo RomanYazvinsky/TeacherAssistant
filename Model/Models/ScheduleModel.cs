@@ -1,36 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Model.Models
 {
     [Table("SCHEDULE")]
-    public class ScheduleModel
+    public class ScheduleModel : IComparable
     {
         [Key]
         public long id { get; set; }
 
-        public DateTime Begin
-        {
-            get
-            {
-                return DateTime.Parse(begin);
-            }
+        public DateTime Begin => DateTime.Parse(begin);
 
-        }
-
-        public DateTime End
-        {
-            get
-            {
-                return DateTime.Parse(end);
-            }
-
-        }
+        public DateTime End => DateTime.Parse(end);
 
         public string begin { get; set; }
 
@@ -45,6 +27,15 @@ namespace Model.Models
         public override string ToString()
         {
             return begin + " - " + end;
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (!(obj is ScheduleModel o))
+            {
+                return 1;
+            }
+            return Begin.CompareTo(o.Begin);
         }
     }
 }

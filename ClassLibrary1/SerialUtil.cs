@@ -1,175 +1,125 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Ports;
+using System.Reactive.Linq;
+using System.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
+using SerialPortLib;
 
 namespace TeacherAssistant.ReaderPlugin
 {
-    /**
-     * Manages connection to Card reader
-     */
     public class SerialUtil : ISerialUtil
     {
-        private SerialPort _serialPort;
-        public event EventHandler<string> DataReceivedSuccess;
-        public event EventHandler<string> DataReceivedError;
+        private SerialPortInput _serialPort;
         public event EventHandler<string> Connected;
         public event EventHandler Disconnected;
-        private CancellationTokenSource _cancellationTokenSource;
-        private static string HexToString(string hex)
-        {
-            var buffer = new byte[hex.Length / 2];
-            for (int i = 0; i < hex.Length; i += 2)
-            {
-                string hexdec = hex.Substring(i, 2);
-                buffer[i / 2] = byte.Parse(hexdec, NumberStyles.HexNumber);
-            }
+        public event EventHandler<string> ConnectionFailed;
+        private volatile bool _isReadingAllowed = false;
+        private volatile bool _connected = false;
+        private string _portName;
+        private IObservable<string> _fromEvent;
 
-            return Encoding.GetEncoding("Windows-1251").GetString(buffer);
-        }
-
-
-        private static string ParseData(string data)
-        {
-            return HexToString(Regex.Replace(data, @"\s+", ""));
-        }
-
-        private static string CleanData(string data)
-        {
-            return data.Replace("\r", "").Replace("\0", "");
-        }
-
-        public void Start()
-        {
-            Task.Run(async () =>
-            {
-                EventHandler<string> connectedHandler = null;
-                connectedHandler = async (sender, s) =>
-                {
-                    _cancellationTokenSource = new CancellationTokenSource();
-                    try
-                    {
-                        while (true)
-                        {
-                            var result = await _serialPort.ReadAsync(_cancellationTokenSource.Token);
-                            if (!result.StartsWith("Card"))
-                            {
-                                result = ParseData(result);
-                            }
-
-                            result = CleanData(result);
-                            DataReceivedSuccess?.Invoke(this, result);
-
-                        }
-                    }
-                    catch (OperationCanceledException e)
-                    {
-                        _serialPort.Close();
-                        Debug.WriteLine(e);
-                        Connected -= connectedHandler;
-                        Disconnected?.Invoke(this, null);
-                    }
-                };
-                Connected += connectedHandler;
-                foreach (var portName in SerialPort.GetPortNames())
-                {
-                    try
-                    {
-                        Debug.WriteLine($"Trying to access '{portName}' port - ");
-                        await TryConnect(portName);
-                        Connected?.Invoke(this, portName);
-                    }
-                    catch (OperationCanceledException e)
-                    {
-                        Debug.Write("Timeout exceed, trying one more time");
-                        _serialPort.Close();
-                        try
-                        {
-                            await TryConnect(portName);
-                            Connected?.Invoke(this, portName);
-                        }
-                        catch (OperationCanceledException exception)
-                        {
-                            _serialPort.Close();
-                        }
-
-                    }
-                }
-            });
-        }
-
-        private async Task<bool> TryConnect(string portName)
-        {
-            _cancellationTokenSource = new CancellationTokenSource();
-            _serialPort.PortName = portName;
-            _serialPort.Open();
-            _serialPort.Write("get info");
-            Timer timer = null;
-            timer = new Timer(obj =>
-            {
-                _cancellationTokenSource.Cancel(true);
-                timer.Dispose();
-            }, null, 2000, Timeout.Infinite);
-            var result = await _serialPort.ReadAsync(_cancellationTokenSource.Token);
-            timer.Dispose();
-            return result.StartsWith("RFID");
-        }
-
-        private static SerialPort Initialize()
-        {
-            var port = new SerialPort
-            {
-                BaudRate = 57600,
-                DataBits = 8,
-                StopBits = StopBits.One,
-                Parity = Parity.None,
-                RtsEnable = false,
-                DtrEnable = false,
-                Handshake = Handshake.None,
-                ReadTimeout = 1000,
-                WriteTimeout = 500
-            };
-            return port;
-        }
 
         public SerialUtil()
         {
-            _serialPort = Initialize();
+            _isReadingAllowed = false;
+            Connected += (sender, s) =>
+            {
+
+                Observable.Interval(TimeSpan.FromMilliseconds(5000))
+                    .TakeWhile(l => _connected)
+                    .Subscribe(l =>
+                    {
+                        if (SerialPort.GetPortNames().Contains(s)) return;
+                        ConnectionFailed?.Invoke(this, "Connection aborted");
+                        Close();
+                    });
+            };
+
+            _serialPort = new SerialPortInput();
+            _fromEvent = Observable.FromEventPattern<SerialPortInput.MessageReceivedEventHandler, MessageReceivedEventArgs>(handler =>
+                _serialPort.MessageReceived += handler, handler => _serialPort.MessageReceived -= handler).Select(eventPattern =>
+            {
+
+                return Encoding.ASCII.GetString(eventPattern.EventArgs.Data);
+            });
+            OnRead().Subscribe(card => { Debug.WriteLine(card); });
         }
+
+
+
+        private void TryConnect(string portName)
+        {
+
+
+            _serialPort.SetPort(portName, 57600);
+            Timer timer = null;
+            timer = new Timer(obj =>
+            {
+                // Dispose() is not immediate
+                if (_connected) return;
+                Close();
+                timer.Dispose();
+                ConnectionFailed?.Invoke(this, $"Connection to port \"{portName}\" failed");
+            }, null, 5000, Timeout.Infinite);
+            _fromEvent.Take(1).Subscribe(result =>
+              {
+
+                  // prevent timer to be executed
+                  _connected = true;
+                  timer.Dispose();
+                  Connected?.Invoke(this, portName);
+              });
+
+            _serialPort.Connect();
+            _serialPort.SendMessage(Encoding.ASCII.GetBytes("get info"));
+        }
+
+        private IObservable<string> AsObservable()
+        {
+            return _fromEvent
+                .Where(s => !s.StartsWith("RFID"));
+        }
+        public void Start()
+        {
+            if (_isReadingAllowed) return;
+            foreach (var portName in SerialPort.GetPortNames())
+            {
+                Debug.WriteLine($"Trying to access '{portName}' port - ");
+                TryConnect(portName);
+            }
+        }
+
 
         public void Close()
         {
-            _serialPort.Close();
-            _cancellationTokenSource?.Cancel(true);
-        }
-
-
-        public async Task<string> ReadAsync(CancellationToken cancellationToken = new CancellationToken())
-        {
-            return await _serialPort.ReadAsync(cancellationToken);
-        }
-
-        public async Task<string> ReadCardAsync(CancellationToken cancellationToken = new CancellationToken())
-        {
-            _serialPort.DiscardInBuffer();
-            _serialPort.DiscardOutBuffer();
-            string cardInfo = await ReadAsync(cancellationToken);
-            if (!cardInfo.StartsWith("Card UID"))
+            _isReadingAllowed = false;
+            _connected = false;
+            if (_serialPort.IsConnected)
             {
-                return null;
+                _serialPort.Disconnect();
             }
 
-            string hexStr = await ReadAsync(cancellationToken);
+            Disconnected?.Invoke(this, null);
+        }
 
 
-            cardInfo += Environment.NewLine + ParseData(hexStr);
-            return cardInfo;
+
+        public IObservable<StudentCard> OnRead()
+        {
+            var observable = AsObservable()
+                .Select(s => s
+                    .Replace("\r", "")
+                    .Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                )
+                .Where(strings => strings.Length > 0);
+            var throttle = observable.Throttle(TimeSpan.FromMilliseconds(500));
+            return observable.Buffer(throttle)
+                .Select(s => new StudentCard(s.Aggregate((strings, strings1) => strings.Concat(strings1).ToArray())));
         }
     }
 }

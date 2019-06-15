@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows;
-using Dao;
+﻿using System.Windows;
 using Ninject;
 using Ninject.Extensions.Conventions;
+using TeacherAssistant.Components;
+using TeacherAssistant.GroupTable;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant
@@ -33,6 +27,10 @@ namespace TeacherAssistant
         private void ConfigureContainer()
         {
             container = Injector.GetInstance().Kernel;
+            container.Bind(syntax => syntax.FromAssembliesMatching(".").SelectAllClasses()
+                .InheritedFrom<ISerialUtil>().BindDefaultInterface().Configure(onSyntax => onSyntax.InSingletonScope()));
+            container.Bind(syntax => syntax.FromAssembliesMatching(".").SelectAllClasses()
+                .InheritedFrom<IPhotoService>().BindDefaultInterface().Configure(onSyntax => onSyntax.InSingletonScope()));
         }
 
         private void ComposeObjects()

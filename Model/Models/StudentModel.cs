@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Models
 {
     [Table("STUDENT")]
-    public class StudentModel : IComparable
+    public class StudentModel : IComparable, ICloneable
     {
+        public StudentModel()
+        {
+            Groups = new HashSet<GroupModel>();
+        }
+
         [Key]
         public long id { get; set; }
 
@@ -25,9 +31,21 @@ namespace Model.Models
         public string email { get; set; }
 
         public byte[] image { get; set; }
+
+        public virtual ICollection<GroupModel> Groups { get; set; }
         public int CompareTo(object obj)
         {
-            return String.Compare((obj as StudentModel)?.last_name, last_name, StringComparison.Ordinal);
+            return string.Compare((obj as StudentModel)?.last_name, last_name, StringComparison.Ordinal);
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public static string CardUidToId(string cardUid)
+        {
+            return int.Parse(cardUid, System.Globalization.NumberStyles.HexNumber).ToString();
         }
     }
 }

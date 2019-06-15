@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Models
 {
-    [Table("STREAM_GROUP")]
+  //  [Table("STREAM_GROUP")]
     public class StreamGroupModel
     {
         [Key]

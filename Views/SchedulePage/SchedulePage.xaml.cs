@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
@@ -15,8 +14,11 @@ namespace TeacherAssistant.SchedulePage
         public SchedulePage(string id)
         {
             InitializeComponent();
-            DataContext = new SchedulePageModel(id);
-            SortAdorner.AddColumnSorting(LessonList);
+            var schedulePageModel = new SchedulePageModel();
+            DataContext = schedulePageModel;
+            schedulePageModel.Init(id);
+
+            SortHelper.AddColumnSorting(LessonList);
         }
 
         private void OnSelectItem(object sender, MouseButtonEventArgs mouseButtonEventArgs)
@@ -26,7 +28,7 @@ namespace TeacherAssistant.SchedulePage
                 return;
             }
 
-            ((SchedulePageModel) DataContext).SelectedLesson = (LessonModel) LessonList.SelectedItem;
+            ((SchedulePageModel)DataContext).SelectedLesson = (LessonModel)LessonList.SelectedItem;
         }
     }
 }

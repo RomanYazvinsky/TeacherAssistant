@@ -6,33 +6,33 @@ using System.Windows.Media;
 
 namespace TeacherAssistant.ComponentsImpl
 {
-    public class SortAdorner : Adorner
+    public class SortHelper : Adorner
     {
         public static void AddColumnSorting(ListView listView)
         {
             GridViewColumnHeader listViewSortCol = null;
-            SortAdorner listViewSortAdorner = null;
-            foreach (var gridViewColumn in ((GridView)listView.View).Columns)
+            SortHelper listViewSortHelper = null;
+            foreach (var gridViewColumn in ((GridView) listView.View).Columns)
             {
-                ((GridViewColumnHeader)gridViewColumn.Header).MouseDown += (sender, args) =>
-               {
-                   if (!(sender is GridViewColumnHeader column)) return;
-                   var sortBy = column.Tag.ToString();
-                   if (listViewSortCol != null)
-                   {
-                       AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSortAdorner);
-                       listView.Items.SortDescriptions.Clear();
-                   }
+                ((GridViewColumnHeader) gridViewColumn.Header).MouseDown += (sender, args) =>
+                {
+                    if (!(sender is GridViewColumnHeader column)) return;
+                    var sortBy = column.Tag.ToString();
+                    if (listViewSortCol != null)
+                    {
+                        AdornerLayer.GetAdornerLayer(listViewSortCol).Remove(listViewSortHelper);
+                        listView.Items.SortDescriptions.Clear();
+                    }
 
-                   var newDir = ListSortDirection.Ascending;
-                   if (listViewSortCol == column && listViewSortAdorner.Direction == newDir)
-                       newDir = ListSortDirection.Descending;
+                    var newDir = ListSortDirection.Ascending;
+                    if (listViewSortCol == column && listViewSortHelper.Direction == newDir)
+                        newDir = ListSortDirection.Descending;
 
-                   listViewSortCol = column;
-                   listViewSortAdorner = new SortAdorner(listViewSortCol, newDir);
-                   AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortAdorner);
-                   listView.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
-               };
+                    listViewSortCol = column;
+                    listViewSortHelper = new SortHelper(listViewSortCol, newDir);
+                    AdornerLayer.GetAdornerLayer(listViewSortCol).Add(listViewSortHelper);
+                    listView.Items.SortDescriptions.Add(new SortDescription(sortBy, newDir));
+                };
             }
         }
 
@@ -44,7 +44,7 @@ namespace TeacherAssistant.ComponentsImpl
 
         public ListSortDirection Direction { get; private set; }
 
-        public SortAdorner(UIElement element, ListSortDirection direction)
+        public SortHelper(UIElement element, ListSortDirection direction)
             : base(element)
         {
             Direction = direction;

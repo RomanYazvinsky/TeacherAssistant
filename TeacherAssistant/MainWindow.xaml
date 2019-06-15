@@ -4,26 +4,31 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TeacherAssistant"
+        xmlns:footer="clr-namespace:TeacherAssistant.Footer;assembly=TeacherAssistant.Components.Impl"
         mc:Ignorable="d"
-        Title="Assistant" MinHeight="450" MinWidth="800"
-        >
-    <Grid>
+        Title="Assistant" MinHeight="450" MinWidth="800" Closing="MainWindow_OnClosing">
+    <Grid ZIndex="0">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition  Height="*"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="25" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+        <DockPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Panel.ZIndex="1">
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="Файл">
-                    <MenuItem Header="Выбрать базу данных" Click="SelectDatabase_Click"></MenuItem>
-                    <MenuItem Header="Подключить считыватель" Click="ConnectReader_Click"></MenuItem>
-                    <MenuItem Header="Отключить считыватель" Click="DisconnectReader_Click"></MenuItem>
+                    <MenuItem Header="Выбрать базу данных" Click="SelectDatabase_Click" />
+                    <MenuItem Header="Выбрать папку с фото" Click="SelectPhotoDir_Click" />
+                    <MenuItem Name="Reader_Toggle"/>
                 </MenuItem>
+                <MenuItem Header="Расписание" Click="Schedule_Click" />
+                <MenuItem Header="Студенты" Click="Students_Click" />
+                <MenuItem Header="Группы" Click="Groups_Click" />
             </Menu>
         </DockPanel>
-        <TabControl Grid.Row="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Path=Tabs}" SelectedItem="{Binding Path=ActiveTab}">
-        </TabControl>
-
+        <TabControl Grid.Row="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Path=Tabs}"
+                    SelectedItem="{Binding Path=ActiveTab}" />
+        <footer:Footer Grid.ZIndex="2" Grid.Row="2" HorizontalAlignment="Stretch" Height="25" VerticalAlignment="Top" />
+    
     </Grid>
 
 </Window>

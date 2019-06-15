@@ -1,6 +1,4 @@
 ﻿using Ninject;
-using Ninject.Extensions.Conventions;
-using TeacherAssistant.ReaderPlugin;
 
 namespace TeacherAssistant.State
 {
@@ -11,8 +9,6 @@ namespace TeacherAssistant.State
         private Injector()
         {
             Kernel = new StandardKernel();
-            Kernel.Bind(syntax => syntax.FromAssembliesMatching(".").SelectAllClasses()
-                .InheritedFrom<ISerialUtil>().BindDefaultInterface().Configure(onSyntax => onSyntax.InSingletonScope()));
         }
 
         public static Injector GetInstance()

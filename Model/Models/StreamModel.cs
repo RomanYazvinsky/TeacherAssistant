@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -27,10 +28,13 @@ namespace Model.Models
         [ForeignKey("department_id")]
         public DepartmentModel Department { get; set; }
 
+        public virtual ICollection<GroupModel> Groups { get; set; }
+
         public Int64? lecturer_id { get; set; }
         public Int64? discipline_id { get; set; }
         public Int64? department_id { get; set; }
         public int? course { get; set; }
+
 
         public int? active { get; set; }
 
