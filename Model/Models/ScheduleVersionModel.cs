@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Models
 {
-    [Table("SCHEDULE_VERSION")]
+    // [Table("SCHEDULE_VERSION")]
     public class ScheduleVersionModel
     {
         [Key]

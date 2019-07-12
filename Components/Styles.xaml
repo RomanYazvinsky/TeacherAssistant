@@ -1,0 +1,42 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:markup="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="Placeholder" TargetType="{markup:Type TextBox}" BasedOn="{StaticResource {markup:Type TextBox}}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{markup:Type TextBox}">
+                    <Grid>
+                        <TextBox
+                            Text="{Binding Path=Text,
+                                                RelativeSource={RelativeSource TemplatedParent}, 
+                                                Mode=TwoWay,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                            x:Name="textSource"
+                            Background="Transparent"
+                            Panel.ZIndex="2" />
+                        <TextBox Text="{TemplateBinding Tag}" Background="{TemplateBinding Background}"
+                                 Panel.ZIndex="1">
+                            <TextBox.Style>
+                                <Style TargetType="{markup:Type TextBox}">
+                                    <Setter Property="Foreground" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding Path=Text, Source={markup:Reference textSource}}"
+                                            Value="">
+                                            <Setter Property="Foreground" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="LabelLike" TargetType="TextBox">
+        <Setter Property="IsReadOnly" Value="True"></Setter>
+        <Setter Property="Background" Value="Transparent"></Setter>
+        <Setter Property="BorderThickness" Value="0"></Setter>
+    </Style>
+</ResourceDictionary>

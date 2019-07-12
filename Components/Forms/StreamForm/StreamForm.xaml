@@ -1,0 +1,116 @@
+﻿<componentsImpl:View x:TypeArguments="local:StreamFormModel" x:Class="TeacherAssistant.Forms.StreamForm.StreamForm"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:local="clr-namespace:TeacherAssistant.Forms.StreamForm"
+                     xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+                     xmlns:label="clr-namespace:TeacherAssistant.Label"
+                     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+                     xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                     mc:Ignorable="d"
+                     d:DesignHeight="450" d:DesignWidth="800"
+                     d:DataContext="{d:DesignInstance local:StreamFormModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <Style TargetType="xctk:IntegerUpDown" x:Key="NumericStepper">
+                <Setter Property="Minimum" Value="0" />
+                <Setter Property="Maximum" Value="100" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+        <label:Label Grid.Row="0" Text="{Binding Path=Localization[discipline name]}">
+            <ComboBox ItemsSource="{Binding Path=Disciplines}" SelectedItem="{Binding Path=SelectedDiscipline}"
+                      DisplayMemberPath="Name" />
+        </label:Label>
+        <label:Label Grid.Row="1" Text="{Binding Path=Localization[department name]}">
+            <ComboBox ItemsSource="{Binding Path=Departments}" SelectedItem="{Binding Path=SelectedDepartment}"
+                      DisplayMemberPath="Name" />
+        </label:Label>
+        <label:Label Grid.Row="2" Text="{Binding Path=Localization[stream name]}">
+            <TextBox Text="{Binding Path=StreamName, UpdateSourceTrigger=PropertyChanged}" />
+        </label:Label>
+        <label:Label Grid.Row="3" Text="{Binding Path=Localization[stream course]}">
+            <ComboBox ItemsSource="{Binding Path=AvailableCourses}" SelectedItem="{Binding Path=SelectedCourse}"
+                      DisplayMemberPath="Label" />
+        </label:Label>
+        <label:Label Grid.Row="4" Text="{Binding Path=Localization[stream active]}">
+            <CheckBox IsChecked="{Binding Path=IsActive}" />
+        </label:Label>
+        <label:Label Grid.Row="5" Text="{Binding Path=Localization[stream expiration]}">
+            <DatePicker SelectedDate="{Binding Path=ExpirationDate}" />
+        </label:Label>
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <label:Label Grid.Column="0" Text="{Binding Path=Localization[stream lectures]}">
+                <xctk:IntegerUpDown Value="{Binding Path=LectureCount}" Style="{StaticResource NumericStepper}" />
+            </label:Label>
+            <label:Label Grid.Column="1" Text="{Binding Path=Localization[stream pract]}">
+                <xctk:IntegerUpDown Value="{Binding Path=PracticeCount}" Style="{StaticResource NumericStepper}" />
+            </label:Label>
+            <label:Label Grid.Column="2" Text="{Binding Path=Localization[stream labs]}">
+                <xctk:IntegerUpDown Value="{Binding Path=LaboratoryCount}" Style="{StaticResource NumericStepper}" />
+            </label:Label>
+        </Grid>
+        <Grid Grid.Row="7">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <tableFilter:TableFilter Grid.Column="0" Sorts="{Binding Path=GroupSorts}"
+                                     TableItems="{Binding AvailableGroups}"
+                                     FilterFunction="{Binding Path=GroupFilter}"
+                                     SelectedItems="{Binding Path=SelectedAvailableGroups}">
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader HorizontalContentAlignment="Center"
+                                                  Content="{Binding Localization[group name]}" Tag="Name" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </tableFilter:TableFilter>
+            <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Button Height="40" Grid.Column="0" Content="{Binding Path=Localization[add]}"
+                        Command="{Binding Path=AddGroupsHandler}" />
+                <Button Height="40" Grid.Column="1" Content="{Binding Path=Localization[remove]}"
+                        Command="{Binding Path=RemoveGroupsHandler}" />
+            </Grid>
+            <tableFilter:TableFilter Grid.Column="2" Sorts="{Binding Path=GroupSorts}"
+                                     TableItems="{Binding ChosenGroups}"
+                                     FilterFunction="{Binding Path=GroupFilter}"
+                                     SelectedItems="{Binding Path=SelectedChosenGroups}">
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader HorizontalContentAlignment="Center"
+                                                  Content="{Binding Localization[group name]}" Tag="Name" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </tableFilter:TableFilter>
+        </Grid>
+        <Button Grid.Row="8" Content="{Binding Path=Localization[save]}" Command="{Binding Path=SaveHandler}" />
+    </Grid>
+</componentsImpl:View>

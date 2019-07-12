@@ -1,0 +1,40 @@
+﻿<local:MainPageView x:Class="TeacherAssistant.Pages.MainWindowPage"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+          xmlns:local="clr-namespace:TeacherAssistant.Pages"
+          xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+          mc:Ignorable="d"
+          d:DesignHeight="450" d:DesignWidth="800"
+          d:DataContext="{d:DesignInstance local:MainWindowPageModel}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="25" />
+            <RowDefinition Height="0" />
+        </Grid.RowDefinitions>
+        <DockPanel LastChildFill="False" Name="Menu" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+            <Menu DockPanel.Dock="Left" Background="White">
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
+                    <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" />
+                </MenuItem>
+                <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
+                <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />
+                <MenuItem Header="Группы" Command="{Binding Path=OpenGroupsTable}" />
+                <MenuItem Header="Добавить">
+                    <MenuItem Header="Студент" Command="{Binding Path=OpenAddStudentForm}" />
+                    <MenuItem Header="Группа" Command="{Binding Path=OpenAddGroupForm}" />
+                    <MenuItem Header="Поток" Command="{Binding Path=OpenAddStreamForm}" />
+                    <MenuItem Header="Дисциплина" />
+                    <MenuItem Header="Факультет" />
+                    <MenuItem Header="Занятие" Command="{Binding Path=OpenAddLessonForm}" />
+                </MenuItem>
+            </Menu>
+            <Menu DockPanel.Dock="Right" Background="White" ItemsSource="{Binding Path=CurrentControls}"></Menu>
+        </DockPanel>
+        <UserControl Grid.Row="1" Content="{Binding CentralControl}" />
+    </Grid>
+</local:MainPageView>

@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Model.Models
 {
-    [Table("STUDENT_NOTIFICATION")]
+  //  [Table("STUDENT_NOTIFICATION")]
     public class StudentNotificationModel
     {
         [Key]
         public long id { get; set; }
 
         [ForeignKey("student_id")]
-        public StudentModel student { get; set; }
+        public virtual StudentModel student { get; set; }
 
         public long student_id { get; set; }
         public long active { get; set; }

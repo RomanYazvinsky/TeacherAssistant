@@ -1,0 +1,96 @@
+﻿<componentsImpl:View x:TypeArguments="local:LessonFormModel" x:Class="TeacherAssistant.Pages.LessonForm.LessonForm"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:local="clr-namespace:TeacherAssistant.Pages.LessonForm"
+                     xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+                     xmlns:label="clr-namespace:TeacherAssistant.Label"
+                     mc:Ignorable="d"
+                     d:DesignHeight="450" d:DesignWidth="800"
+                     d:DataContext="{d:DesignInstance local:LessonFormModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <BooleanToVisibilityConverter x:Key="b2v" />
+                </ResourceDictionary>
+                <ResourceDictionary Source="../../Styles.xaml" />
+                <ResourceDictionary>
+                    <Style TargetType="label:Label">
+                        <Setter Property="Margin" Value="5" />
+                        <Setter Property="Height" Value="30" />
+                        <Setter Property="ContentWidth" Value="3*" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Style.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Width="600">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="80" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <label:Label Text="Stream">
+            <ComboBox ItemsSource="{Binding Streams}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedStream}" />
+        </label:Label>
+        <label:Label Grid.Row="1" Text="Discipline">
+            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream._Discipline.Name}" />
+        </label:Label>
+        <label:Label Grid.Row="2" Text="Faculty">
+            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream._Department.Name}" />
+        </label:Label>
+        <label:Label Grid.Row="3" Text="Course">
+            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Course}" />
+        </label:Label>
+        <label:Label Grid.Row="4" Text="Type">
+            <ComboBox ItemsSource="{Binding LessonTypes}" SelectedItem="{Binding SelectedLessonType}" />
+        </label:Label>
+        <label:Label Grid.Row="5" Text="Groups"
+                     Visibility="{Binding IsGroupsAvailable, Converter={StaticResource b2v}}">
+            <ComboBox ItemsSource="{Binding Groups}" SelectedItem="{Binding Lesson.Group}" DisplayMemberPath="Name" />
+        </label:Label>
+        <label:Label Grid.Row="6" Text="{Binding [Date]}">
+            <DatePicker SelectedDate="{Binding LessonDate}" />
+        </label:Label>
+        <label:Label Grid.Row="7" Text="{Binding [schedule]}">
+            <ComboBox ItemsSource="{Binding ScheduleList}" SelectedItem="{Binding SelectedSchedule}" />
+        </label:Label>
+        <label:Label Grid.Row="8" Text="{Binding [description]}" Height="60">
+            <TextBox Text="{Binding Description}" AcceptsReturn="True" />
+        </label:Label>
+        <label:Label Grid.Row="9" Text="{Binding [all.present]}">
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding SetAllPresent}" />
+        </label:Label>
+        <Grid Grid.Row="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Margin="5, 5, 45, 5" Command="{Binding SaveButtonConfig.Command}"
+                    Content="{Binding SaveButtonConfig.Text}" />
+            <Button Grid.Column="1" Margin="5, 5, 45, 5" Command="{Binding RegisterButtonConfig.Command}"
+                    Content="{Binding RegisterButtonConfig.Text}" />
+            <Button Grid.Column="2" Margin="5, 5, 45, 5" Command="{Binding NewOneButtonConfig.Command}"
+                    Content="{Binding NewOneButtonConfig.Text}" />
+        </Grid>
+    </Grid>
+</componentsImpl:View>

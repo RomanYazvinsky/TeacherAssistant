@@ -1,58 +1,161 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using TeacherAssistant.Annotations;
+using TeacherAssistant.Dao;
+using TeacherAssistant.Dao.Notes;
 
-namespace Model.Models
-{
+namespace Model.Models {
     [Table("LESSON")]
-    public class LessonModel
-    {
-        [Key]
-        public long id { get; set; }
+    public class LessonModel : Trackable<LessonModel>, INotifyPropertyChanged {
+        #region Database mapping
 
-        public String name { get; set; }
+        [Key] [Column("id")] public long Id { get; set; }
+        [Column("name")] public string Name { get; set; }
+        [Column("description")] public string Description { get; set; }
+        [Column("create_date")] public string _CreateDate { get; set; }
 
-        public String description { get; set; }
+        [Column("DATE")] public string _Date { get; set; }
+        [Column("type_id")] public long? _TypeId { get; set; }
+        [Column("index_number")] public long? _Order { get; set; }
 
-        [ForeignKey("stream_id")]
-        public StreamModel Stream { get; set; }
+        [Column("checked")] public int _Checked { get; set; }
 
-        public String create_date { get; set; }
+        #endregion
 
-        /// <summary>
-        /// Use type_id instead
-        /// 1 = Lecture
-        /// 2 = Practical
-        /// 3 = Lab
-        /// </summary>
-        [ForeignKey("type_id")]
-        public LessonTypeModel LessonType { get; set; }
 
-        [ForeignKey("group_id")]
-        public GroupModel Group { get; set; }
+        public LessonModel() {
+        }
 
-        public DateTime Date
-        {
-            get
-            {
-                return DateTime.ParseExact(DATE.Substring(0, 10), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+        public LessonModel(LessonModel model) {
+            Apply(model);
+        }
+
+        #region ORM FK
+
+        [Column("SCHEDULE_ID")] public long? _ScheduleId { get; set; }
+        public virtual ICollection<StudentLessonModel> StudentLessons { get; set; } = new List<StudentLessonModel>();
+        public virtual ICollection<LessonNote> Notes{ get; set; } = new List<LessonNote>();
+
+        [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleModel Schedule { get; set; }
+        [Column("group_id")] public long? _GroupId { get; set; }
+        [ForeignKey(nameof(_GroupId))] public virtual GroupModel _Group { get; set; }
+        [Column("stream_id")] public long? _StreamId { get; set; }
+
+        [ForeignKey(nameof(_StreamId))] public virtual StreamModel _Stream { get; set; }
+
+        #endregion
+
+        #region Helping properties
+
+        [NotMapped]
+        public DateTime? Date {
+            get {
+                if (this._Date == null)
+                    return null;
+                string clearDate = this._Date.Replace("T", " ");
+                return DateTime.ParseExact
+                (
+                    this._Date.Substring(0, 10),
+                    new[] {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"},
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None
+                );
+            }
+            set {
+                this._Date = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
+                OnPropertyChanged();
             }
         }
-        public string DATE { get; set; }
 
-        [ForeignKey("SCHEDULE_ID")]
-        public ScheduleModel Schedule { get; set; }
+        [NotMapped]
+        public DateTime? CreationDate {
+            get {
+                if (this._CreateDate == null) {
+                    return null;
+                }
 
-        public Int64? stream_id { get; set; }
-        public long? type_id { get; set; }
-        public long? group_id { get; set; }
-        public long? SCHEDULE_ID { get; set; }
-        public long? index_number { get; set; }
+                string clearDate = this._CreateDate.Replace("T", " ");
+                return DateTime.ParseExact
+                (
+                    clearDate.Substring(0, 19),
+                    "yyyy-MM-dd HH:mm:ss",
+                    CultureInfo.InvariantCulture
+                );
+            }
+            set {
+                this._CreateDate = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
+                OnPropertyChanged();
+            }
+        }
 
-        [Required]
-        [Column("checked")]
-        public int Checked { get; set; }
+        [NotMapped]
+        public GroupModel Group {
+            get => this._Group;
+            set {
+                this._Group = value;
+                this._GroupId = value?.Id;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public StreamModel Stream {
+            get => this._Stream;
+            set {
+                this._Stream = value;
+                this._StreamId = value?.Id;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public LessonType LessonType {
+            get => (LessonType) (this._TypeId.HasValue
+                                     ? Enum.GetValues(typeof(LessonType)).GetValue(this._TypeId.Value)
+                                     : LessonType.Unknown);
+            set {
+                this._TypeId = (int) value;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public bool Checked {
+            get => this._Checked > 0;
+            set {
+                this._Checked = value ? 1 : 0;
+                OnPropertyChanged();
+            }
+        }
+
+
+        #endregion
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public override void Apply(LessonModel trackable) {
+            this.Id = trackable.Id;
+            this.Group = trackable.Group;
+            this.Checked = trackable.Checked;
+            this.CreationDate = trackable.CreationDate;
+            this.Date = trackable.Date;
+            this.Description = trackable.Description;
+            this.LessonType = trackable.LessonType;
+            this.StudentLessons = trackable.StudentLessons;
+            this.Name = trackable.Name;
+            this.Schedule = trackable.Schedule;
+            this.Stream = trackable.Stream;
+            this._Order = trackable._Order;
+        }
     }
 }

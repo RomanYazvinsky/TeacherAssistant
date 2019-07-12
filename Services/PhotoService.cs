@@ -13,7 +13,7 @@ namespace TeacherAssistant.Components
 {
     public class PhotoService : IPhotoService
     {
-        private const int CacheCapacity = 60;
+        private const int CacheCapacity = 20;
         private readonly Dictionary<string, BitmapImage> _cache = new Dictionary<string, BitmapImage>(CacheCapacity);
         private bool _exist = false;
 
@@ -26,10 +26,13 @@ namespace TeacherAssistant.Components
             var response = await request.GetResponseAsync().ConfigureAwait(false);
             try
             {
-                using (Stream responseStream = response.GetResponseStream())
+                using (var responseStream = response.GetResponseStream())
                 {
-                    var reader = new StreamReader(responseStream ?? throw new InvalidOperationException(),
-                        System.Text.Encoding.UTF8);
+                    var reader = new StreamReader
+                    (
+                        responseStream ?? throw new InvalidOperationException(),
+                        System.Text.Encoding.UTF8
+                    );
                     var s = reader.ReadToEnd().Replace("[", "").Replace("]", "");
                     return JObject.Parse(s)["TN"].Value<string>();
                 }
@@ -42,35 +45,31 @@ namespace TeacherAssistant.Components
 
         private async Task SaveImage(string path, byte[] image)
         {
-            using (var sourceStream = File.Open(path, FileMode.OpenOrCreate))
+            using (var sourceStream = new FileStream
+                (path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, true))
             {
                 sourceStream.Seek(0, SeekOrigin.End);
                 await sourceStream.WriteAsync(image, 0, image.Length).ConfigureAwait(false);
             }
         }
 
-        public async Task<BitmapImage> GetImage(string path)
+        public BitmapImage GetImage(string path)
         {
-            if (path == null) return null;
+            if (path == null)
+                return null;
             BitmapImage bitmapImage = null;
             if (_cache.ContainsKey(path))
             {
                 return _cache[path];
             }
 
-            await Task.Run(() =>
-            {
-                using (var stream = File.OpenRead(path))
-                {
-                    bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.StreamSource = stream;
-                    bitmapImage.EndInit();
-                }
+            bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.UriSource = new Uri(path);
+            bitmapImage.EndInit();
 
-                bitmapImage.Freeze();
-            }).ConfigureAwait(false);
+            bitmapImage.Freeze();
+
             if (_cache.Count == CacheCapacity)
             {
                 _cache.Remove(_cache.Keys.First());
@@ -83,6 +82,8 @@ namespace TeacherAssistant.Components
         public async Task<string> DownloadPhoto(string cardId)
         {
             string path = null;
+            if (string.IsNullOrEmpty(cardId))
+                return null;
             try
             {
                 if (!_exist || !Exists(Directory))
@@ -106,8 +107,11 @@ namespace TeacherAssistant.Components
                 {
                     try
                     {
-                        var image = await client.DownloadDataTaskAsync(
-                            new Uri("https://intra.grsu.by/photos/" + personalId + ".jpg")).ConfigureAwait(false);
+                        var image = await client.DownloadDataTaskAsync
+                            (
+                                new Uri("https://intra.grsu.by/photos/" + personalId + ".jpg")
+                            )
+                            .ConfigureAwait(false);
                         await SaveImage(path, image).ConfigureAwait(false);
                     }
                     catch (Exception e)

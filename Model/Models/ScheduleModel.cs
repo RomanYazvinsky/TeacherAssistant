@@ -1,41 +1,71 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
+using TeacherAssistant.Annotations;
+using TeacherAssistant.Dao;
 
-namespace Model.Models
-{
+namespace Model.Models {
     [Table("SCHEDULE")]
-    public class ScheduleModel : IComparable
-    {
-        [Key]
-        public long id { get; set; }
+    public class ScheduleModel : INotifyPropertyChanged, IComparable {
+        private int _orderNumber;
 
-        public DateTime Begin => DateTime.Parse(begin);
+        [Key] [Column("id")] public long Id { get; set; }
 
-        public DateTime End => DateTime.Parse(end);
+        [NotMapped]
+        public TimeSpan? Begin {
+            get {
+                if (TimeSpan.TryParse(this._Begin, out var result)) {
+                    return result;
+                }
 
-        public string begin { get; set; }
-
-        public string end { get; set; }
-
-        public int number { get; set; }
-        public long? version_id { get; set; }
-
-        [ForeignKey("version_id")]
-        public ScheduleVersionModel Version { get; set; }
-
-        public override string ToString()
-        {
-            return begin + " - " + end;
+                return null;
+            }
         }
 
-        public int CompareTo(object obj)
-        {
-            if (!(obj is ScheduleModel o))
-            {
+        [NotMapped]
+        public TimeSpan? End {
+            get {
+                if (TimeSpan.TryParse(this._End, out var result)) {
+                    return result;
+                }
+
+                return null;
+            }
+        }
+
+        [Column("begin")] public string _Begin { get; set; }
+        [Column("end")] public string _End { get; set; }
+
+        [Column("number")]
+        public int OrderNumber {
+            get => _orderNumber;
+            set {
+                if (value == _orderNumber)
+                    return;
+                _orderNumber = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public override string ToString() {
+            return this._Begin + " - " + this._End;
+        }
+
+        public int CompareTo(object obj) {
+            if (!(obj is ScheduleModel o)) {
                 return 1;
             }
-            return Begin.CompareTo(o.Begin);
+
+            return Begin?.CompareTo(o.Begin) ?? -1;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

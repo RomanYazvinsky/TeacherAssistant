@@ -1,0 +1,73 @@
+﻿<componentsImpl:View x:TypeArguments="local:StudentTableModel" x:Class="TeacherAssistant.StudentTable.StudentTable"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:local="clr-namespace:TeacherAssistant.StudentTable"
+                     xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+                     xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                     mc:Ignorable="d"
+                     d:DesignHeight="450" d:DesignWidth="800" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                     d:DataContext="{d:DesignInstance local:StudentTableModel}" x:Name="View">
+    <UserControl.Resources>
+        <ContextMenu x:Key="lwMenu">
+            <ContextMenu.Items>
+                <MenuItem Header="Показать"
+                          Command="{Binding Path=DataContext.ShowStudent, RelativeSource={RelativeSource FindAncestor, AncestorType=local:StudentTable, AncestorLevel=1}}" />
+                <MenuItem Header="Удалить"
+                          Command="{Binding Path=DataContext.DeleteStudent, RelativeSource={RelativeSource FindAncestor, AncestorType=local:StudentTable, AncestorLevel=1}}" />
+            </ContextMenu.Items>
+        </ContextMenu>
+        <Style x:Key="MyItemContainerStyle" TargetType="{x:Type ListViewItem}">
+            <Setter Property="ContextMenu" Value="{StaticResource lwMenu}" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="BorderThickness" Value="0, 0, 0, 1" />
+            <Setter Property="BorderBrush" Value="Black" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="7*" />
+            <ColumnDefinition Width="3*" />
+        </Grid.ColumnDefinitions>
+        <tableFilter:TableFilter Sorts="{Binding Path=Sorts}" FilterFunction="{Binding Path=FilterFunction}"
+                                 TableItems="{Binding Path=Students}"
+                                 SelectedItem="{Binding Path=SelectedStudentModel, Mode=TwoWay}"
+                                 DragValuePath="Model"
+                                 TableItemContainerStyle="{StaticResource MyItemContainerStyle}">
+            <GridView>
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Model.CardUid}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Карта" Tag="Model.CardUid" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Model.LastName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Фамилия" Tag="Model.LastName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Model.FirstName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Имя" Tag="Model.FirstName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Model.SecondName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Отчество" Tag="Model.SecondName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="250" DisplayMemberBinding="{Binding Path=GroupsText}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Группы" Tag="GroupsText" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+            </GridView>
+        </tableFilter:TableFilter>
+        <Grid Grid.Column="1" Grid.Row="0">
+            <Image Source="{Binding Path=StudentPhoto, Mode=OneWay}" HorizontalAlignment="Left" Margin="10,25,0,0"
+                   VerticalAlignment="Top" Width="240" />
+        </Grid>
+    </Grid>
+</componentsImpl:View>

@@ -1,26 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
+using TeacherAssistant.Annotations;
+using TeacherAssistant.Dao;
 
 namespace Model
 {
     [Table("ALARM")]
-    public class AlarmModel
+    public class AlarmModel : Trackable<AlarmModel>, INotifyPropertyChanged
     {
-        [Key]
-        public long id { get; set; }
+        private long? _timer;
 
-        public Int64? active { get; set; }
+        [Key] [Column("id")] public long Id { get; set; }
+        [Column("active")] public long? _Active { get; set; }
 
-        public Int64? time { get; set; }
+        [Column("time")]
+        public long? Timer
+        {
+            get => _timer;
+            set
+            {
+                if (value == _timer)
+                    return;
+                _timer = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public Decimal? volume { get; set; }
+        [Column("volume")] public decimal? _Volume { get; set; }
 
-        public string sound { get; set; }
-        
+        [Column("sound")] public string _Sound { get; set; }
+
+        [NotMapped]
+        public bool IsActive
+        {
+            get => this._Active > 0;
+            set
+            {
+                this._Active = value ? 1 : 0;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public decimal Volume
+        {
+            get => this._Volume ?? default;
+            set
+            {
+                this._Volume = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public byte[] Sound
+        {
+            get => Encoding.Default.GetBytes(this._Sound);
+            set
+            {
+                this._Sound = Encoding.Default.GetString(value);
+                OnPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public override void Apply(AlarmModel trackable) {
+        }
     }
 }

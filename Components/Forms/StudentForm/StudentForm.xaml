@@ -1,0 +1,173 @@
+﻿<componentsImpl:View
+    x:Class="TeacherAssistant.StudentForm.StudentForm"
+    x:TypeArguments="studentForm:StudentFormModel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:studentForm="clr-namespace:TeacherAssistant.StudentForm"
+    xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+    xmlns:label="clr-namespace:TeacherAssistant.Label"
+    xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+    mc:Ignorable="d"
+    d:DesignHeight="450" d:DesignWidth="800"
+    d:DataContext="{d:DesignInstance studentForm:StudentFormModel}"
+    Unloaded="OnExit">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Styles.xaml" />
+                <ResourceDictionary>
+                    <Style TargetType="label:Label">
+                        <Setter Property="Margin" Value="5" />
+                        <Setter Property="DockPanel.Dock" Value="Top" />
+                        <Setter Property="Height" Value="30" />
+                        <Setter Property="ContentWidth" Value="3*" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Style.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+                    <studentForm:ValueConverterGroup x:Key="InvertAndToVisibility">
+                        <studentForm:InverseBooleanConverter />
+                        <componentsImpl:TypedBooleanToVisibilityConverter />
+                    </studentForm:ValueConverterGroup>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Grid.ColumnSpan="2" LastChildFill="False">
+            <Button DockPanel.Dock="Right" Width="80" Margin="5"
+                    Content="{Binding Localization[student.form.save.button]}"
+                    Command="{Binding SaveButtonConfig.Command}" />
+        </DockPanel>
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="40" />
+            </Grid.ColumnDefinitions>
+            <Image Margin="5" Grid.Column="0"
+                   Visibility="{Binding Path=IsShowPhoto, Converter={StaticResource BooleanToVisibility}}"
+                   Source="{Binding Path=StudentPhoto}" />
+            <ListView Margin="5" Grid.Column="0"
+                      Visibility="{Binding Path=IsShowPhoto, Converter={StaticResource InvertAndToVisibility}}"
+                      ItemsSource="{Binding Path=ReadStudents}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=LastName}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Имя" Tag="LastName" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=FirstName}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Фамилия"
+                                                      Tag="FirstName" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=CardUid}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Карта" Tag="CardUid" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <Button Grid.Column="1" Height="40" Content="{Binding Localization[student.form.switch.view]}"
+                    Command="{Binding SwitchViewButtonConfig.Command}" />
+        </Grid>
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="1" LastChildFill="False">
+                <label:Label Text="{Binding Path=Localization[student.form.lastname.label]}">
+                    <TextBox Text="{Binding Path=Student.LastName}" />
+                </label:Label>
+                <label:Label Text="{Binding Path=Localization[student.form.name.label]}">
+                    <TextBox Text="{Binding Path=Student.FirstName}" />
+                </label:Label>
+                <label:Label Text="{Binding Path=Localization[student.form.secondname.label]}">
+                    <TextBox Text="{Binding Path=Student.SecondName}" />
+                </label:Label>
+                <label:Label Text="{Binding Path=Localization[student.form.card.uid.label]}">
+                    <TextBox Text="{Binding Path=Student.CardUid}" />
+                </label:Label>
+                <label:Label Text="{Binding Path=Localization[student.form.phone.label]}">
+                    <TextBox Text="{Binding Path=Student.PhoneNumber}" />
+                </label:Label>
+                <label:Label Text="{Binding Path=Localization[student.form.email.label]}">
+                    <TextBox Text="{Binding Path=Student.Email}" />
+                </label:Label>
+            </DockPanel>
+        </Grid>
+        <Grid Grid.Row="2" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="40" />
+            </Grid.ColumnDefinitions>
+            <tableFilter:TableFilter Margin="5" Grid.Column="0" x:Name="AvailableGroupsBox"
+                                     TableItems="{Binding Path=AvailableGroups}"
+                                     SelectedItems="{Binding SelectedAvailableGroups}"
+                                     Sorts="{Binding Path=Sorts}"
+                                     HorizontalAlignment="Stretch">
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader HorizontalContentAlignment="Center"
+                                                  Content="{Binding Localization[groupname]}" Tag="Name" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </tableFilter:TableFilter>
+            <Button Grid.Column="1" Height="40" Content="{Binding Path=SelectGroups.Text}"
+                    Command="{Binding Path=SelectGroups.Command}" />
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <tableFilter:TableFilter Margin="5" Grid.Column="1"
+                     TableItems="{Binding Path=ChoseGroups}"
+                     SelectedItems="{Binding SelectedChoseGroups}"
+                     Sorts="{Binding Path=GroupSorts}"
+                     HorizontalAlignment="Stretch">
+                <GridView>
+                    <GridViewColumn Header="{Binding Localization[chief]}">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=IsPraepostor}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn DisplayMemberBinding="{Binding Group.Name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader HorizontalContentAlignment="Center"
+                                                  Content="{Binding Localization[groupname]}" Tag="Group.Name" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </tableFilter:TableFilter>
+            <Button Grid.Column="0" Grid.Row="1" Height="40" Content="{Binding Path=DeselectGroups.Text}"
+                    Command="{Binding Path=DeselectGroups.Command}" />
+        </Grid>
+    </Grid>
+</componentsImpl:View>

@@ -1,14 +1,18 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
+using TeacherAssistant.Annotations;
+using TeacherAssistant.Dao;
 
 namespace Model.Models
 {
-    [Table("LECTURER")]
-    public class LecturerModel
+    // [Table("LECTURER")]
+    public class LecturerModel: INotifyPropertyChanged
     {
-        [Key]
-        public long id { get; set; }
+        [Key] [Column("id")]
+        public long Id { get; set; }
 
         public String card_uid { get; set; }
 
@@ -25,5 +29,12 @@ namespace Model.Models
         public String email { get; set; }
 
         public Byte[] image { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

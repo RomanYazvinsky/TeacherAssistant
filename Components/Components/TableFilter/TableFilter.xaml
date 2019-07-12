@@ -1,0 +1,37 @@
+﻿<UserControl x:Class="TeacherAssistant.Components.TableFilter.TableFilter"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:TeacherAssistant.Components.TableFilter"
+             xmlns:dd="urn:gong-wpf-dragdrop"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DataContext="{d:DesignInstance local:TableFilter}"
+             d:DesignWidth="800" HorizontalAlignment="Stretch">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition
+                Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=FilterHeight}" />
+            <RowDefinition
+                Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=ContentHeight}" />
+        </Grid.RowDefinitions>
+        <TextBox
+            Grid.Row="0" TextWrapping="Wrap"
+            Margin="4px"
+            Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
+            FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}}"
+            VerticalContentAlignment="Center"
+            FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=FontWeight}" />
+        <ListView Name="LView" Margin="4px" Grid.Row="1"
+                  SelectionChanged="LView_OnSelectionChanged"
+                  Drop="LView_OnDrop"
+                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=TableItems}" >
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="MouseMove" Handler="ListViewItemDragStart" />
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="OnMouseDown" />
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+    </Grid>
+</UserControl>

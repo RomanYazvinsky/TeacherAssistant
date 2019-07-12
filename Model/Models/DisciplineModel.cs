@@ -1,27 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+using TeacherAssistant.Annotations;
+using TeacherAssistant.Dao;
 
 namespace Model.Models
 {
     [Table("DISCIPLINE")]
-    public class DisciplineModel
+    public class DisciplineModel : INotifyPropertyChanged
     {
-        [Key]
-        public long id { get; set; }
+        private string _name;
+        private string _description;
 
-        public string name { get; set; }
+        [Key] [Column("id")] public long Id { get; set; }
 
-        public string description { get; set; }
+        [Column("name")]
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                if (value == _name)
+                    return;
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public string create_date { get; set; }
+        [Column("description")]
+        public string Description
+        {
+            get => _description;
+            set
+            {
+                if (value == _description)
+                    return;
+                _description = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public Int64? active { get; set; }
+        [Column("create_date")] public string _CreationDate { get; set; }
 
-        public string expiration_date { get; set; }
+        [Column("active")] public long? _IsActive { get; set; }
+
+        [Column("expiration_date")] public string _ExpirationDate { get; set; }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
