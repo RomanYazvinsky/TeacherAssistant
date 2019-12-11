@@ -15,7 +15,7 @@ namespace TeacherAssistant {
 
         public override string ProviderId { get; }
 
-        protected override TabItem PlaceInContainer(string id, Control page, PageProperties properties) {
+        protected override TabItem PlaceInContainer(string id, Control page, IPageProperties properties) {
             var textBlock = new TextBlock {Text = properties.Header};
             var tabItem = new TabItem {
                 Header = textBlock, Content = page, Uid = id
@@ -30,6 +30,7 @@ namespace TeacherAssistant {
         public override event EventHandler<PageChanges> PageChanged;
 
 
+        /*
         private ScrollViewer WrapByScrollView(Control page, PageProperties properties) {
             var viewer = new ScrollViewer {Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto};
             var binding = new Binding("ActualHeight") {Source = viewer};
@@ -40,6 +41,7 @@ namespace TeacherAssistant {
             page.MaxWidth = properties.MaxWidth ?? int.MaxValue;
             return viewer;
         }
+*/
 
 
         public override void ClosePage(string id) {
@@ -51,9 +53,9 @@ namespace TeacherAssistant {
             _pages.Remove(id);
         }
 
-        public override void ChangePage(string id, PageProperties config) {
+        public override void ChangePage<TItem>(string id, PageProperties<TItem> config) {
             var page = _pages[id];
-            var newPage = BuildPageInfo(id, config.PageType, config, page);
+            var newPage = BuildPageInfo(id, config.Type, config, page);
             _pages[id] = newPage;
             PageChanged?.Invoke(this, new PageChanges(id, page.Container, newPage.Container));
         }

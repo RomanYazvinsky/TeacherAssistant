@@ -66,7 +66,7 @@
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Время" Tag="Lesson.Schedule" />
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
-                            <DataTemplate DataType="models:LessonModel">
+                            <DataTemplate DataType="models:LessonEntity">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=hh\\:mm}" />
                                     <TextBlock Text="-" />
@@ -75,7 +75,7 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Lesson._Stream.Name}">
+                    <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Lesson.Stream.Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Поток" Tag="Stream.Name" />
                         </GridViewColumn.Header>

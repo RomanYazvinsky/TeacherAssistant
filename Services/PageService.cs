@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows.Controls;
 using TeacherAssistant.Components;
 using TeacherAssistant.State;
@@ -28,11 +29,11 @@ namespace TeacherAssistant {
             StoreManager.Remove("PageProviders", pageContainerId);
         }
 
-        public void ChangePage(string pageId, PageProperties config) {
+        public void ChangePage<T>(string pageId, PageProperties<T> config) {
             _pageHosts[pageId].ChangePage(pageId, config);
         }
 
-        public string OpenPage(string pageHostProviderId, PageProperties config) {
+        public string OpenPage<T>(string pageHostProviderId, PageProperties<T> config){
             var pageHost = _pageProviders[pageHostProviderId];
             var pageId = pageHost.AddPage(config);
             _pageHosts.Add(pageId, pageHost);
@@ -40,7 +41,7 @@ namespace TeacherAssistant {
             return pageId;
         }
 
-        public string OpenPage(PageProperties config, string calleeId) {
+        public string OpenPage<T>(PageProperties<T> config, string calleeId) {
             var pageHost = _pageHosts[calleeId];
             var pageId = pageHost.AddPage(config);
             _pageHosts.Add(pageId, pageHost);

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
@@ -24,7 +25,6 @@ namespace TeacherAssistant.StudentViewPage {
 
         public StudentViewPageModel(string id, IPhotoService photoService) : base(id) {
             _photoService = photoService;
-
             this.AddAttestationButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(AddAttestation),
                 Text = "+"
@@ -33,139 +33,160 @@ namespace TeacherAssistant.StudentViewPage {
                 Command = new CommandHandler(AddExam),
                 Text = "+"
             };
-            this.WhenAnyValue(model => model.StudentNotes)
-                .Subscribe
-                (
-                    notes => {
-                        InterpolateLocalization("page.student.view.student.notes", notes.Count);
-                        this.IsStudentNotesEnabled = notes.Count > 0;
+            this.OpenExternalLesson = new ButtonConfig {
+                Command = new CommandHandler(() => {
+                    var selectedExternalLesson = this.SelectedExternalLesson;
+                    if (selectedExternalLesson == null) {
+                        return;
                     }
-                );
-            this.WhenAnyValue(model => model.StudentLessonNotes)
-                .Subscribe
-                (
-                    notes => {
-                        InterpolateLocalization("page.student.view.lesson.notes", notes.Count);
-                        this.IsStudentLessonNotesEnabled = notes.Count > 0;
-                    }
-                );
-            this.WhenAnyValue(model => model.ExternalLessons)
-                .Subscribe
-                (
-                    lessons => {
-                        this.ExternalLessonsVisibility = lessons.Count > 0;
-                        InterpolateLocalization("page.student.view.external.lessons", lessons.Count);
-                    }
-                );
-            this.WhenAnyValue(model => model.SelectedStream)
-                .Subscribe
-                (
-                    stream => {
-                        if (stream == null) {
-                            this.StreamDataVisibility = Visibility.Hidden;
-                            return;
-                        }
 
-                        this.StreamDataVisibility = Visibility.Visible;
-                        InterpolateLocalization
-                        (
-                            "page.student.view.stream.course",
-                            stream.Course.HasValue ? stream.Course.ToString() : ""
-                        );
-                        InterpolateLocalization
-                        (
-                            "page.student.view.discipline.lessons",
-                            stream.LectureCount,
-                            stream.PracticalCount,
-                            stream.LabCount
-                        );
-                        var missedLessons =
-                            _db.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
-                        var missedLectures = missedLessons.Count
-                            (model => model.Lesson.LessonType == LessonType.Lecture);
-                        var missedPractices = missedLessons.Count
-                            (model => model.Lesson.LessonType == LessonType.Practice);
-                        var missedLabs = missedLessons.Count
-                            (model => model.Lesson.LessonType == LessonType.Laboratory);
-                        var total = missedLectures + missedPractices + missedLabs;
-                        this.StudentMissedLessons = total == 0
-                            ? Localization["Нет пропущенных занятий"]
-                            : Interpolate
-                            (
-                                "page.student.view.missed.lessons",
-                                total,
-                                missedLectures,
-                                missedPractices,
-                                missedLabs
-                            );
-                    }
-                );
-            this.WhenAnyValue(model => model.SelectedGroup)
+                    var openPageId = this.PageService.OpenPage(new PageProperties<RegistrationPage.RegistrationPage> {
+                        Header = "Регистрация",
+                    }, this.Id);
+                    StoreManager.Publish(selectedExternalLesson.Lesson, openPageId, "SelectedLesson");
+                })
+            };
+            this.WhenAnyValue(model => model.Student)
+                .Where(NotNull)
                 .Subscribe
                 (
-                    async group => {
-                        if (group == null) {
-                            this.StudentGroups.Clear();
-                            return;
-                        }
-
-                        var groupLessons = await _db.GetGroupLessons(group).ToListAsync();
-                        this.SelectedStream = _db.StreamModels.Include(model => model._Discipline)
-                            .FirstOrDefault
-                            (
-                                model => model.Groups.Any
-                                (
-                                    groupModel =>
-                                        groupModel.Id == group.Id
-                                )
-                            );
-                        var lessons = (await _db.StudentLessonModels
-                                .Where(lessonModel => this.Student.Id == lessonModel._Student.Id)
-                                .ToListAsync())
-                            .Where
-                            (
-                                lessonModel => groupLessons.Any(model => model.Id == lessonModel._Lesson.Id)
-                            )
-                            .ToArray(); // to init lazy sequence
-                        this.StudentLessons.Clear();
-                        this.StudentLessons.AddRange
-                        (
-                            lessons.Where(view => view._Lesson.LessonType < LessonType.Attestation)
-                                .Select(model => new StudentLessonViewBox(model, this))
-                                .ToList()
-                        );
-                        var attestations = 0;
-                        var exams = 0;
-                        this.StudentAttestations.Clear();
-                        this.StudentAttestations.AddRange
-                        (
-                            lessons.Where(view => view.Lesson.LessonType == LessonType.Attestation)
-                                .Select(model => new StudentAttestationExamView(model, this, ++attestations))
-                                .OrderBy(view => view.StudentLesson.Lesson._Order)
-                                .ToList()
-                        );
-                        this.StudentExams.Clear();
-                        this.StudentExams.AddRange
-                        (
-                            lessons.Where(view => view.Lesson.LessonType == LessonType.Exam)
-                                .Select
-                                    (model => new StudentAttestationExamView(model, this, ++exams))
-                                .OrderBy(view => view.StudentLesson.Lesson._Order)
-                                .ToList()
-                        );
-                        this.AddExamButtonConfig.IsEnabled = this.StudentExams.Count < 1;
-                        UpdateLessonMark();
-                        UpdateExamMark();
+                    student => {
+                        UpdateExternalLessons(student);
+                        UpdateStudentLessonNotes(student);
+                        UpdateStudentNotes(student);
                     }
                 );
+            this.WhenAnyValue(model => model.SelectedStream).Subscribe(OnSelectedStreamUpdate);
+            this.WhenAnyValue(model => model.SelectedGroup).Subscribe(OnSelectedGroupUpdate);
+            Select<StudentEntity>(this.Id, "Student").Where(NotNull).Subscribe(Initialize);
+        }
+
+        private void UpdateExternalLessons(StudentEntity student) {
+            this.ExternalLessons.Clear();
+            var lessons = GetExternalLessons(student);
+            this.ExternalLessons.AddRange(lessons);
+            this.ExternalLessonsVisibility = lessons.Count > 0;
+            InterpolateLocalization("page.student.view.external.lessons", lessons.Count);
+        }
+
+        private void UpdateStudentLessonNotes(StudentEntity student) {
+            var studentLessonNotes = _db.StudentLessonNotes
+                .Include(note => note.StudentLesson)
+                .Where(note => note.StudentLesson._StudentId == student.Id)
+                .ToList();
+            this.StudentLessonNotes.Clear();
+            this.StudentLessonNotes.AddRange(studentLessonNotes);
+            InterpolateLocalization("page.student.view.lesson.notes", studentLessonNotes.Count);
+            this.IsStudentLessonNotesEnabled = studentLessonNotes.Count > 0;
+        }
+
+        private void UpdateStudentNotes(StudentEntity student) {
+            var studentNotes = student.Notes.ToList();
+            this.StudentNotes.Clear();
+            this.StudentNotes.AddRange(studentNotes);
+            InterpolateLocalization("page.student.view.student.notes", studentNotes.Count);
+            this.IsStudentNotesEnabled = studentNotes.Count > 0;
+        }
+
+        private void OnSelectedStreamUpdate(StreamEntity stream) {
+            if (stream == null) {
+                this.StreamDataVisibility = Visibility.Hidden;
+                return;
+            }
+
+            this.StreamDataVisibility = Visibility.Visible;
+            InterpolateLocalization
+            (
+                "page.student.view.stream.course",
+                stream.Course?.ToString() ?? ""
+            );
+            InterpolateLocalization
+            (
+                "page.student.view.discipline.lessons",
+                stream.LectureCount,
+                stream.PracticalCount,
+                stream.LabCount
+            );
+            var missedLessons = _db.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
+            var missedLectures = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Lecture);
+            var missedPractices = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Practice);
+            var missedLabs = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Laboratory);
+            var total = missedLectures + missedPractices + missedLabs;
+            this.StudentMissedLessons = total == 0
+                ? Localization["Нет пропущенных занятий"]
+                : Interpolate
+                (
+                    "page.student.view.missed.lessons",
+                    total,
+                    missedLectures,
+                    missedPractices,
+                    missedLabs
+                );
+        }
+
+        private async void OnSelectedGroupUpdate(GroupEntity selectedGroup) {
+            if (selectedGroup == null) {
+                this.StudentGroups.Clear();
+                return;
+            }
+
+            var groupLessons = await _db.GetGroupLessons(selectedGroup).ToListAsync();
+            this.SelectedStream = _db.Streams
+                .Include(model => model.Discipline)
+                .FirstOrDefault(model => model.Groups.Any(groupModel => groupModel.Id == selectedGroup.Id));
+            var lessons = (await _db.StudentLessons
+                    .Where(lessonModel => this.Student.Id == lessonModel.Student.Id)
+                    .ToListAsync())
+                .Where(lessonModel => groupLessons.Any(model => model.Id == lessonModel.Lesson.Id))
+                .ToArray(); // to init lazy sequence
+            var studentLessonViewBoxes = lessons
+                .Where(view => view.Lesson.LessonType < LessonType.Attestation)
+                .Select(model => new StudentLessonViewBox(model, this))
+                .ToList();
+            this.StudentLessons.Clear();
+            this.StudentLessons.AddRange(studentLessonViewBoxes);
+            var attestations = 0;
+            var exams = 0;
+            var studentAttestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Attestation)
+                .Select(model => new StudentAttestationExamView(model, this, ++attestations))
+                .OrderBy(view => view.StudentLesson.Lesson._Order)
+                .ToList();
+            this.StudentAttestations.Clear();
+            this.StudentAttestations.AddRange(studentAttestationExamViews);
+            var attestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Exam)
+                .Select(model => new StudentAttestationExamView(model, this, ++exams))
+                .OrderBy(view => view.StudentLesson.Lesson._Order)
+                .ToList();
+            this.StudentExams.Clear();
+            this.StudentExams.AddRange(attestationExamViews);
+            this.AddExamButtonConfig.IsEnabled = this.StudentExams.Count < 1;
+            UpdateLessonMark();
+            UpdateExamMark();
+        }
+
+        private async void Initialize(StudentEntity student) {
+            this.Student = student;
+            this.Groups = string.Join(", ", student.Groups.Select(group => group.Name));
+            this.StudentGroups.Clear();
+            this.StudentGroups.AddRange(student.Groups);
+            this.IsStudentGroupsSelectorEnabled = this.StudentGroups.Count > 1;
+            this.SelectedGroup = this.StudentGroups.Count > 0
+                ? this.StudentGroups.FirstOrDefault(groupModel => groupModel.IsActive) ?? this.StudentGroups[0]
+                : null;
+            var path = await _photoService.DownloadPhoto
+                    (StudentEntity.CardUidToId(student.CardUid))
+                .ConfigureAwait(false);
+            var image = _photoService.GetImage(path);
+            RunInUiThread(() => { this.StudentPhoto = image; });
         }
 
         [Reactive] public BitmapImage StudentPhoto { get; set; }
         [Reactive] public string Groups { get; set; }
-        [Reactive] public StudentModel Student { get; set; }
+        [Reactive] public StudentEntity Student { get; set; }
+        [Reactive] public StudentLessonEntity SelectedExternalLesson { get; set; }
 
-        public ObservableRangeCollection<StudentLessonModel> ExternalLessons { get; set; } =
-            new WpfObservableRangeCollection<StudentLessonModel>();
+        public ObservableRangeCollection<StudentLessonEntity> ExternalLessons { get; set; } =
+            new WpfObservableRangeCollection<StudentLessonEntity>();
 
         [Reactive] public bool ExternalLessonsVisibility { get; set; }
 
@@ -191,12 +212,12 @@ namespace TeacherAssistant.StudentViewPage {
         [Reactive] public bool IsStudentGroupsSelectorEnabled { get; set; }
         [Reactive] public Visibility StreamDataVisibility { get; set; }
 
-        [Reactive] public GroupModel SelectedGroup { get; set; }
+        [Reactive] public GroupEntity SelectedGroup { get; set; }
 
-        [Reactive] public StreamModel SelectedStream { get; set; }
+        [Reactive] public StreamEntity SelectedStream { get; set; }
 
-        public ObservableRangeCollection<GroupModel> StudentGroups { get; set; } =
-            new WpfObservableRangeCollection<GroupModel>();
+        public ObservableRangeCollection<GroupEntity> StudentGroups { get; set; } =
+            new WpfObservableRangeCollection<GroupEntity>();
 
         [Reactive] public string StudentMissedLessons { get; set; } = "";
 
@@ -212,38 +233,18 @@ namespace TeacherAssistant.StudentViewPage {
         [Reactive] public string ResultMark { get; set; }
         public ButtonConfig AddAttestationButtonConfig { get; set; }
         public ButtonConfig AddExamButtonConfig { get; set; }
+        
+        public ButtonConfig OpenExternalLesson { get; set; }
 
-        private List<StudentLessonModel> GetExternalLessons(StudentModel student) {
-            var studentGroups = student.Groups.AsEnumerable();
-            return _db.StudentLessonModels
-                .Where(model => model._Student.Id == student.Id)
-                .Include(model => model._Lesson._Group)
-                .AsEnumerable()
-                .Where
-                (
-                    model => model._Lesson != null
-                             && (model._Lesson._Group != null
-                                 ? studentGroups.All
-                                 (
-                                     groupModel => groupModel.Id != model._Lesson._Group.Id
-                                 )
-                                 : !_db.StreamModels
-                                       .FirstOrDefault
-                                       (
-                                           stream => stream.Id == model._Lesson._Stream.Id
-                                       )
-                                       ?.Groups
-                                       //   .AsEnumerable() // EF cannot manipulate collections properly
-                                       .Any
-                                       (
-                                           groupModel =>
-                                               studentGroups.Any
-                                               (
-                                                   model1 => model1.Id == groupModel.Id
-                                               )
-                                       )
-                                   ?? false)
-                )
+        private List<StudentLessonEntity> GetExternalLessons(StudentEntity student) {
+            var studentGroupsIds = student.Groups.Select(group => group.Id).AsEnumerable();
+            return _db.StudentLessons
+                .Where(studentLesson => studentLesson.Student.Id == student.Id)
+                .Where(studentLesson => studentLesson.Lesson._GroupId > 0
+                    ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
+                    : studentLesson.Lesson.Stream.Groups.All(
+                        group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
+                    ))
                 .ToList();
         }
 
@@ -252,7 +253,7 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         public void UpdateLessonMark() {
-            var allLessons = new List<StudentLessonModel>(this.StudentLessons.Select(box => box.StudentLesson));
+            var allLessons = new List<StudentLessonEntity>(this.StudentLessons.Select(box => box.StudentLesson));
             allLessons.AddRange(this.ExternalLessons);
             var markStatistics = allLessons.Aggregate
                 (
@@ -302,10 +303,9 @@ namespace TeacherAssistant.StudentViewPage {
                     () => {
                         var id = this.PageService.OpenPage
                         (
-                            new PageProperties {
+                            new PageProperties<StudentForm.StudentForm> {
                                 MinHeight = 600,
                                 Header = "Редактирование " + this.Student.LastName,
-                                PageType = typeof(StudentForm.StudentForm)
                             },
                             this.Id
                         );
@@ -350,8 +350,8 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private async Task AddAttestation() {
-            var schedules = await _db.ScheduleModels.ToListAsync();
-            var lesson = new LessonModel();
+            var schedules = await _db.Schedules.ToListAsync();
+            var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
             var examSchedule =
@@ -364,23 +364,23 @@ namespace TeacherAssistant.StudentViewPage {
             lesson.Schedule = examSchedule;
             lesson.Date = now;
             lesson.LessonType = LessonType.Attestation;
-            lesson._Stream = this.SelectedStream;
-            lesson._Group = this.SelectedGroup;
+            lesson.Stream = this.SelectedStream;
+            lesson.Group = this.SelectedGroup;
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            _db.LessonModels.Add(lesson);
+            _db.Lessons.Add(lesson);
             await _db.SaveChangesAsync();
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students.Select
                     (
-                        groupStudent => new StudentLessonModel {
+                        groupStudent => new StudentLessonEntity {
                             Student = groupStudent,
                             Lesson = lesson
                         }
                     )
                     .ToList();
-                _db.StudentLessonModels.AddRange(newStudentLessons);
+                _db.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentAttestations.Add
                 (
@@ -403,8 +403,8 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private async Task AddExam() {
-            var schedules = await _db.ScheduleModels.ToListAsync();
-            var lesson = new LessonModel();
+            var schedules = await _db.Schedules.ToListAsync();
+            var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
             var examSchedule =
@@ -417,26 +417,26 @@ namespace TeacherAssistant.StudentViewPage {
             lesson.Schedule = examSchedule;
             lesson.Date = now;
             lesson.LessonType = LessonType.Exam;
-            lesson._Stream = this.SelectedStream;
-            lesson._Group = this.SelectedGroup;
+            lesson.Stream = this.SelectedStream;
+            lesson.Group = this.SelectedGroup;
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            _db.LessonModels.Add(lesson);
+            _db.Lessons.Add(lesson);
             await _db.SaveChangesAsync();
 
 
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students.Select
                     (
-                        groupStudent => new StudentLessonModel {
+                        groupStudent => new StudentLessonEntity {
                             Student =
                                 groupStudent,
                             Lesson = lesson
                         }
                     )
                     .ToArray();
-                _db.StudentLessonModels.AddRange(newStudentLessons);
+                _db.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentExams.Add
                 (
@@ -465,45 +465,6 @@ namespace TeacherAssistant.StudentViewPage {
             var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
             this.StudentLessons.ReplaceRange(indexOf, 1, new[] {studentLessonViewBox});
             return studentLessonViewBox;
-        }
-
-        public override Task Init() {
-            Select<StudentModel>(this.Id, "Student")
-                .Subscribe
-                (
-                    async model => {
-                        if (model == null)
-                            return;
-
-                        this.Student = model;
-                        this.Groups = string.Join(", ", model.Groups.Select(group => group.Name));
-                        this.ExternalLessons.Clear();
-                        this.ExternalLessons.AddRange(GetExternalLessons(model));
-                        this.StudentGroups.Clear();
-                        this.StudentGroups.AddRange(model.Groups);
-                        this.IsStudentGroupsSelectorEnabled = this.StudentGroups.Count > 1;
-                        this.SelectedGroup = this.StudentGroups.Count > 0
-                            ? (this.StudentGroups.FirstOrDefault(groupModel => groupModel.IsActive)
-                               ?? this.StudentGroups[0])
-                            : null;
-                        this.StudentNotes.Clear();
-                        //this.StudentNotes.AddRange(model.Notes.ToList());
-                        this.StudentLessonNotes.Clear();
-                        this.StudentLessonNotes.AddRange
-                        (
-                            await _db.StudentLessonNotes.Include
-                                    (note => note.StudentLesson)
-                                .Where(note => note.StudentLesson._StudentId == model.Id)
-                                .ToListAsync()
-                        );
-                        var path = await _photoService.DownloadPhoto
-                                (StudentModel.CardUidToId(model.CardUid))
-                            .ConfigureAwait(false);
-                        var image = _photoService.GetImage(path);
-                        UpdateFromAsync(() => { this.StudentPhoto = image; });
-                    }
-                );
-            return Task.CompletedTask;
         }
     }
 }

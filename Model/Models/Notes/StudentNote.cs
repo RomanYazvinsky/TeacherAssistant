@@ -3,9 +3,9 @@ using Model.Models;
 
 namespace TeacherAssistant.Dao.Notes
 {
-    public class StudentNote: NoteModel
+    public class StudentNote: NoteEntity
     {
         [ForeignKey("EntityId")]
-        public virtual StudentModel Student { get; set; }
+        public virtual StudentEntity Student { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
             }
 
             var service = (IPhotoService) Injector.Instance.Kernel.Get(typeof(IPhotoService));
-            var path = await service.DownloadPhoto(StudentModel.CardUidToId(view.Model.CardUid));
+            var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Model.CardUid));
             if (string.IsNullOrWhiteSpace(path)) {
                 return;
             }
@@ -40,8 +40,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
             }
 
             var pageService = Injector.Instance.Kernel.Get<PageService>();
-            var pageId = pageService.OpenPage(new PageProperties {
-                PageType = typeof(StudentViewPage.StudentViewPage),
+            var pageId = pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
                 Header = view.FullName
             }, view.TableId);
             StoreManager.Publish(view.Model, pageId, "Student");

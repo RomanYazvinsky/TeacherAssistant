@@ -8,7 +8,7 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("SCHEDULE")]
-    public class ScheduleModel : INotifyPropertyChanged, IComparable {
+    public class ScheduleEntity : INotifyPropertyChanged, IComparable {
         private int _orderNumber;
 
         [Key] [Column("id")] public long Id { get; set; }
@@ -54,7 +54,7 @@ namespace Model.Models {
         }
 
         public int CompareTo(object obj) {
-            if (!(obj is ScheduleModel o)) {
+            if (!(obj is ScheduleEntity o)) {
                 return 1;
             }
 

@@ -10,28 +10,28 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("GROUP")]
-    public class GroupModel : Trackable<GroupModel>, INotifyPropertyChanged {
-        private DepartmentModel _department;
+    public class GroupEntity : Trackable<GroupEntity>, INotifyPropertyChanged {
+        private DepartmentEntity _department;
         private string _name;
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
         private const string ExpirationDateTime = "T00:00:00";
         [Key, Column("id")] public long Id { get; set; }
 
 
-        public GroupModel() {
+        public GroupEntity() {
         }
 
-        public GroupModel(GroupModel model) {
-            Apply(model);
+        public GroupEntity(GroupEntity entity) {
+            Apply(entity);
         }
 
         [Column("type_id")] public long? _GroupTypeId { get; set; } = null;
 
         [ForeignKey("_GroupTypeId")] public virtual GroupTypeModel _GroupType { get; set; }
-        [ForeignKey("_PraepostorId")] public virtual StudentModel _Praepostor { get; set; }
+        [ForeignKey("_PraepostorId")] public virtual StudentEntity _Praepostor { get; set; }
         [Column("praepostor_id")] public long? _PraepostorId { get; set; }
-        public virtual ICollection<StudentModel> Students { get; set; } = new List<StudentModel>();
-        public virtual ICollection<StreamModel> Streams { get; set; } = new List<StreamModel>();
+        public virtual ICollection<StudentEntity> Students { get; set; } = new List<StudentEntity>();
+        public virtual ICollection<StreamEntity> Streams { get; set; } = new List<StreamEntity>();
         [Column("active")] public long? _IsActive { get; set; } = 0;
         [Column("expiration_date")] public string _ExpirationDate { get; set; }
 
@@ -49,7 +49,7 @@ namespace Model.Models {
         [Column("department_id")] public long? _DepartmentId { get; set; }
 
         [ForeignKey("_DepartmentId")]
-        public virtual DepartmentModel Department {
+        public virtual DepartmentEntity Department {
             get => _department;
             set {
                 if (Equals(value, _department))
@@ -61,7 +61,7 @@ namespace Model.Models {
         }
 
         [NotMapped]
-        public StudentModel Chief {
+        public StudentEntity Chief {
             get => this._Praepostor;
             set {
                 if (Equals(value, this._Praepostor))
@@ -118,17 +118,17 @@ namespace Model.Models {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public override void Apply(GroupModel model) {
-            this.Name = model.Name;
-            this.Chief = model.Chief;
-            this.Department = model.Department;
-            this.ExpirationDate = model.ExpirationDate;
-            this.IsActive = model.IsActive;
-            this._DepartmentId = model._DepartmentId;
-            this._PraepostorId = model._PraepostorId;
-            this.Students = model.Students;
-            this.Streams = model.Streams;
-            this.Id = model.Id;
+        public override void Apply(GroupEntity entity) {
+            this.Name = entity.Name;
+            this.Chief = entity.Chief;
+            this.Department = entity.Department;
+            this.ExpirationDate = entity.ExpirationDate;
+            this.IsActive = entity.IsActive;
+            this._DepartmentId = entity._DepartmentId;
+            this._PraepostorId = entity._PraepostorId;
+            this.Students = entity.Students;
+            this.Streams = entity.Streams;
+            this.Id = entity.Id;
         }
     }
 }

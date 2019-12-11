@@ -46,12 +46,14 @@ namespace TeacherAssistant {
                     {"page.student.view.session.result.label", "Итог"},
                     {"page.student.view.attestation.header.label", "А{0}"},
                     {"page.student.view.attestation.avg.label", "АC"},
-                    {"page.student.view.missed.lessons", "Пропуски: {0} ({1}/{2}/{3})"}, {
+                    {"page.student.view.missed.lessons", "Пропуски: {0} ({1}/{2}/{3})"},
+                    {
                         "page.student.view.discipline.lessons",
                         "Кол-во по плану: лекций {0} / практ. {1} / лаб. {2}"
-                    }, {
+                    },
+                    {
                         "page.registration.active.student.info",
-                        "{0} {1} {2} \nПропуски: {3} -> Л {4} | П {5} | Лб {6}"
+                        "Пропуски: {0} -> Л {1} | П {2} | Лб {3}"
                     },
                     {$"common.lesson.type.{LessonType.Unknown}", "#########"},
                     {$"common.lesson.type.{LessonType.Lecture}", "Лекция"},
@@ -90,7 +92,7 @@ namespace TeacherAssistant {
                 .Subscribe
                 (
                     tab => {
-                        UpdateFromAsync(() => tab.IsSelected = true);
+                        RunInUiThread(() => tab.IsSelected = true);
                         StoreManager.Publish(StoreManager.Get<List<ButtonConfig>>(tab.Uid + ".Controls"), this.Id,
                             "Controls");
                     }
@@ -133,14 +135,9 @@ namespace TeacherAssistant {
 
         [Reactive] public TabItem ActiveTab { get; set; }
 
-        public override Task Init() {
-            return Task.CompletedTask;
-        }
-
         public INewTabHost<Window> GetNewHost(IInterTabClient interTabClient, object partition, TabablzControl source) {
             var windowHostId = this.PageService.GetProviderId(this.Id);
-            var newTabProviderId = this.PageService.OpenPage
-                (windowHostId, new PageProperties {PageType = typeof(MainWindowPage)});
+            var newTabProviderId = this.PageService.OpenPage(windowHostId, new PageProperties<MainWindowPage>());
             var pageContainerProvider = this.PageService.GetProvider<Window>(windowHostId);
             var window = pageContainerProvider.GetCurrentControl(newTabProviderId);
             var activeTabId = this.ActiveTab.Uid;

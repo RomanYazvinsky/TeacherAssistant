@@ -32,30 +32,27 @@
             <ColumnDefinition Width="7*" />
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
-        <tableFilter:TableFilter Sorts="{Binding Path=Sorts}" FilterFunction="{Binding Path=FilterFunction}"
-                                 TableItems="{Binding Path=Students}"
-                                 SelectedItem="{Binding Path=SelectedStudentModel, Mode=TwoWay}"
-                                 DragValuePath="Model"
+        <tableFilter:TableFilter TableConfig="{Binding Path=StudentTableConfig}"
                                  TableItemContainerStyle="{StaticResource MyItemContainerStyle}">
             <GridView>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Model.CardUid}">
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.CardUid}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Карта" Tag="Model.CardUid" />
+                        <GridViewColumnHeader Content="Карта" Tag="Student.CardUid" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Model.LastName}">
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.LastName}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Фамилия" Tag="Model.LastName" />
+                        <GridViewColumnHeader Content="Фамилия" Tag="Student.LastName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Model.FirstName}">
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.FirstName}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Имя" Tag="Model.FirstName" />
+                        <GridViewColumnHeader Content="Имя" Tag="Student.FirstName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Model.SecondName}">
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.SecondName}">
                     <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Отчество" Tag="Model.SecondName" />
+                        <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
                 <GridViewColumn Width="250" DisplayMemberBinding="{Binding Path=GroupsText}">

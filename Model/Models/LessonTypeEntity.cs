@@ -15,7 +15,7 @@ namespace Model.Models {
     }
 
     [Table("LESSON_TYPE")]
-    public class LessonTypeModel : INotifyPropertyChanged {
+    public class LessonTypeEntity : INotifyPropertyChanged {
         private string _name;
         [Key] [Column("id")] public long Id { get; set; }
 

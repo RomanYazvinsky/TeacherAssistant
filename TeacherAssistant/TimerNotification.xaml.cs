@@ -36,8 +36,8 @@ namespace TeacherAssistant {
         }
 
         public TimerNotificationModel(DateTime time) : base("", new MessageOptions()) {
-            this.DisplayPart = (_displayPart = new DynamicNotification(this));
-            Title = AbstractModel.Localization["До следующего звонка:"];
+            _displayPart = new DynamicNotification(this);
+            this.Title = AbstractModel.Localization["До следующего звонка:"];
             this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss");
             var timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(1000);
@@ -57,7 +57,7 @@ namespace TeacherAssistant {
             }
         }
 
-        public override NotificationDisplayPart DisplayPart { get; }
+        public override NotificationDisplayPart DisplayPart => _displayPart;
 
         public void Dispose() {
             _timer.Stop();

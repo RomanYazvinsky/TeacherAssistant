@@ -3,15 +3,13 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
     public static class PageConfigs {
-        public static readonly PageProperties SchedulePageConfig = new PageProperties {
+        public static readonly PageProperties<TeacherAssistant.ComponentsImpl.SchedulePage.SchedulePage> SchedulePageConfig = new PageProperties<TeacherAssistant.ComponentsImpl.SchedulePage.SchedulePage> {
             Header = "Расписание", MinHeight = 700,
-            PageType = typeof(TeacherAssistant.ComponentsImpl.SchedulePage.SchedulePage)
         };
 
-        public static readonly PageProperties RegistrationPageConfig =
-            new PageProperties {
+        public static readonly PageProperties<TeacherAssistant.RegistrationPage.RegistrationPage> RegistrationPageConfig =
+            new PageProperties<TeacherAssistant.RegistrationPage.RegistrationPage> {
                 Header = "Регистрация", MinHeight = 700,
-                PageType = typeof(TeacherAssistant.RegistrationPage.RegistrationPage)
             };
     }
 }

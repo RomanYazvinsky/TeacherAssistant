@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using TeacherAssistant.Annotations;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 
 namespace Model.Models {
     [Table("LESSON")]
-    public class LessonModel : Trackable<LessonModel>, INotifyPropertyChanged {
+    public class LessonEntity : Trackable<LessonEntity> {
         #region Database mapping
 
         [Key] [Column("id")] public long Id { get; set; }
@@ -28,25 +25,25 @@ namespace Model.Models {
         #endregion
 
 
-        public LessonModel() {
+        public LessonEntity() {
         }
 
-        public LessonModel(LessonModel model) {
-            Apply(model);
+        public LessonEntity(LessonEntity entity) {
+            Apply(entity);
         }
 
         #region ORM FK
 
         [Column("SCHEDULE_ID")] public long? _ScheduleId { get; set; }
-        public virtual ICollection<StudentLessonModel> StudentLessons { get; set; } = new List<StudentLessonModel>();
-        public virtual ICollection<LessonNote> Notes{ get; set; } = new List<LessonNote>();
+        public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
+        public virtual ICollection<LessonNote> Notes { get; set; } = new List<LessonNote>();
 
-        [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleModel Schedule { get; set; }
+        [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleEntity Schedule { get; set; }
         [Column("group_id")] public long? _GroupId { get; set; }
-        [ForeignKey(nameof(_GroupId))] public virtual GroupModel _Group { get; set; }
+        [ForeignKey(nameof(_GroupId))] public virtual GroupEntity Group { get; set; }
         [Column("stream_id")] public long? _StreamId { get; set; }
 
-        [ForeignKey(nameof(_StreamId))] public virtual StreamModel _Stream { get; set; }
+        [ForeignKey(nameof(_StreamId))] public virtual StreamEntity Stream { get; set; }
 
         #endregion
 
@@ -55,9 +52,8 @@ namespace Model.Models {
         [NotMapped]
         public DateTime? Date {
             get {
-                if (this._Date == null)
+                if (this._Date == null || this._Date.Length < 10)
                     return null;
-                string clearDate = this._Date.Replace("T", " ");
                 return DateTime.ParseExact
                 (
                     this._Date.Substring(0, 10),
@@ -66,10 +62,13 @@ namespace Model.Models {
                     DateTimeStyles.None
                 );
             }
-            set {
-                this._Date = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
-                OnPropertyChanged();
-            }
+            set => this._Date = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
+        }
+
+        [NotMapped]
+        public int Order {
+            get => (int) (this._Order ?? 0);
+            set => this._Order = value;
         }
 
         [NotMapped]
@@ -87,63 +86,30 @@ namespace Model.Models {
                     CultureInfo.InvariantCulture
                 );
             }
-            set {
-                this._CreateDate = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
-                OnPropertyChanged();
-            }
-        }
-
-        [NotMapped]
-        public GroupModel Group {
-            get => this._Group;
-            set {
-                this._Group = value;
-                this._GroupId = value?.Id;
-                OnPropertyChanged();
-            }
-        }
-
-        [NotMapped]
-        public StreamModel Stream {
-            get => this._Stream;
-            set {
-                this._Stream = value;
-                this._StreamId = value?.Id;
-                OnPropertyChanged();
-            }
+            set => this._CreateDate = value?.ToString("yyyy-MM-dd HH:mm:ss").Replace(" ", "T");
         }
 
         [NotMapped]
         public LessonType LessonType {
             get => (LessonType) (this._TypeId.HasValue
-                                     ? Enum.GetValues(typeof(LessonType)).GetValue(this._TypeId.Value)
-                                     : LessonType.Unknown);
-            set {
-                this._TypeId = (int) value;
-                OnPropertyChanged();
-            }
+                ? Enum.GetValues(typeof(LessonType)).GetValue(this._TypeId.Value)
+                : LessonType.Unknown);
+            set => this._TypeId = (int) value;
         }
 
         [NotMapped]
         public bool Checked {
             get => this._Checked > 0;
-            set {
-                this._Checked = value ? 1 : 0;
-                OnPropertyChanged();
-            }
+            set => this._Checked = value ? 1 : 0;
         }
-
 
         #endregion
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public int GetLessonsCount() {
+            return this.Stream?.GetLessonCountByType(this.LessonType) ?? 0;
         }
 
-        public override void Apply(LessonModel trackable) {
+        public override void Apply(LessonEntity trackable) {
             this.Id = trackable.Id;
             this.Group = trackable.Group;
             this.Checked = trackable.Checked;

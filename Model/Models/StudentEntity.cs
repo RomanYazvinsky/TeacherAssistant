@@ -10,7 +10,7 @@ using TeacherAssistant.Dao.Notes;
 
 namespace Model.Models {
     [Table("STUDENT")]
-    public class StudentModel : Trackable<StudentModel>, INotifyPropertyChanged {
+    public class StudentEntity : Trackable<StudentEntity>, INotifyPropertyChanged {
         private string _cardUid;
         private string _email;
         private string _firstName;
@@ -18,11 +18,11 @@ namespace Model.Models {
         private string _phoneNumber;
         private string _secondName;
 
-        public StudentModel() {
+        public StudentEntity() {
         }
 
-        public StudentModel(StudentModel model) {
-            Apply(model);
+        public StudentEntity(StudentEntity entity) {
+            Apply(entity);
         }
 
         [Key] [Column("id")] public long Id { get; set; }
@@ -105,23 +105,23 @@ namespace Model.Models {
             }
         }
 
-        public virtual ICollection<GroupModel> Groups { get; set; } = new List<GroupModel>();
-        public virtual ICollection<StudentLessonModel> StudentLessons { get; set; } = new List<StudentLessonModel>();
+        public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
+        public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
         public virtual ICollection<StudentNote> Notes { get; set; } = new List<StudentNote>();
 
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public override void Apply(StudentModel model) {
-            this.Id = model.Id;
-            this.CardUid = model.CardUid;
-            this.FirstName = model.FirstName;
-            this.LastName = model.LastName;
-            this.SecondName = model.SecondName;
-            this.PhoneNumber = model.PhoneNumber;
-            this.Email = model.Email;
-            this.Groups = model.Groups;
-            this.StudentLessons = model.StudentLessons;
+        public override void Apply(StudentEntity entity) {
+            this.Id = entity.Id;
+            this.CardUid = entity.CardUid;
+            this.FirstName = entity.FirstName;
+            this.LastName = entity.LastName;
+            this.SecondName = entity.SecondName;
+            this.PhoneNumber = entity.PhoneNumber;
+            this.Email = entity.Email;
+            this.Groups = entity.Groups;
+            this.StudentLessons = entity.StudentLessons;
            // this.Notes = model.Notes;
         }
 

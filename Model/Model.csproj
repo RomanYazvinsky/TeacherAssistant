@@ -94,36 +94,36 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GeneralDbContext.cs" />
-    <Compile Include="Models\AlarmModel.cs" />
-    <Compile Include="Models\DepartmentModel.cs" />
-    <Compile Include="Models\DisciplineModel.cs" />
-    <Compile Include="Models\GroupModel.cs" />
+    <Compile Include="Models\AlarmEntity.cs" />
+    <Compile Include="Models\DepartmentEntity.cs" />
+    <Compile Include="Models\DisciplineEntity.cs" />
+    <Compile Include="Models\GroupEntity.cs" />
     <Compile Include="Models\GroupTypeModel.cs" />
     <Compile Include="Models\LecturerModel.cs" />
     <Compile Include="Models\Notes\StudentLessonNote.cs" />
     <Compile Include="Models\Notes\StudentNote.cs" />
-    <Compile Include="Models\StreamModel.cs" />
+    <Compile Include="Models\StreamEntity.cs" />
     <Compile Include="Models\StreamGroupModel.cs" />
-    <Compile Include="Models\LessonModel.cs" />
-    <Compile Include="Models\LessonTypeModel.cs" />
-    <Compile Include="Models\NoteModel.cs" />
+    <Compile Include="Models\LessonEntity.cs" />
+    <Compile Include="Models\LessonTypeEntity.cs" />
+    <Compile Include="Models\NoteEntity.cs" />
     <Compile Include="Models\NotificationSettingsModel.cs" />
-    <Compile Include="Models\ScheduleModel.cs" />
+    <Compile Include="Models\ScheduleEntity.cs" />
     <Compile Include="Models\ScheduleVersionModel.cs" />
     <Compile Include="Models\StudentGroupModel.cs" />
-    <Compile Include="Models\StudentLessonModel.cs" />
-    <Compile Include="Models\StudentModel.cs" />
+    <Compile Include="Models\StudentLessonEntity.cs" />
+    <Compile Include="Models\StudentEntity.cs" />
     <Compile Include="Models\StudentNotificationModel.cs" />
     <Compile Include="Models\Notes\LessonNote.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Trackable.cs" />
+    <Compile Include="ViewModels\IStudentViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.111.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.111.0\build\net46\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

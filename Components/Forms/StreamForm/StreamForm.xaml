@@ -74,10 +74,7 @@
                 <ColumnDefinition />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <tableFilter:TableFilter Grid.Column="0" Sorts="{Binding Path=GroupSorts}"
-                                     TableItems="{Binding AvailableGroups}"
-                                     FilterFunction="{Binding Path=GroupFilter}"
-                                     SelectedItems="{Binding Path=SelectedAvailableGroups}">
+            <tableFilter:TableFilter Grid.Column="0" TableConfig="{Binding Path=AvailableGroupTableConfig}">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
@@ -97,10 +94,7 @@
                 <Button Height="40" Grid.Column="1" Content="{Binding Path=Localization[remove]}"
                         Command="{Binding Path=RemoveGroupsHandler}" />
             </Grid>
-            <tableFilter:TableFilter Grid.Column="2" Sorts="{Binding Path=GroupSorts}"
-                                     TableItems="{Binding ChosenGroups}"
-                                     FilterFunction="{Binding Path=GroupFilter}"
-                                     SelectedItems="{Binding Path=SelectedChosenGroups}">
+            <tableFilter:TableFilter Grid.Column="2" TableConfig="{Binding Path=ChosenGroupTableConfig}">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>

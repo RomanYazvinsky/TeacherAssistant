@@ -57,10 +57,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-            <tableFilter:TableFilter FilterHeight="30" TableItems="{Binding Path=Students}"
-                                     SelectedItems="{Binding Path=SelectedStudents}"
-                                     FilterFunction="{Binding Path=StudentFilter}"
-                                     Sorts="{Binding Path=Sorts}">
+            <tableFilter:TableFilter FilterHeight="30"
+                                     TableConfig="{Binding Path=StudentsTableConfig}">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
@@ -90,10 +88,7 @@
                 <Button Grid.Row="3" Width="100" Content="{Binding Localization[back]}"
                         Command="{Binding Path=RemoveStudentsFromGroupConfig.Command}" />
             </Grid>
-            <tableFilter:TableFilter Grid.Column="2" FilterHeight="30" TableItems="{Binding Path=GroupStudents}"
-                                     SelectedItems="{Binding Path=SelectedGroupStudents}"
-                                     FilterFunction="{Binding Path=StudentFilter}"
-                                     Sorts="{Binding Path=Sorts}">
+            <tableFilter:TableFilter Grid.Column="2" FilterHeight="30"  TableConfig="{Binding GroupStudentsTableConfig}">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>

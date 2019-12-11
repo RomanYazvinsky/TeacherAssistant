@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
@@ -24,7 +26,7 @@ namespace TeacherAssistant.ComponentsImpl {
         protected IStore<ImmutableDictionary<string, DataContainer>> _store;
         protected PageService PageService { get; }
         protected GeneralDbContext _db;
-        private BehaviorSubject<int> _refresh;
+        protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
         public static bool NotNull<T>(T t) => t != null;
         public static bool NotNull<T, TV>((T, TV) t) => t.Item1 != null && t.Item2 != null;
         public static LocalizationContainer Localization { get; } = new LocalizationContainer();
@@ -34,8 +36,8 @@ namespace TeacherAssistant.ComponentsImpl {
             this.Id = id;
             this.PageService = Injector.Get<PageService>();
             _store = Storage.Instance.PublishedDataStore;
+            // TODO: update _db reference when new context was created OR restart app on db update
             _db = GeneralDbContext.Instance;
-            _refresh = new BehaviorSubject<int>(0);
             this.Activator = new ViewModelActivator();
             _uniqueKey = "." + this.Id;
             var rus = CultureInfo.GetCultureInfo("ru-RU");
@@ -136,21 +138,20 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         protected IObservable<T> ManageObservable<T>(IObservable<T> source) {
-            return source.TakeUntil(this.Activator.Deactivated).CombineLatest(_refresh, (arg1, i) => arg1);
+            return source.TakeUntil(this.Activator.Deactivated).CombineLatest(RefreshSubject, (arg1, i) => arg1);
         }
+        
 
         protected abstract string GetLocalizationKey();
 
-        protected void UpdateFromAsync(Action updateAction) {
+        protected void RunInUiThread(Action updateAction) {
             Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Background, updateAction);
         }
-
-        public abstract Task Init();
 
         public bool Blocked { get; set; } = false;
         
         public virtual void Dispose() {
-            _refresh.OnCompleted();
+            RefreshSubject.OnCompleted();
             this.Activator.Dispose();
             foreach (var keyValuePair in Localization.Where(pair => pair.Key.EndsWith(_uniqueKey))) {
                 Localization.Remove(keyValuePair.Key);
@@ -160,7 +161,7 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         public void Refresh() {
-            _refresh.OnNext(0);
+            RefreshSubject.OnNext(0);
         }
 
         public ViewModelActivator Activator { get; }
@@ -179,6 +180,16 @@ namespace TeacherAssistant.ComponentsImpl {
             }
 
             return null;
+        }
+    }
+
+    public static class ObsCollExt {
+        public static IObservable<NotifyCollectionChangedEventArgs> Changes<T>(this ObservableCollection<T> collection) {
+            return Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>
+            (
+                (handler) => collection.CollectionChanged += handler,
+                handler => collection.CollectionChanged -= handler
+            ).Select(pattern => pattern.EventArgs);
         }
     }
 }

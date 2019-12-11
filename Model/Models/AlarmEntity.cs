@@ -1,17 +1,19 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
-using System.Text;
 using TeacherAssistant.Annotations;
 using TeacherAssistant.Dao;
 
 namespace Model
 {
     [Table("ALARM")]
-    public class AlarmModel : Trackable<AlarmModel>, INotifyPropertyChanged
+    public class AlarmEntity : Trackable<AlarmEntity>, INotifyPropertyChanged
     {
         private long? _timer;
+        private string _discriminator;
+        private string _resourceName;
 
         [Key] [Column("id")] public long Id { get; set; }
         [Column("active")] public long? _Active { get; set; }
@@ -31,7 +33,27 @@ namespace Model
 
         [Column("volume")] public decimal? _Volume { get; set; }
 
-        [Column("sound")] public string _Sound { get; set; }
+        [Column("sound")] public byte[] _Sound { get; set; } = new byte[0];
+
+        [Column("discriminator")]
+        public string Discriminator {
+            get => _discriminator;
+            set {
+                if (value == _discriminator) return;
+                _discriminator = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [Column("resource_name")]
+        public string ResourceName {
+            get => _resourceName;
+            set {
+                if (value == _resourceName) return;
+                _resourceName = value;
+                OnPropertyChanged();
+            }
+        }
 
         [NotMapped]
         public bool IsActive
@@ -56,15 +78,7 @@ namespace Model
         }
 
         [NotMapped]
-        public byte[] Sound
-        {
-            get => Encoding.Default.GetBytes(this._Sound);
-            set
-            {
-                this._Sound = Encoding.Default.GetString(value);
-                OnPropertyChanged();
-            }
-        }
+        public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this._Sound);
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -74,7 +88,7 @@ namespace Model
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public override void Apply(AlarmModel trackable) {
+        public override void Apply(AlarmEntity trackable) {
         }
     }
 }

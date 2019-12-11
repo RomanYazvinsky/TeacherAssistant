@@ -4,6 +4,7 @@
                             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                             xmlns:local="clr-namespace:TeacherAssistant.RegistrationPage"
+                            xmlns:ta="clr-namespace:TeacherAssistant"
                             xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
                             mc:Ignorable="d"
                             d:DesignHeight="680" d:DesignWidth="1280"
@@ -13,9 +14,11 @@
             <ContextMenu.Items>
                 <MenuItem Header="Показать"
                           Command="{Binding Path=DataContext.ShowStudent, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
+                <MenuItem Header="Заметка (студент)"
+                          Command="{Binding Path=DataContext.AddStudentNote, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
             </ContextMenu.Items>
         </ContextMenu>
-        <Style x:Key="MyItemContainerStyle" TargetType="{x:Type ListViewItem}">
+        <Style x:Key="CustomItemContainerStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="ContextMenu" Value="{StaticResource lwMenu}" />
             <Setter Property="Height" Value="25" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -23,6 +26,14 @@
             <Setter Property="BorderThickness" Value="0, 0, 0, 1" />
             <Setter Property="BorderBrush" Value="Gray" />
         </Style>
+        <Style BasedOn="{StaticResource LabelLike}" TargetType="TextBox" x:Key="Info">
+            <Setter Property="FontSize" Value="24" />
+        </Style>
+        <Style BasedOn="{StaticResource Info}" TargetType="TextBox" x:Key="MainInfo">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <ta:BooleanToVisibilityConverter x:Key="B2VConverter" />
+        <ta:BooleanToVisibilityConverter True="Collapsed" False="Visible" x:Key="InverseB2VConverter" />
     </local:RegistrationPageBase.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -43,9 +54,22 @@
 
         <Image x:Name="StudentPhoto" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="2" />
 
-        <TextBlock x:Name="StudentDescription" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" />
+        <StackPanel Orientation="Vertical" x:Name="StudentDescription" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"
+                    Grid.ColumnSpan="2">
+            <StackPanel.Resources>
+                <Style TargetType="TextBox" BasedOn="{StaticResource LabelLike}">
+                    <Setter Property="Margin" Value="0, 5, 0, 0" />
+                    <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+            </StackPanel.Resources>
+            <TextBox x:Name="LastNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
+            <TextBox x:Name="FirstNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
+            <TextBox x:Name="SecondNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
+            <TextBox x:Name="GroupNamesText" FontWeight="Normal" FontSize="20" />
+            <TextBox x:Name="LessonStatText" Foreground="DarkRed" FontWeight="Bold" FontSize="23" />
+        </StackPanel>
         <tableFilter:TableFilter Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Grid.RowSpan="2"
-                                 TableItemContainerStyle="{StaticResource MyItemContainerStyle}"
+                                 TableItemContainerStyle="{StaticResource CustomItemContainerStyle}"
                                  x:Name="RegisteredStudents">
             <GridView>
                 <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.LastName}">
@@ -63,7 +87,8 @@
                         <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=RegistrationTime, StringFormat=HH:mm:ss}">
+                <GridViewColumn Width="100"
+                                DisplayMemberBinding="{Binding Path=RegistrationTime, StringFormat=HH:mm:ss}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Время" Tag="RegistrationTime" />
                     </GridViewColumn.Header>
@@ -72,8 +97,9 @@
             </GridView>
         </tableFilter:TableFilter>
         <tableFilter:TableFilter Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="3" Grid.RowSpan="2"
-                                 TableItemContainerStyle="{StaticResource MyItemContainerStyle}"
-                                 x:Name="LessonStudents">
+                                 TableItemContainerStyle="{StaticResource CustomItemContainerStyle}"
+                                 x:Name="LessonStudents"
+                                 Visibility="{Binding Path=AllStudentsMode, Converter={StaticResource InverseB2VConverter}}">
             <GridView>
                 <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.LastName}">
                     <GridViewColumn.Header>
@@ -92,20 +118,76 @@
                 </GridViewColumn>
             </GridView>
         </tableFilter:TableFilter>
+        <tableFilter:TableFilter Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="3" Grid.RowSpan="2"
+                                 TableItemContainerStyle="{StaticResource CustomItemContainerStyle}"
+                                 x:Name="AllStudents"
+                                 Visibility="{Binding Path=AllStudentsMode, Converter={StaticResource B2VConverter}}">
+            <GridView>
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.CardUid}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Карта" Tag="Student.CardUid" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.LastName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Фамилия" Tag="Student.LastName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.FirstName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Имя" Tag="Student.FirstName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.SecondName}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn Width="250" DisplayMemberBinding="{Binding Path=GroupsText}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Группы" Tag="GroupsText" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+            </GridView>
+        </tableFilter:TableFilter>
         <Button Grid.Row="2" Grid.Column="1" Content="->" x:Name="UnregisterButton"
                 HorizontalAlignment="Right" Height="40"
                 Width="100" />
-        <Button Grid.Row="2" Grid.Column="2" Content="&lt;-" x:Name="RegisterButton"
-                HorizontalAlignment="Left" Height="40" Width="100" />
+        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+            <Button Content="&lt;-" x:Name="RegisterButton"
+                    HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="100" />
+            <Button Padding="5" Margin="5, 0, 0, 0" x:Name="ToggleAllStudentsMode" />
+        </StackPanel>
 
-        <Grid Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="2">
+        <Grid Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
-                <RowDefinition />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="40" />
             </Grid.RowDefinitions>
-            <CheckBox Grid.Row="1" x:Name="AutoRegBox" Content="Авторегистрация"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="AutoRegBox" Content="Авторегистрация"
                       HorizontalAlignment="Left" />
+            <TextBox Text="{Binding Path=RegistrationInfoState.Total, Mode=OneWay}" Grid.Row="1" Grid.Column="0"
+                     Style="{StaticResource MainInfo}" />
+            <TextBox Text="{Binding Path=RegistrationInfoState.Registered, Mode=OneWay}" Grid.Row="2" Grid.Column="0"
+                     Style="{StaticResource MainInfo}" />
+            <TextBox Text="{Binding Path=RegistrationInfoState.NotRegistered, Mode=OneWay}" Grid.Row="3"
+                     Grid.Column="0"
+                     Style="{StaticResource MainInfo}" />
+            <TextBox Text="{Binding Path=LessonInfoState.GroupName, Mode=OneWay}" Grid.Row="1" Grid.Column="1"
+                     Style="{StaticResource Info}" />
+            <TextBox Text="{Binding Path=LessonInfoState.LessonInfo, Mode=OneWay}" Grid.Row="2" Grid.Column="1"
+                     Style="{StaticResource Info}" />
+            <TextBox Text="{Binding Path=LessonInfoState.Date, Mode=OneWay}" Grid.Row="3" Grid.Column="1"
+                     Style="{StaticResource Info}" />
+            <TextBox Text="{Binding Path=LessonInfoState.Time, Mode=OneWay}" Grid.Row="4" Grid.Column="1"
+                     Style="{StaticResource Info}" />
         </Grid>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" x:Name="TimeBox"
                    Grid.Column="4" Grid.ColumnSpan="2" Grid.Row="2" />

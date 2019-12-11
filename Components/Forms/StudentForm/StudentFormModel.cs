@@ -18,6 +18,7 @@ using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Components;
+using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.ReaderPlugin;
 
@@ -25,7 +26,7 @@ namespace TeacherAssistant.StudentForm {
     public class StudentFormModel : AbstractModel, IValidatableViewModel {
         public static readonly string LocalizationKey = "student.form";
         private IPhotoService _photoService;
-        private StudentModel _originalStudent;
+        private StudentEntity _originalStudent;
 
         public StudentFormModel(
             string id,
@@ -33,18 +34,18 @@ namespace TeacherAssistant.StudentForm {
             StudentCardService studentCardService
         ) : base(id) {
             _photoService = photoService;
-            this.ValidationRule
-            (
-                model => model.Student.LastName,
-                s => !string.IsNullOrWhiteSpace(s),
-                Localization["student.form.validation.wrong.name"]
-            );
+            this.ChosenGroupTableConfig = new TableConfig {
+                Sorts = this.ChosenGroupSorts
+            };
+            this.AvailableGroupTableConfig = new TableConfig {
+                Sorts = this.AvailableGroupSorts
+            };
             this.SelectGroups = new ButtonConfig {
                 Text = "->",
                 Command = new CommandHandler
                 (
                     () => {
-                        foreach (var selectedAvailableGroup in this.SelectedAvailableGroups.Cast<GroupModel>().ToList()
+                        foreach (var selectedAvailableGroup in this.SelectedAvailableGroups.Cast<GroupEntity>().ToList()
                         ) {
                             this.AvailableGroups.Remove(selectedAvailableGroup);
                             var choseGroupModel = new ChoseGroupModel(selectedAvailableGroup);
@@ -78,7 +79,7 @@ namespace TeacherAssistant.StudentForm {
                             this.ChoseGroups.Cast<ChoseGroupModel>().Select(model => model.Group).ToList();
                         _originalStudent.Apply(this.Student);
                         if (isNew) {
-                            _db.StudentModels.Add(_originalStudent);
+                            _db.Students.Add(_originalStudent);
                         }
 
                         foreach (ChoseGroupModel selectedChoseGroup in this.ChoseGroups) {
@@ -110,18 +111,18 @@ namespace TeacherAssistant.StudentForm {
                     async tuple => {
                         var (isStudentCardSelected, cardUid) = tuple;
                         if (string.IsNullOrEmpty(cardUid)) {
-                            UpdateFromAsync(() => this.StudentPhoto = null);
+                            RunInUiThread(() => this.StudentPhoto = null);
                             return;
                         }
 
                         if (!isStudentCardSelected)
                             return;
 
-                        var path = await _photoService.DownloadPhoto(StudentModel.CardUidToId(cardUid));
+                        var path = await _photoService.DownloadPhoto(StudentEntity.CardUidToId(cardUid));
                         if (string.IsNullOrEmpty(path))
                             return;
                         var photo = _photoService.GetImage(path);
-                        UpdateFromAsync(() => { this.StudentPhoto = photo; });
+                        RunInUiThread(() => { this.StudentPhoto = photo; });
                     }
                 );
             this.WhenAnyValue(model => model.SelectedStudentCard)
@@ -139,37 +140,45 @@ namespace TeacherAssistant.StudentForm {
                     }
                 );
 
-            ManageObservable
-                (
-                    Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>
-                    (
-                        (handler) => studentCardService.ReadStudentCards.CollectionChanged += handler,
-                        handler => studentCardService.ReadStudentCards.CollectionChanged -= handler
-                    )
-                )
-                .Subscribe
-                (
-                    pattern => {
-                        this.ReadStudents = new List<StudentCard>
-                        (
-                            studentCardService.ReadStudentCards
-                        );
-                    }
-                );
+            ManageObservable(studentCardService.ReadStudentCards.Changes())
+                .Subscribe(onNext: _ => this.ReadStudents = new List<StudentCard>(studentCardService.ReadStudentCards));
+            Select<StudentEntity>(this.Id, "Student").Subscribe(Initialize);
         }
 
+        private void Initialize(StudentEntity entity) {
+            if (entity == null)
+                return;
+            _originalStudent = entity;
+            this.Student = new StudentEntity(entity);
+            this.ChoseGroups.Clear();
+            var choseGroupModels = entity.Groups.Select(group => new ChoseGroupModel(group) {
+                IsPraepostor = group.Chief != null && group.Chief.Id == entity.Id,
+                IsPraepostorAlreadySet = group.Chief != null && @group.Chief.Id > 0
+            }).ToList();
+            this.ChoseGroups.AddRange(choseGroupModels);
+            var groupModels = _db.Groups.Include(group => group.Students)
+                .AsEnumerable()
+                .Where
+                (
+                    groupModel => groupModel._IsActive == 1
+                                  && entity.Groups.All(studentGroup => studentGroup.Id != groupModel.Id)
+                )
+                .ToList();
+            this.AvailableGroups.Clear();
+            this.AvailableGroups.AddRange(groupModels);
+            this.IsShowPhoto = entity.Id != 0;
+        }
+        
+        public TableConfig ChosenGroupTableConfig { get; set; }
+        public TableConfig AvailableGroupTableConfig { get; set; }
 
-        public ObservableRangeCollection<object> AvailableGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        private ObservableRangeCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
 
-        public ObservableRangeCollection<object> ChoseGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        private ObservableRangeCollection<object> ChoseGroups => this.ChosenGroupTableConfig.TableItems;
 
-        public ObservableRangeCollection<object> SelectedAvailableGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        private IEnumerable<object> SelectedAvailableGroups => this.AvailableGroupTableConfig.SelectedItems;
 
-        public ObservableRangeCollection<object> SelectedChoseGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        private IEnumerable<object> SelectedChoseGroups => this.ChosenGroupTableConfig.SelectedItems;
 
         public ButtonConfig SelectGroups { get; set; }
         public ButtonConfig DeselectGroups { get; set; }
@@ -177,14 +186,14 @@ namespace TeacherAssistant.StudentForm {
         public ButtonConfig SwitchViewButtonConfig { get; set; }
         public ButtonConfig SaveButtonConfig { get; set; }
         [Reactive] public BitmapImage StudentPhoto { get; set; }
-        [Reactive] public StudentModel Student { get; set; }
+        [Reactive] public StudentEntity Student { get; set; }
         [Reactive] public List<StudentCard> ReadStudents { get; set; } = new List<StudentCard>();
 
-        public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection> {
+        public Dictionary<string, ListSortDirection> AvailableGroupSorts { get; set; } = new Dictionary<string, ListSortDirection> {
             {"Name", ListSortDirection.Ascending}
         };
 
-        public Dictionary<string, ListSortDirection> GroupSorts { get; set; } =
+        public Dictionary<string, ListSortDirection> ChosenGroupSorts { get; set; } =
             new Dictionary<string, ListSortDirection> {
                 {"Group.Name", ListSortDirection.Ascending}
             };
@@ -197,55 +206,12 @@ namespace TeacherAssistant.StudentForm {
             return LocalizationKey;
         }
 
-        public override Task Init() {
-            Select<StudentModel>(this.Id , "Student")
-                .Subscribe
-                (
-                    model => {
-                        if (model == null)
-                            return;
-                        _originalStudent = model;
-                        this.Student = new StudentModel(model);
-                        this.ChoseGroups.Clear();
-                        model.Groups
-                            .ToList()
-                            .ForEach
-                            (
-                                view => this.ChoseGroups.Add
-                                (
-                                    new ChoseGroupModel(view) {
-                                        IsPraepostor = view.Chief != null && view.Chief.Id == model.Id,
-                                        IsPraepostorAlreadySet = view.Chief != null && view.Chief.Id > 0
-                                    }
-                                )
-                            );
-                        var groupModels = _db.GroupModels.Include(group => @group.Students)
-                            .AsEnumerable()
-                            .Where
-                            (
-                                groupModel => groupModel._IsActive == 1
-                                              && model.Groups.All
-                                              (
-                                                  studentGroup
-                                                      => studentGroup.Id != groupModel.Id
-                                              )
-                            )
-                            .ToList();
-                        this.AvailableGroups.Clear();
-                        this.AvailableGroups.AddRange(groupModels);
-                        this.IsShowPhoto = model.Id != 0;
-                    }
-                );
-
-            return Task.CompletedTask;
-        }
-
         public class ChoseGroupModel {
-            public ChoseGroupModel(GroupModel group) {
+            public ChoseGroupModel(GroupEntity group) {
                 this.Group = group;
             }
 
-            public GroupModel Group { get; }
+            public GroupEntity Group { get; }
             public bool IsPraepostor { get; set; }
 
             public bool IsPraepostorAlreadySet { get; set; }

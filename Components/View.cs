@@ -14,7 +14,6 @@ namespace TeacherAssistant.ComponentsImpl {
                     ("id", this.Uid)
                 );
                 this.DataContext = this.ViewModel;
-                this.ViewModel.Init();
                 ViewModelLoaded?.Invoke(this, this.ViewModel);
 //            };
             MouseDown += (sender, args) => { args.Handled = !this.ViewModel.Blocked; };

@@ -48,5 +48,9 @@ namespace TeacherAssistant.StudentViewPage
 
             e.Handled = true;*/
         }
+
+        private void ExternalLessonClick(object sender, MouseButtonEventArgs e) {
+            this.ViewModel.OpenExternalLesson?.Command?.Execute(sender);
+        }
     }
 }

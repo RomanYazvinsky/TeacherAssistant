@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +20,29 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.Components.TableFilter {
+    public class DragConfig {
+        public string SourceId { get; set; }
+        public string SourceType { get; set; }
+        public Func<DragData, bool> DropAvailability { get; set; } = data => false;
+        public string DragValuePath { get; set; }
+        public Action<DragData> Drop { get; set; } = data => { };
+        public Action DragSuccess { get; set; } = () => { };
+        public Action DragStart { get; set; } = () => { };
+    }
+
+
+    public class TableConfig {
+        public DragConfig DragConfig { get; set; }
+        public ObservableRangeCollection<object> TableItems { get; set; } = new WpfObservableRangeCollection<object>();
+
+        public ObservableRangeCollection<object> SelectedItems { get; set; } =
+            new WpfObservableRangeCollection<object>();
+
+        public BehaviorSubject<object> SelectedItem { get; set; } = new BehaviorSubject<object>(null);
+        public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection>();
+        public Func<object, string, bool> Filter { get; set; } = (o, s) => true;
+    }
+
     /// <summary>
     /// Interaction logic for TableFilter.xaml
     /// </summary>
@@ -34,46 +58,6 @@ namespace TeacherAssistant.Components.TableFilter {
                     BindsTwoWayByDefault = true,
                     DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
                     DefaultValue = string.Empty
-                }
-            );
-
-        public static readonly DependencyProperty SortsProperty =
-            DependencyProperty.Register
-            (
-                "Sorts",
-                typeof(Dictionary<string, ListSortDirection>),
-                typeof(TableFilter)
-            );
-
-        public static readonly DependencyProperty TableItemsProperty =
-            DependencyProperty.Register
-            (
-                "TableItems",
-                typeof(ObservableRangeCollection<object>),
-                typeof(TableFilter),
-                new FrameworkPropertyMetadata() {
-                    DefaultValue = new WpfObservableRangeCollection<object>()
-                }
-            );
-
-        public static readonly DependencyProperty SelectedItemsProperty =
-            DependencyProperty.Register
-            (
-                "SelectedItems",
-                typeof(ObservableRangeCollection<object>),
-                typeof(TableFilter),
-                new PropertyMetadata(new WpfObservableRangeCollection<object>())
-            );
-
-        public static readonly DependencyProperty SelectedItemProperty =
-            DependencyProperty.Register
-            (
-                "SelectedItem",
-                typeof(object),
-                typeof(TableFilter),
-                new FrameworkPropertyMetadata {
-                    BindsTwoWayByDefault = true,
-                    DefaultValue = null
                 }
             );
 
@@ -119,61 +103,13 @@ namespace TeacherAssistant.Components.TableFilter {
                 new PropertyMetadata(new GridLength(40, GridUnitType.Pixel))
             );
 
-        public static readonly DependencyProperty FilterFunctionProperty =
+        public static readonly DependencyProperty TableConfigProperty =
             DependencyProperty.Register
             (
-                "FilterFunction",
-                typeof(Func<object, string, bool>),
+                "TableConfig",
+                typeof(TableConfig),
                 typeof(TableFilter),
-                new PropertyMetadata(defaultValue: null)
-            );
-
-        public static readonly DependencyProperty DropAvailabilityProperty =
-            DependencyProperty.Register
-            (
-                "DropAvailability",
-                typeof(Func<DragData, bool>),
-                typeof(TableFilter),
-                new PropertyMetadata(defaultValue: new Func<DragData, bool>(o => false))
-            );
-
-        public static readonly DependencyProperty DragValuePathProperty =
-            DependencyProperty.Register
-            (
-                "DragValuePath",
-                typeof(string),
-                typeof(TableFilter),
-                new PropertyMetadata(defaultValue: null)
-            );
-
-        public static readonly DependencyProperty DropProperty =
-            DependencyProperty.Register
-            (
-                "Drop",
-                typeof(Action<DragData>),
-                typeof(TableFilter),
-                new PropertyMetadata(defaultValue: null)
-            );
-
-        public static readonly DependencyProperty DragSuccessProperty =
-            DependencyProperty.Register
-            (
-                "DragSuccess",
-                typeof(Action),
-                typeof(TableFilter),
-                new PropertyMetadata(defaultValue: null)
-            );
-
-        public static readonly DependencyProperty DragStartProperty =
-            DependencyProperty.Register
-            (
-                "DragStart",
-                typeof(Action),
-                typeof(TableFilter),
-                new FrameworkPropertyMetadata(defaultValue: null,
-                    (o, args) => { (o as TableFilter)._DragStart = (Action) args.NewValue; }) {
-                    DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-                }
+                new FrameworkPropertyMetadata(defaultValue: new TableConfig())
             );
 
         private IDisposable _dragSubscription;
@@ -181,14 +117,11 @@ namespace TeacherAssistant.Components.TableFilter {
         private bool _isMouseDown;
         private readonly List<object> _selectedItems = new List<object>();
 
+        private DragConfig DragConfig => this.TableConfig.DragConfig;
+
         public string FilterText {
             get => (string) GetValue(FilterTextProperty);
             set => SetValue(FilterTextProperty, value);
-        }
-
-        public Dictionary<string, ListSortDirection> Sorts {
-            get => (Dictionary<string, ListSortDirection>) GetValue(SortsProperty);
-            set => SetValue(SortsProperty, value);
         }
 
         public int LineHeight {
@@ -216,57 +149,15 @@ namespace TeacherAssistant.Components.TableFilter {
             set => SetValue(TableItemContainerStyleProperty, value);
         }
 
-        public ObservableCollection<object> TableItems {
-            get => (ObservableCollection<object>) GetValue(TableItemsProperty);
-            set => SetValue(TableItemsProperty, value);
-        }
-
-        public ObservableRangeCollection<object> SelectedItems {
-            get => (ObservableRangeCollection<object>) GetValue(SelectedItemsProperty);
-            set => SetValue(SelectedItemsProperty, value);
-        }
-
         public object View {
             get => GetValue(ViewProperty);
             set => SetValue(ViewProperty, value);
         }
 
-        public object SelectedItem {
-            get => GetValue(SelectedItemProperty);
-            set => SetValue(SelectedItemProperty, value);
+        public TableConfig TableConfig {
+            get => (TableConfig) GetValue(TableConfigProperty);
+            set => SetValue(TableConfigProperty, value);
         }
-
-        public Func<object, string, bool> FilterFunction {
-            get => (Func<object, string, bool>) GetValue(FilterFunctionProperty);
-            set => SetValue(FilterFunctionProperty, value);
-        }
-
-        public Func<DragData, bool> DropAvailability {
-            get => (Func<DragData, bool>) GetValue(DropAvailabilityProperty);
-            set => SetValue(DropAvailabilityProperty, value);
-        }
-
-        public string DragValuePath {
-            get => (string) GetValue(DragValuePathProperty);
-            set => SetValue(DragValuePathProperty, value);
-        }
-
-        public Action<DragData> Drop {
-            get => (Action<DragData>) GetValue(DropProperty);
-            set => SetValue(DropProperty, value);
-        }
-
-        public Action DragSuccess {
-            get => (Action) GetValue(DragSuccessProperty);
-            set => SetValue(DragSuccessProperty, value);
-        }
-
-        public Action DragStart {
-            get => (Action) GetValue(DragStartProperty);
-            set => SetValue(DragStartProperty, value);
-        }
-
-        private Action _DragStart { get; set; }
 
         public TableFilter() {
             InitializeComponent();
@@ -275,17 +166,21 @@ namespace TeacherAssistant.Components.TableFilter {
                 .Select(containers => containers["DragData"].GetData<DragData>())
                 .Where(data => data != null)
                 .Subscribe(container => {
-                    LView.AllowDrop = !Equals(container.Sender, LView)
-                                      && (this.DropAvailability?.Invoke(container)
+                    if (this.DragConfig == null) {
+                        return;
+                    }
+
+                    LView.AllowDrop = !Equals(container.SenderId, this.DragConfig?.SourceId)
+                                      && (this.DragConfig?.DropAvailability?.Invoke(container)
                                           ?? false);
                 });
             Unloaded += (sender, args) => { _dragSubscription.Dispose(); };
         }
 
         private void UpdateFilter(string text) {
-            var collectionView = CollectionViewSource.GetDefaultView(this.TableItems);
+            var collectionView = CollectionViewSource.GetDefaultView(this.TableConfig.TableItems);
             if (!string.IsNullOrWhiteSpace(text)) {
-                collectionView.Filter = o => this.FilterFunction?.Invoke(o, text) ?? true;
+                collectionView.Filter = o => this.TableConfig.Filter?.Invoke(o, text) ?? true;
             }
             else {
                 collectionView.Filter = o => true;
@@ -309,14 +204,6 @@ namespace TeacherAssistant.Components.TableFilter {
                 LView.View = (ViewBase) e.NewValue;
             }
 
-            if (e.Property == SortsProperty) {
-                SortHelper.AddColumnSorting(LView, (Dictionary<string, ListSortDirection>) e.NewValue);
-            }
-
-            if (e.Property == SelectedItemsProperty) {
-                SetSelectedItems((IEnumerable) (e.NewValue ?? new ObservableCollection<object>()));
-            }
-
             if (e.Property == TableItemContainerStyleProperty) {
                 if (e.NewValue != null) {
                     var style = LView.ItemContainerStyle;
@@ -324,19 +211,25 @@ namespace TeacherAssistant.Components.TableFilter {
                     LView.ItemContainerStyle = style;
                 }
             }
+
+            if (e.Property == TableConfigProperty && e.NewValue != null) {
+                var config = (TableConfig) e.NewValue;
+                SortHelper.AddColumnSorting(LView, config.Sorts);
+                SetSelectedItems(config.SelectedItems);
+            }
         }
 
         private void LView_OnSelectionChanged(object sender, SelectionChangedEventArgs e) {
-            this.SelectedItems.Clear();
-            this.SelectedItems.AddRange(LView.SelectedItems.Cast<object>().ToList());
-            this.SelectedItem = LView.SelectedItem;
+            this.TableConfig.SelectedItems.Clear();
+            this.TableConfig.SelectedItems.AddRange(LView.SelectedItems.Cast<object>().ToList());
+            this.TableConfig.SelectedItem.OnNext(LView.SelectedItem);
         }
 
         private void LView_OnDrop(object sender, DragEventArgs e) {
-            this.Drop?.Invoke(StoreManager.Get<DragData>("DragData"));
+            this.DragConfig?.Drop.Invoke(StoreManager.Get<DragData>("DragData"));
         }
 
-        private bool IsDrag(MouseEventArgs e) {
+        private static bool IsDrag(MouseEventArgs e) {
             if (e.LeftButton != MouseButtonState.Pressed || _dragStartPoint == null) {
                 return false;
             }
@@ -347,24 +240,18 @@ namespace TeacherAssistant.Components.TableFilter {
         }
 
         private void ListViewItemDragStart(object sender, MouseEventArgs e) {
-            if (sender == null) {
+            if (this.DragConfig == null || sender == null || !IsDrag(e) || e.Source == null) {
                 return;
             }
 
-            if (!IsDrag(e)) {
-                return;
-            }
-
-            if (e.Source == null) {
-                return;
-            }
             LView.SelectedItems.Clear();
             _selectedItems.ForEach(item => LView.SelectedItems.Add(item));
             DragData dragData;
             var items = _selectedItems.ToList();
-            var dragValuePath = this.DragValuePath;
+            var dragValuePath = this.DragConfig.DragValuePath;
             if (string.IsNullOrEmpty(dragValuePath) || items.Count == 0) {
-                dragData = new DragData(this, items, this.DragSuccess);
+                dragData = new DragData(this.DragConfig.SourceType, this.DragConfig.SourceId, items,
+                    this.DragConfig.DragSuccess);
             }
             else {
                 var property = items[0].GetType().GetProperty(dragValuePath);
@@ -373,10 +260,11 @@ namespace TeacherAssistant.Components.TableFilter {
                 }
 
                 var itemsValues = items.Select(o => property.GetValue(o)).ToList();
-                dragData = new DragData(this, itemsValues, this.DragSuccess);
+                dragData = new DragData(this.DragConfig.SourceType, this.DragConfig.SourceId, itemsValues,
+                    this.DragConfig.DragSuccess);
             }
 
-            this._DragStart?.Invoke();
+            this.DragConfig.DragStart?.Invoke();
             new Storage.DragStart(dragData).Dispatch();
             DragDrop.DoDragDrop(this, dragData, DragDropEffects.Move);
         }
@@ -392,18 +280,6 @@ namespace TeacherAssistant.Components.TableFilter {
             }
             else {
                 _selectedItems.Add(((ListViewItem) sender).DataContext);
-            }
-        }
-
-        public static T GetAncestorOfType<T>(FrameworkElement child) where T : FrameworkElement {
-            while (true) {
-                var parent = VisualTreeHelper.GetParent(child);
-                if (parent != null && !(parent is T)) {
-                    child = (FrameworkElement) parent;
-                    continue;
-                }
-
-                return (T) parent;
             }
         }
     }

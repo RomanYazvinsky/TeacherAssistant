@@ -25,7 +25,7 @@
         <ListView Name="LView" Margin="4px" Grid.Row="1"
                   SelectionChanged="LView_OnSelectionChanged"
                   Drop="LView_OnDrop"
-                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=TableItems}" >
+                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=TableConfig.TableItems}" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <EventSetter Event="MouseMove" Handler="ListViewItemDragStart" />

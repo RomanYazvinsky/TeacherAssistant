@@ -20,6 +20,7 @@
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
                     <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" />
+                    <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" />
                 </MenuItem>
                 <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
                 <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />
@@ -35,6 +36,6 @@
             </Menu>
             <Menu DockPanel.Dock="Right" Background="White" ItemsSource="{Binding Path=CurrentControls}"></Menu>
         </DockPanel>
-        <UserControl Grid.Row="1" Content="{Binding CentralControl}" />
+        <ContentPresenter Grid.Row="1" Content="{Binding CentralControl}" />
     </Grid>
 </local:MainPageView>

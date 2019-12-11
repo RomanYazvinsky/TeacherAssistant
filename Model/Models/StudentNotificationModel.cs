@@ -11,7 +11,7 @@ namespace Model.Models
         public long id { get; set; }
 
         [ForeignKey("student_id")]
-        public virtual StudentModel student { get; set; }
+        public virtual StudentEntity student { get; set; }
 
         public long student_id { get; set; }
         public long active { get; set; }

@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
-using System.Windows.Media;
 using Model;
 using Model.Models;
 using Ninject;
+using ReactiveUI;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Pages;
@@ -28,8 +28,8 @@ namespace TeacherAssistant {
         protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
             ConfigureContainer();
-            var composeObjects = ComposeObjects();
-            ConfigureServices(composeObjects);
+            InitializeWindow();
+            ConfigureServices();
             // Current.MainWindow?.Show();
             Exit += (sender, args) => { Injector.Get<ISerialUtil>().Close(); };
         }
@@ -44,67 +44,56 @@ namespace TeacherAssistant {
                         MaximumNotificationCount.FromCount(5));
                 configuration.Dispatcher = Current.Dispatcher;
             });
-            if (Current.Dispatcher != null) {
-                Current.Dispatcher.ShutdownStarted += (sender, args) => {
-                    int a = 5;
-                };
-            }
-
             _container.Bind<PageService>().ToSelf().InSingletonScope();
             _container.Bind<Notifier>().ToMethod(context => notifier).InSingletonScope();
             _container.Bind<LessonTimerService>().ToSelf().InSingletonScope();
-            _container.Bind<SoundService>().ToSelf().InSingletonScope();
             _container.Bind<IPhotoService>().To<PhotoService>().InSingletonScope();
             _container.Bind<ISerialUtil>().To<SerialUtil>().InSingletonScope();
         }
 
-        private string ComposeObjects() {
+        private string InitializeWindow() {
             var service = _container.Get<PageService>();
 
             var modalPageHost = new MainWindowPageHost("Modal", service);
             modalPageHost.PageAdded += (sender, control) => control?.Show();
             modalPageHost.PageClosed += (sender, control) => control?.Close();
             service.RegisterPageHost(modalPageHost);
-            var openPageId = service.OpenPage("Modal", new PageProperties {PageType = typeof(MainWindowPage)});
+            var openPageId = service.OpenPage("Modal", new PageProperties<MainWindowPage>());
             var window = modalPageHost.GetCurrentControl(openPageId);
             Current.MainWindow = window;
             window.Closed += (sender, args) => { Current.Shutdown(); };
             return openPageId;
         }
 
-        private void ConfigureServices(string notificationArea) {
-            var soundService = _container.Get<SoundService>();
+        private void ConfigureServices() {
             var defaultDatabasePath = Settings.Default.DatabasePath;
             if (File.Exists(defaultDatabasePath)) {
                 GeneralDbContext.Reconnect(defaultDatabasePath);
             }
 
-            var player = new MediaPlayer();
             var generalDbContext = GeneralDbContext.Instance;
-            generalDbContext.ChangeListener<AlarmModel>().Subscribe(changes => {
-                soundService.InitLibrary(generalDbContext.AlarmModels.ToList());
-            });
-            generalDbContext.ChangeListener<AlarmModel>().CombineLatest(generalDbContext.ChangeListener<LessonModel>(),
-                    (changes, enumerable) => "")
-                .Subscribe(_ => { StartTimer(soundService, player, notificationArea); });
-            StartTimer(soundService, player, notificationArea);
+            generalDbContext.ChangeListener<AlarmEntity>().ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(_ => { StartTimer(); });
+            StartTimer();
         }
 
-        private void StartTimer(SoundService service, MediaPlayer player, string area) {
+        private void StartTimer() {
             var generalDbContext = GeneralDbContext.Instance;
             var lessonTimerService = _container.Get<LessonTimerService>();
-            var alarms = generalDbContext.AlarmModels.Where(model => model._Active > 0 && model.Timer.HasValue)
-                .ToDictionary(model => TimeSpan.FromMinutes(model.Timer.Value),
-                    model => {
-                        return new Action<LessonModel>((lessonModel => {
-                            player.Open(service.GetSoundPath(model));
-                            player.Volume = (double) model.Volume % 10d;
-                            player.Play();
-                        }));
-                    });
+            var alarms = generalDbContext.Alarms
+                .Where(model => model._Active > 0 && model.Timer.HasValue && model._Active == 1)
+                .ToList()
+                .GroupBy(entity => entity.Timer.Value) // if one or more in the same time - select only first
+                .Select(entities => entities.FirstOrDefault())
+                .ToDictionary(
+                    alarm => TimeSpan.FromMinutes(alarm.Timer.Value),
+                    model => new Action<LessonEntity>(lessonModel => SoundUtil.PlayAlarm(model))
+                );
 
-            lessonTimerService.Init(generalDbContext.LessonModels.Where(model => model._Date != null).ToList(),
-                alarms);
+            lessonTimerService.Init(
+                generalDbContext.Lessons.Where(model => model._Date != null).ToList(),
+                alarms
+            );
             var dateTime = lessonTimerService.Start();
             if (dateTime != null) {
                 _container.Get<Notifier>().ShowTimerNotification(dateTime.Value);

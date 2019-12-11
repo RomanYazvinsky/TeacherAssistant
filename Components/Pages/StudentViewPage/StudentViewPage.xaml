@@ -34,6 +34,14 @@
                         <Setter Property="FontSize" Value="15" />
                         <Setter Property="VerticalContentAlignment" Value="Center" />
                     </Style>
+                    <Style x:Key="TableItemContainerStyle" TargetType="{x:Type ListViewItem}">
+                        <EventSetter Event="MouseDoubleClick" Handler="ExternalLessonClick" />
+                        <Setter Property="Height" Value="30" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="BorderThickness" Value="0, 0, 0, 1" />
+                        <Setter Property="BorderBrush" Value="Black" />
+                    </Style>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -99,6 +107,8 @@
                           Header="{Binding Path=[page.student.view.external.lessons]}"
                           Margin="10,10,10,0">
                     <ListView ItemsSource="{Binding Path=ExternalLessons}"
+                              SelectedItem="{Binding Path=SelectedExternalLesson}"
+                              ItemContainerStyle="{StaticResource TableItemContainerStyle}"
                               HorizontalAlignment="Stretch">
                         <ListView.View>
                             <GridView>
@@ -117,20 +127,15 @@
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock
-                                                    Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=HH:mm}" />
+                                                    Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=hh\\:mm}" />
                                                 <TextBlock Text="-" />
                                                 <TextBlock
-                                                    Text="{Binding Path=Lesson.Schedule.End, StringFormat=HH:mm}" />
+                                                    Text="{Binding Path=Lesson.Schedule.End, StringFormat=hh\\:mm}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=Lesson.GroupNames}">
-                                    <GridViewColumn.Header>
-                                        <GridViewColumnHeader Content="Группа" />
-                                    </GridViewColumn.Header>
-                                </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=Lesson._Stream.Name}">
+                                <GridViewColumn DisplayMemberBinding="{Binding Path=Lesson.Stream.Name}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader Content="Поток" />
                                     </GridViewColumn.Header>
@@ -270,7 +275,7 @@
                     <TextBox Text="{Binding Path=SelectedStream.Name}" Grid.Row="0"
                              Margin="5,5,5,5" Height="35"
                              Style="{StaticResource StreamData}" />
-                    <TextBox Text="{Binding Path=SelectedStream._Discipline.Name}" Grid.Row="0"
+                    <TextBox Text="{Binding Path=SelectedStream.Discipline.Name}" Grid.Row="0"
                              Margin="5, 45, 5, 5"
                              Style="{StaticResource StreamData}" />
                     <TextBox Text="{Binding Path=[page.student.view.stream.course]}"

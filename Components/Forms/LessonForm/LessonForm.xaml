@@ -52,10 +52,10 @@
             <ComboBox ItemsSource="{Binding Streams}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedStream}" />
         </label:Label>
         <label:Label Grid.Row="1" Text="Discipline">
-            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream._Discipline.Name}" />
+            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Discipline.Name}" />
         </label:Label>
         <label:Label Grid.Row="2" Text="Faculty">
-            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream._Department.Name}" />
+            <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Department.Name}" />
         </label:Label>
         <label:Label Grid.Row="3" Text="Course">
             <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Course}" />

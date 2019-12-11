@@ -16,6 +16,11 @@ namespace TeacherAssistant.Footer
 
         public FooterModel(string id) : base(id)
         {
+            SelectCollection<StatusBarItem>("StatusItems").Subscribe(items =>
+            {
+                if (items == null) return;
+                this.StatusItems = new List<StatusBarItem>(items);
+            });
         }
 
         protected override string GetLocalizationKey()
@@ -23,14 +28,5 @@ namespace TeacherAssistant.Footer
             return LocalizationKey;
         }
 
-        public override Task Init()
-        {
-            SelectCollection<StatusBarItem>("StatusItems").Subscribe(items =>
-            {
-                if (items == null) return;
-                this.StatusItems = new List<StatusBarItem>(items);
-            });
-            return Task.CompletedTask;
-        }
     }
 }

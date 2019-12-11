@@ -11,65 +11,37 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("STREAM")]
-    public class StreamModel : Trackable<StreamModel>, INotifyPropertyChanged {
+    public class StreamEntity : Trackable<StreamEntity> {
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
         private const string ExpirationDateTime = "T00:00:00";
-        private string _name;
-        private string _description;
-        private int? _course;
 
-        public StreamModel() {
+        public StreamEntity() {
         }
 
-        public StreamModel(StreamModel model) {
-            Apply(model);
+        public StreamEntity(StreamEntity entity) {
+            Apply(entity);
         }
 
         [Key] [Column("id")] public long Id { get; set; }
 
         [Column("name")]
-        public string Name {
-            get => _name;
-            set {
-                if (value == _name)
-                    return;
-                _name = value;
-                OnPropertyChanged();
-            }
-        }
+        public string Name { get; set; }
 
-        [Column("description")]
-        public string Description {
-            get => _description;
-            set {
-                if (value == _description)
-                    return;
-                _description = value;
-                OnPropertyChanged();
-            }
-        }
+        [Column("description")] public string Description { get; set; }
 
         [Column("create_date")] public string _CreationDate { get; set; }
 
         // [ForeignKey("lecturer_id")] public virtual LecturerModel Lecturer { get; set; }
         [Column("discipline_id")] public long? _DisciplineId { get; set; }
 
-        [ForeignKey(nameof(_DisciplineId))] public virtual DisciplineModel _Discipline { get; set; }
+        [ForeignKey(nameof(_DisciplineId))] public virtual DisciplineEntity Discipline { get; set; }
         [Column("department_id")] public long? _DepartmentId { get; set; }
-        [ForeignKey(nameof(_DepartmentId))] public virtual DepartmentModel _Department { get; set; }
+        [ForeignKey(nameof(_DepartmentId))] public virtual DepartmentEntity Department { get; set; }
 
-        public virtual ICollection<GroupModel> Groups { get; set; } = new List<GroupModel>();
+        public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
 
         [Column("course")]
-        public int? Course {
-            get => _course;
-            set {
-                if (value == _course)
-                    return;
-                _course = value;
-                OnPropertyChanged();
-            }
-        }
+        public int? Course { get; set; }
 
         [Column("active")] public int? _Active { get; set; }
         [Column("expiration_date")] public string _ExpirationDate { get; set; }
@@ -77,29 +49,7 @@ namespace Model.Models {
         [Column("practical_count")] public short? _PracticalCount { get; set; }
         [Column("lab_count")] public short? _LabCount { get; set; }
 
-        [NotMapped]
-        public DisciplineModel Discipline {
-            get => this._Discipline;
-            set {
-                if (Equals(value, this._Discipline)) return;
-                this._Discipline = value;
-                this._DisciplineId = value == null ? value.Id : 0;
-                OnPropertyChanged();
-            }
-        }
-
-        [NotMapped]
-        public DepartmentModel Department {
-            get => this._Department;
-            set {
-                if (Equals(value, this._Department)) return;
-                this._Department = value;
-                this._DepartmentId = value == null ? value.Id : 0;
-                OnPropertyChanged();
-            }
-        }
-
-        public virtual ICollection<LessonModel> StreamLessons { get; set; }
+        public virtual ICollection<LessonEntity> StreamLessons { get; set; }
 
         [NotMapped]
         public int LectureCount {
@@ -124,7 +74,6 @@ namespace Model.Models {
             get => this._Active > 0;
             set {
                 this._Active = value ? 1 : 0;
-                OnPropertyChanged();
             }
         }
 
@@ -153,8 +102,6 @@ namespace Model.Models {
                 else {
                     this._ExpirationDate = value.Value.ToString(ExpirationDateTemplate) + ExpirationDateTime;
                 }
-
-                OnPropertyChanged();
             }
         }
 
@@ -184,26 +131,30 @@ namespace Model.Models {
                 else {
                     this._CreationDate = value.Value.ToString(ExpirationDateTemplate) + ExpirationDateTime;
                 }
-
-                OnPropertyChanged();
             }
         }
+
         [NotMapped]
-        public List<StudentModel> Students =>
-            this.Groups.Aggregate(new List<StudentModel>(), (list, model) => {
+        public List<StudentEntity> Students =>
+            this.Groups.Aggregate(new List<StudentEntity>(), (list, model) => {
                 list.AddRange(model.Students);
                 return list;
             });
 
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public int GetLessonCountByType(LessonType type) {
+            switch (type) {
+                case LessonType.Lecture:
+                    return this.LectureCount;
+                case LessonType.Practice:
+                    return this.PracticalCount;
+                case LessonType.Laboratory:
+                    return this.LabCount;
+                default: return 0;
+            }
         }
 
-        public override void Apply(StreamModel trackable) {
+        public override void Apply(StreamEntity trackable) {
             this.Id = trackable.Id;
             this.Name = trackable.Name;
             this.LabCount = trackable.LabCount;
@@ -211,8 +162,8 @@ namespace Model.Models {
             this.LectureCount = trackable.LectureCount;
             this.StreamLessons = trackable.StreamLessons;
             this.Groups = trackable.Groups;
-            this._Department = trackable._Department;
-            this._Discipline = trackable._Discipline;
+            this.Department = trackable.Department;
+            this.Discipline = trackable.Discipline;
             this.Description = trackable.Description;
             this._CreationDate = trackable._CreationDate;
             this._ExpirationDate = trackable._ExpirationDate;

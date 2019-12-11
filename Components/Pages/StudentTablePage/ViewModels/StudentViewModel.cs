@@ -1,16 +1,15 @@
 using System.Linq;
 using Model.Models;
+using TeacherAssistant.Dao.ViewModels;
 
-namespace TeacherAssistant.StudentTable {
-    public partial class StudentTableModel {
-        public class StudentViewModel {
-            public string GroupsText { get; set; }
-            public StudentModel Model { get; }
+namespace TeacherAssistant.Pages.StudentTablePage.ViewModels {
+    public class StudentViewModel : IStudentViewModel {
+        public string GroupsText { get; set; }
+        public StudentEntity Student { get; set; }
 
-            public StudentViewModel(StudentModel model) {
-                this.Model = model;
-                this.GroupsText = string.Join(", ", model.Groups.Select(groupModel => groupModel.Name));
-            }
+        public StudentViewModel(StudentEntity student) {
+            this.Student = student;
+            this.GroupsText = string.Join(", ", student.Groups.Select(groupModel => groupModel.Name));
         }
     }
 }

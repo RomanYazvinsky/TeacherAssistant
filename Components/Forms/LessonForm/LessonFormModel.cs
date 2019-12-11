@@ -15,7 +15,7 @@ using TeacherAssistant.State;
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormModel : AbstractModel {
         private const string LocalizationKey = "lesson.form";
-        private LessonModel _originalModel;
+        private LessonEntity _originalEntity;
 
         public class LessonTypeView {
             public LessonType Type;
@@ -30,11 +30,11 @@ namespace TeacherAssistant.Pages.LessonForm {
         }
 
         public LessonFormModel(string id) : base(id) {
-            WhenAdded<StreamModel>().Subscribe(models => UpdateFromAsync(() => this.Streams.AddRange(models.ToList())));
-            WhenRemoved<StreamModel>()
-               .Subscribe(models => UpdateFromAsync(() => this.Streams.RemoveRange(models.ToList())));
-            this.Streams.AddRange(_db.StreamModels.ToList());
-            this.ScheduleList.AddRange(_db.ScheduleModels.ToList());
+            WhenAdded<StreamEntity>().Subscribe(models => RunInUiThread(() => this.Streams.AddRange(models.ToList())));
+            WhenRemoved<StreamEntity>()
+               .Subscribe(models => RunInUiThread(() => this.Streams.RemoveRange(models.ToList())));
+            this.Streams.AddRange(_db.Streams.ToList());
+            this.ScheduleList.AddRange(_db.Schedules.ToList());
             this.SaveButtonConfig = new ButtonConfig {
                 Text = Localization["Save"],
                 Command = new CommandHandler
@@ -57,7 +57,7 @@ namespace TeacherAssistant.Pages.LessonForm {
                 (
                     () => {
                         Save();
-                        StoreManager.Publish(this.Id + ".LessonChange", new LessonModel());
+                        StoreManager.Publish(this.Id + ".LessonChange", new LessonEntity());
                     }
                 )
             };
@@ -110,29 +110,38 @@ namespace TeacherAssistant.Pages.LessonForm {
                  (
                      isAvailable => { this.Lesson.Group = isAvailable ? this.Groups.FirstOrDefault() : null; }
                  );
+            Select<LessonEntity>(this.Id + ".LessonChange")
+                .Where(NotNull)
+                .Subscribe
+                (
+                    lesson => {
+                        _originalEntity = lesson;
+                        this.Lesson = new LessonEntity(lesson);
+                    }
+                );
         }
 
         protected override string GetLocalizationKey() {
             return LocalizationKey;
         }
 
-        [Reactive] public LessonModel Lesson { get; set; }
+        [Reactive] public LessonEntity Lesson { get; set; }
 
-        [Reactive] public StreamModel SelectedStream { get; set; }
+        [Reactive] public StreamEntity SelectedStream { get; set; }
 
-        public ObservableRangeCollection<StreamModel> Streams { get; set; } =
-            new WpfObservableRangeCollection<StreamModel>();
+        public ObservableRangeCollection<StreamEntity> Streams { get; set; } =
+            new WpfObservableRangeCollection<StreamEntity>();
 
-        public ObservableRangeCollection<GroupModel> Groups { get; set; } =
-            new WpfObservableRangeCollection<GroupModel>();
+        public ObservableRangeCollection<GroupEntity> Groups { get; set; } =
+            new WpfObservableRangeCollection<GroupEntity>();
 
         [Reactive] public List<LessonTypeView> LessonTypes { get; set; }
 
-        public ObservableRangeCollection<ScheduleModel> ScheduleList { get; set; } =
-            new WpfObservableRangeCollection<ScheduleModel>();
+        public ObservableRangeCollection<ScheduleEntity> ScheduleList { get; set; } =
+            new WpfObservableRangeCollection<ScheduleEntity>();
 
         [Reactive] public LessonTypeView SelectedLessonType { get; set; }
-        [Reactive] public ScheduleModel SelectedSchedule { get; set; }
+        [Reactive] public ScheduleEntity SelectedSchedule { get; set; }
         [Reactive] public string Description { get; set; }
         [Reactive] public bool SetAllPresent { get; set; }
 
@@ -152,10 +161,11 @@ namespace TeacherAssistant.Pages.LessonForm {
                 this.Lesson.Group = null;
             }
 
-            _originalModel.Apply(this.Lesson);
+            _originalEntity.Apply(this.Lesson);
             if (this.Lesson.Id == 0) {
-                _originalModel.CreationDate = DateTime.Now;
-                _db.LessonModels.Add(_originalModel);
+                _originalEntity.CreationDate = DateTime.Now;
+                _db.SetLessonOrder(_originalEntity);
+                _db.Lessons.Add(_originalEntity);
             }
 
             _db.SaveChangesAsync();
@@ -173,17 +183,5 @@ namespace TeacherAssistant.Pages.LessonForm {
             );
         }
 
-        public override Task Init() {
-            Select<LessonModel>(this.Id + ".LessonChange")
-               .Where(NotNull)
-               .Subscribe
-                (
-                    lesson => {
-                        _originalModel = lesson;
-                        this.Lesson = new LessonModel(lesson);
-                    }
-                );
-            return Task.CompletedTask;
-        }
     }
 }

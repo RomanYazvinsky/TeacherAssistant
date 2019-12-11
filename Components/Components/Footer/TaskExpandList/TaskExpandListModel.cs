@@ -38,16 +38,7 @@ namespace TeacherAssistant.Footer.TaskExpandList
                 this.IsVisible = items.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
                 this.IsButtonVisible = items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             });
-        }
-
-        protected override string GetLocalizationKey()
-        {
-            return LocalizationKey;
-        }
-
-        public override Task Init()
-        {
-            SelectCollection<TaskHandler>("TaskList").Subscribe(models =>
+                SelectCollection<TaskHandler>("TaskList").Subscribe(models =>
             {
                 if (models == null) return;
                 this.Items = new List<MenuItem>(models.Select(model =>
@@ -106,7 +97,12 @@ namespace TeacherAssistant.Footer.TaskExpandList
                                   "TaskList", mainModel);
                           });
             });
-            return Task.CompletedTask;
         }
+
+        protected override string GetLocalizationKey()
+        {
+            return LocalizationKey;
+        }
+
     }
 }

@@ -7,7 +7,7 @@ namespace TeacherAssistant.StudentViewPage {
     public class StudentLessonViewBox {
         private readonly StudentViewPageModel _model;
 
-        public StudentLessonViewBox(StudentLessonModel studentLesson, StudentViewPageModel model) {
+        public StudentLessonViewBox(StudentLessonEntity studentLesson, StudentViewPageModel model) {
             _model = model;
             this.StudentLesson = studentLesson;
             this.LessonTypeName = AbstractModel.Localization[$"common.lesson.type.{studentLesson.Lesson.LessonType}"];
@@ -38,7 +38,7 @@ namespace TeacherAssistant.StudentViewPage {
 
         public CommandHandler<object> ToggleRegistrationHandler { get; }
 
-        public StudentLessonModel StudentLesson { get; }
+        public StudentLessonEntity StudentLesson { get; }
         public string LessonTypeName { get; }
         public Brush Background { get; }
         public Brush Border { get; }

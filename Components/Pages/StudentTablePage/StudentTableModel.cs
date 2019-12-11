@@ -1,56 +1,77 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
+using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Footer.TaskExpandList;
+using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.StudentTable {
-    public partial class StudentTableModel : AbstractModel {
+    public class StudentTableModel : AbstractModel {
         private static readonly string LocalizationKey = "page.student.table";
 
         public StudentTableModel(string id,
             IPhotoService photoService
         ) : base(id) {
             this.PhotoService = photoService;
-            this.WhenAnyValue
-                    (model => model.SelectedStudentModel)
+            this.StudentTableConfig = new TableConfig {
+                Sorts = this.Sorts,
+                Filter = this.FilterFunction,
+                DragConfig = new DragConfig {
+                    DragValuePath = nameof(StudentViewModel.Student)
+                }
+            };
+            this.StudentTableConfig.SelectedItem
+                .AsObservable()
                 .Where(NotNull)
-                .Subscribe(model => UpdatePhoto(((StudentViewModel) model).Model));
+                .Subscribe(model => UpdatePhoto(((StudentViewModel) model).Student));
             this.ShowStudent = new CommandHandler
             (
                 () => {
-                    var pageId = PageService.OpenPage
-                    (new PageProperties {
-                            PageType = typeof(StudentViewPage.StudentViewPage),
-                            Header = ((StudentViewModel) this.SelectedStudentModel).Model.LastName
+                    var selectedItem = this.StudentTableConfig.SelectedItem.Value;
+                    if (selectedItem == null) {
+                        return;
+                    }
+
+                    var pageId = this.PageService.OpenPage
+                    (new PageProperties<StudentViewPage.StudentViewPage> {
+                            Header = ((StudentViewModel) selectedItem).Student.LastName
                         },
                         this.Id);
-                    StoreManager.Publish(((StudentViewModel) this.SelectedStudentModel).Model, pageId, "Student");
+                    StoreManager.Publish(((StudentViewModel) selectedItem).Student, pageId, "Student");
                 }
             );
             this.DeleteStudent = new CommandHandler
             (
                 () => {
-                    var student = _db.StudentModels.Find(((StudentViewModel) this.SelectedStudentModel).Model.Id);
-                    var studentLessonModels = _db.StudentLessonModels.Where(model => model._StudentId == student.Id);
-                    _db.StudentModels.Remove(student);
+                    var selectedItem = this.StudentTableConfig.SelectedItem.Value;
+                    if (selectedItem == null) {
+                        return;
+                    }
+
+                    _db.Students.Remove(((StudentViewModel) selectedItem).Student);
                     _db.SaveChangesAsync();
-                    this.Students.Remove(this.SelectedStudentModel);
+                    this.StudentTableConfig.TableItems.Remove(selectedItem);
                 }
             );
+            this.RefreshSubject.AsObservable().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => {
+                this.StudentTableConfig.TableItems.Clear();
+                var studentEntities = _db.Students
+                    .Include("Groups")
+                    .ToList();
+                var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
+                this.StudentTableConfig.TableItems.AddRange(studentViewModels);
+            });
         }
 
         public override List<ButtonConfig> GetControls() {
@@ -62,23 +83,23 @@ namespace TeacherAssistant.StudentTable {
                         var taskHandler = new TaskHandler
                         (
                             "Загрузка фото",
-                            this.Students.Count,
+                            this.StudentTableConfig.TableItems.Count,
                             true,
-                            async actions => {
-                                var items = this.Students.Select(model => ((StudentViewModel) model).Model).ToList();
-                                foreach (var studentModel in items) {
-                                    if (actions.IsCancelled()) {
-                                        actions.ConfirmCancel();
+                            async progressControl => {
+                                var items = this.StudentTableConfig.TableItems
+                                    .Select(model => ((StudentViewModel) model).Student).ToList();
+                                for (var i = 0; i < items.Count; i += 5) {
+                                    if (progressControl.IsCancelled()) {
+                                        progressControl.ConfirmCancel();
                                         break;
                                     }
 
-                                    await this.PhotoService.DownloadPhoto
-                                            (StudentModel.CardUidToId(studentModel.CardUid))
-                                        .ConfigureAwait(false);
-                                    actions.Next();
+                                    var portion = items.GetRange(i, 5);
+                                    await LoadImages(portion);
+                                    progressControl.Next();
                                 }
 
-                                actions.Complete();
+                                progressControl.Complete();
                             }
                         );
                         StoreManager.Add("TaskList", taskHandler);
@@ -90,18 +111,21 @@ namespace TeacherAssistant.StudentTable {
             return buttonConfigs;
         }
 
+        private Task<string[]> LoadImages(IEnumerable<StudentEntity> students) {
+            return Task.WhenAll(students.Select(entity =>
+                this.PhotoService.DownloadPhoto(StudentEntity.CardUidToId(entity.CardUid))));
+        }
+
         private IPhotoService PhotoService { get; }
 
-        public ObservableRangeCollection<object> Students { get; set; } =
-            new WpfObservableRangeCollection<object>();
 
-        [Reactive] public object SelectedStudentModel { get; set; }
+        public TableConfig StudentTableConfig { get; set; }
         public CommandHandler ShowStudent { get; set; }
         public CommandHandler DeleteStudent { get; set; }
 
         public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection> {
-            {"Model.LastName", ListSortDirection.Ascending},
-            {"Model.FirstName", ListSortDirection.Ascending}
+            {"Student.LastName", ListSortDirection.Ascending},
+            {"Student.FirstName", ListSortDirection.Ascending}
         };
 
         [Reactive] public BitmapImage StudentPhoto { get; set; }
@@ -109,7 +133,7 @@ namespace TeacherAssistant.StudentTable {
         public Func<object, string, bool> FilterFunction { get; set; } = (o, s) => {
             s = s.ToUpperInvariant();
             var studentViewModel = (StudentViewModel) o;
-            var student = studentViewModel.Model;
+            var student = studentViewModel.Student;
             return student.FirstName != null && student.FirstName.ToUpperInvariant().Contains(s)
                    || student.LastName != null && student.LastName.ToUpperInvariant().Contains(s)
                    || student.SecondName != null && student.SecondName.ToUpperInvariant().Contains(s)
@@ -120,22 +144,8 @@ namespace TeacherAssistant.StudentTable {
             return LocalizationKey;
         }
 
-        public override Task Init() {
-            this.Students.Clear();
-
-            Select<object>("").ObserveOn(RxApp.MainThreadScheduler).Subscribe(async _ => {
-                this.Students.Clear();
-                (await _db.StudentModels.Include("Groups")
-                    .ToListAsync()).ForEach(model => this.Students.Add(new StudentViewModel(model)));
-            });
-
-
-            return Task.CompletedTask;
-        }
-
-
-        private void UpdatePhoto(StudentModel model) {
-            if (model == null) {
+        private void UpdatePhoto(StudentEntity entity) {
+            if (entity == null) {
                 return;
             }
 
@@ -144,14 +154,14 @@ namespace TeacherAssistant.StudentTable {
                 (
                     async () => {
                         var photoPath = await this.PhotoService.DownloadPhoto
-                                (StudentModel.CardUidToId(model.CardUid))
+                                (StudentEntity.CardUidToId(entity.CardUid))
                             .ConfigureAwait(false);
                         if (photoPath == null) {
                             return;
                         }
 
                         var image = this.PhotoService.GetImage(photoPath);
-                        UpdateFromAsync(() => this.StudentPhoto = image);
+                        RunInUiThread(() => this.StudentPhoto = image);
                     }
                 )
                 .ConfigureAwait(false);

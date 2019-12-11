@@ -14,9 +14,9 @@ namespace Model.Models
         public long? group_id { get; set; }
 
         [ForeignKey("stream_id")]
-        public StreamModel Stream { get; set; }
+        public StreamEntity Stream { get; set; }
 
         [ForeignKey("group_id")]
-        public GroupModel Group { get; set; }
+        public GroupEntity Group { get; set; }
     }
 }

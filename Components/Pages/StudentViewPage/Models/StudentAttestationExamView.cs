@@ -5,13 +5,13 @@ namespace TeacherAssistant.StudentViewPage {
     public class StudentAttestationExamView {
         private readonly StudentViewPageModel _model;
 
-        public StudentAttestationExamView(StudentLessonModel studentLesson, StudentViewPageModel model, int order) {
+        public StudentAttestationExamView(StudentLessonEntity studentLesson, StudentViewPageModel model, int order) {
             _model = model;
             this.StudentLesson = studentLesson;
             this.Header = AbstractModel.Interpolate("page.student.view.attestation.header.label", order);
         }
 
-        public StudentLessonModel StudentLesson { get; }
+        public StudentLessonEntity StudentLesson { get; }
 
         public string Header { get; set; }
 

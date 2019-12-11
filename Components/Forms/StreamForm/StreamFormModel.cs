@@ -9,6 +9,7 @@ using Containers;
 using Model;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
+using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 
 namespace TeacherAssistant.Forms.StreamForm {
@@ -16,55 +17,88 @@ namespace TeacherAssistant.Forms.StreamForm {
         private static DropDownItem<int> DefaultCourse =
             new DropDownItem<int>(Localization["common.empty.dropdown"], -1);
 
-        private static DepartmentModel DefaultDepartment = new DepartmentModel
+        private static DepartmentEntity DefaultDepartment = new DepartmentEntity
             {Id = -1, Name = Localization["common.empty.dropdown"]};
 
-        private StreamModel _model;
+        private StreamEntity _entity;
 
         public StreamFormModel(string id) : base(id) {
             this.SaveHandler = new CommandHandler(Save);
             this.AddGroupsHandler = new CommandHandler(SelectGroups);
             this.RemoveGroupsHandler = new CommandHandler(DeselectGroups);
+            this.AvailableGroupTableConfig = new TableConfig {
+                Filter = this.GroupFilter,
+                Sorts = GroupSorts
+            };
+            this.ChosenGroupTableConfig = new TableConfig {
+                Filter = this.GroupFilter,
+                Sorts = GroupSorts
+            };
+            Select<StreamEntity>(this.Id, "StreamChange").Subscribe(Initialize);
+        }
+
+        private void Initialize(StreamEntity stream) {
+            if (stream == null) {
+                return;
+            }
+            this.AvailableCourses.Clear();
             var dropDownItems = Enumerable.Range(1, 5).Select(i => new DropDownItem<int>(i.ToString(), i)).ToList();
             this.AvailableCourses.Add(DefaultCourse);
             this.AvailableCourses.AddRange(dropDownItems);
-            this.Disciplines.AddRange(_db.DisciplineModels.ToList());
+            this.Disciplines.Clear();
+            this.Departments.Clear();
+            this.Disciplines.AddRange(_db.Disciplines.ToList());
             this.Departments.Add(DefaultDepartment);
-            this.Departments.AddRange(_db.DepartmentModels.ToList());
+            this.Departments.AddRange(_db.Departments.ToList());
+
+            _entity = stream;
+            this.ChosenGroups.AddRange(stream.Groups.ToList());
+            this.AvailableGroups.AddRange(_db.Groups
+                .Where(groupModel => stream.Groups.All(o => groupModel.Id != o.Id)).ToList());
+            this.StreamName = stream.Name;
+            this.IsActive = stream.IsActive;
+            this.ExpirationDate = stream.ExpirationDate ?? DateTime.Today;
+            this.SelectedCourse =
+                this.AvailableCourses.FirstOrDefault(item => item.Value.Equals(stream.Course)) ??
+                DefaultCourse;
+            this.SelectedDiscipline =
+                this.Disciplines.FirstOrDefault(discipline => discipline.Id == stream._DisciplineId) ??
+                this.Disciplines.FirstOrDefault();
+            this.SelectedDepartment =
+                this.Departments.FirstOrDefault(department => department.Id == stream._DepartmentId) ??
+                DefaultDepartment;
         }
 
+        public TableConfig AvailableGroupTableConfig { get; set; }
+        public TableConfig ChosenGroupTableConfig { get; set; }
+        
         public CommandHandler SaveHandler { get; set; }
         public CommandHandler AddGroupsHandler { get; set; }
         public CommandHandler RemoveGroupsHandler { get; set; }
 
-        public ObservableRangeCollection<DisciplineModel> Disciplines { get; set; } =
-            new WpfObservableRangeCollection<DisciplineModel>();
+        public ObservableRangeCollection<DisciplineEntity> Disciplines { get; set; } =
+            new WpfObservableRangeCollection<DisciplineEntity>();
 
-        public ObservableRangeCollection<DepartmentModel> Departments { get; set; } =
-            new WpfObservableRangeCollection<DepartmentModel>();
+        public ObservableRangeCollection<DepartmentEntity> Departments { get; set; } =
+            new WpfObservableRangeCollection<DepartmentEntity>();
 
         public ObservableRangeCollection<DropDownItem<int>> AvailableCourses { get; set; } =
             new WpfObservableRangeCollection<DropDownItem<int>>();
 
-        public ObservableRangeCollection<object> AvailableGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        public ObservableRangeCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
+        public ObservableRangeCollection<object> ChosenGroups => this.ChosenGroupTableConfig.TableItems;
 
-        public ObservableRangeCollection<object> ChosenGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        public ObservableRangeCollection<object> SelectedAvailableGroups => this.AvailableGroupTableConfig.SelectedItems;
 
-        public ObservableRangeCollection<object> SelectedAvailableGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        public ObservableRangeCollection<object> SelectedChosenGroups => this.ChosenGroupTableConfig.SelectedItems;
 
-        public ObservableRangeCollection<object> SelectedChosenGroups { get; set; } =
-            new WpfObservableRangeCollection<object>();
-
-        public Dictionary<string, ListSortDirection> GroupSorts { get; set; } =
+        private static Dictionary<string, ListSortDirection> GroupSorts { get; set; } =
             new Dictionary<string, ListSortDirection> {
                 {"Name", ListSortDirection.Ascending}
             };
 
-        [Reactive] public DisciplineModel SelectedDiscipline { get; set; }
-        [Reactive] public DepartmentModel SelectedDepartment { get; set; } = DefaultDepartment;
+        [Reactive] public DisciplineEntity SelectedDiscipline { get; set; }
+        [Reactive] public DepartmentEntity SelectedDepartment { get; set; } = DefaultDepartment;
 
         [Reactive] public string StreamName { get; set; }
         [Reactive] public bool IsActive { get; set; } = false;
@@ -75,18 +109,18 @@ namespace TeacherAssistant.Forms.StreamForm {
         [Reactive] public int LaboratoryCount { get; set; } = 0;
 
         private void Save() {
-            _model.Name = this.StreamName;
-            _model.Groups = this.ChosenGroups.Cast<GroupModel>().ToList();
-            _model.Discipline = this.SelectedDiscipline;
-            _model.Department = this.SelectedDepartment.Id == DefaultDepartment.Id ? null : this.SelectedDepartment;
-            _model.ExpirationDate = this.ExpirationDate;
-            _model.IsActive = this.IsActive;
-            _model.LectureCount = this.LectureCount;
-            _model.LabCount = this.LaboratoryCount;
-            _model.PracticalCount = this.PracticeCount;
-            _model.Course = this.SelectedCourse.Value == DefaultCourse.Value ? 0 : DefaultCourse.Value;
-            if (_model.Id == 0) {
-                _db.StreamModels.Add(_model);
+            _entity.Name = this.StreamName;
+            _entity.Groups = this.ChosenGroups.Cast<GroupEntity>().ToList();
+            _entity.Discipline = this.SelectedDiscipline;
+            _entity.Department = this.SelectedDepartment.Id == DefaultDepartment.Id ? null : this.SelectedDepartment;
+            _entity.ExpirationDate = this.ExpirationDate;
+            _entity.IsActive = this.IsActive;
+            _entity.LectureCount = this.LectureCount;
+            _entity.LabCount = this.LaboratoryCount;
+            _entity.PracticalCount = this.PracticeCount;
+            _entity.Course = this.SelectedCourse.Value == DefaultCourse.Value ? 0 : DefaultCourse.Value;
+            if (_entity.Id == 0) {
+                _db.Streams.Add(_entity);
             }
             _db.SaveChangesAsync();
         }
@@ -104,37 +138,10 @@ namespace TeacherAssistant.Forms.StreamForm {
         }
 
         public Func<object, string, bool> GroupFilter { get; set; } = (item, searchValue) =>
-            ((GroupModel) item).Name?.ToUpper().Contains(searchValue.ToUpper()) ?? false;
+            ((GroupEntity) item).Name?.ToUpper().Contains(searchValue.ToUpper()) ?? false;
 
         protected override string GetLocalizationKey() {
             return "stream.form";
-        }
-
-        public override Task Init() {
-            Select<StreamModel>(this.Id, "StreamChange").Subscribe(
-                model => {
-                    if (model == null) {
-                        return;
-                    }
-
-                    _model = model;
-                    this.ChosenGroups.AddRange(model.Groups.ToList());
-                    this.AvailableGroups.AddRange(_db.GroupModels
-                        .Where(groupModel => model.Groups.All(o => groupModel.Id != o.Id)).ToList());
-                    this.StreamName = model.Name;
-                    this.IsActive = model.IsActive;
-                    this.ExpirationDate = model.ExpirationDate ?? DateTime.Today;
-                    this.SelectedCourse =
-                        this.AvailableCourses.FirstOrDefault(item => item.Value.Equals(model.Course)) ??
-                        DefaultCourse;
-                    this.SelectedDiscipline =
-                        this.Disciplines.FirstOrDefault(discipline => discipline.Id == model._DisciplineId) ??
-                        this.Disciplines.FirstOrDefault();
-                    this.SelectedDepartment =
-                        this.Departments.FirstOrDefault(department => department.Id == model._DepartmentId) ??
-                        DefaultDepartment;
-                });
-            return Task.CompletedTask;
         }
     }
 }

@@ -123,9 +123,7 @@
                 <ColumnDefinition Width="40" />
             </Grid.ColumnDefinitions>
             <tableFilter:TableFilter Margin="5" Grid.Column="0" x:Name="AvailableGroupsBox"
-                                     TableItems="{Binding Path=AvailableGroups}"
-                                     SelectedItems="{Binding SelectedAvailableGroups}"
-                                     Sorts="{Binding Path=Sorts}"
+                                     TableConfig="{Binding Path=AvailableGroupTableConfig}"
                                      HorizontalAlignment="Stretch">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
@@ -146,9 +144,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <tableFilter:TableFilter Margin="5" Grid.Column="1"
-                     TableItems="{Binding Path=ChoseGroups}"
-                     SelectedItems="{Binding SelectedChoseGroups}"
-                     Sorts="{Binding Path=GroupSorts}"
+                     TableConfig="{Binding ChosenGroupTableConfig}"
                      HorizontalAlignment="Stretch">
                 <GridView>
                     <GridViewColumn Header="{Binding Localization[chief]}">

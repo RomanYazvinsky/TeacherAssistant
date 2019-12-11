@@ -33,22 +33,59 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 .Throttle(TimeSpan.FromMilliseconds(300))
                 .Subscribe(_ => {
                     if (string.IsNullOrWhiteSpace(this.FilterText)) {
-                        UpdateFromAsync(() => this.Items.View.Filter = __ => true);
+                        RunInUiThread(() => this.Items.View.Filter = __ => true);
                         return;
                     }
 
-                    UpdateFromAsync(() => this.Items.View.Filter =
+                    RunInUiThread(() => this.Items.View.Filter =
                         o => o is StudentLessonView item &&
                              item.FullName.ToUpper().Contains(this.FilterText.ToUpper()));
                 });
+            Select<LessonEntity>(this.Id, "Lesson").Subscribe(async lesson => {
+                if (lesson == null) {
+                    return;
+                }
+
+                _items.Clear();
+                this.Columns.Clear();
+                _currentLesson = lesson;
+                List<LessonEntity> lessonModels;
+                lessonModels = lesson.Group == null
+                    ? await _db.Lessons.Include("StudentLessons").Where(model =>
+                            model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
+                        .ToListAsync()
+                    : await _db.Lessons
+                        .Include("StudentLessons")
+                        .Where(model => model._GroupId == lesson._GroupId
+                                        || (model._StreamId == lesson._StreamId
+                                            && !model._GroupId.HasValue))
+                        .ToListAsync();
+                lessonModels.Reverse();
+                foreach (var lessonModel in lessonModels) {
+                    var lessonId = IdGenerator.GenerateId(10);
+                    this.LessonModels.Add(lessonId, lessonModel);
+                    this.Columns.Add(BuildStudentLessonColumn(lessonId, lessonModel));
+                }
+
+                var studentModels = (lesson.Group == null
+                        ? lesson.Stream.Groups.Aggregate(new List<StudentEntity>(),
+                            (list, model) => {
+                                list.AddRange(model.Students);
+                                return list;
+                            })
+                        : lesson.Group.Students.ToList())
+                    .Select(model => new StudentLessonView(this.Id, model, this.LessonModels))
+                    .OrderBy(view => view.FullName).ToList();
+                _items.AddRange(studentModels);
+            });
         }
 
-        private LessonModel _currentLesson;
+        private LessonEntity _currentLesson;
 
-        private Dictionary<string, LessonModel> LessonModels { get; set; } = new Dictionary<string, LessonModel>();
+        private Dictionary<string, LessonEntity> LessonModels { get; set; } = new Dictionary<string, LessonEntity>();
 
-        public ObservableRangeCollection<StudentLessonModel> StudentLessons =
-            new WpfObservableRangeCollection<StudentLessonModel>();
+        public ObservableRangeCollection<StudentLessonEntity> StudentLessons =
+            new WpfObservableRangeCollection<StudentLessonEntity>();
 
         [Reactive] public string FilterText { get; set; }
 
@@ -68,15 +105,15 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             return dataGridTemplateColumn;
         }
 
-        private DataGridColumn BuildStudentLessonColumn(string id, LessonModel model) {
+        private DataGridColumn BuildStudentLessonColumn(string id, LessonEntity entity) {
             var dataGridTemplateColumn =
                 new TextColumn {
                     Width = new DataGridLength(90),
                     MinWidth = 50,
                     Header = new TextBlock {
-                        Text = Localization["common.lesson.type." + model.LessonType] + "\n " +
-                               model.Date?.ToString("dd.MM"),
-                        Foreground = model.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black
+                        Text = Localization["common.lesson.type." + entity.LessonType] + "\n " +
+                               entity.Date?.ToString("dd.MM"),
+                        Foreground = entity.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black
                     },
                     Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")}
                 };
@@ -91,46 +128,6 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             return "common.lesson.view";
         }
 
-        public override Task Init() {
-            Select<LessonModel>(this.Id, "Lesson").Subscribe(async lesson => {
-                if (lesson == null) {
-                    return;
-                }
-
-                _items.Clear();
-                this.Columns.Clear();
-                _currentLesson = lesson;
-                List<LessonModel> lessonModels;
-                lessonModels = lesson.Group == null
-                    ? await _db.LessonModels.Include("StudentLessons").Where(model =>
-                            model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
-                        .ToListAsync()
-                    : await _db.LessonModels
-                        .Include("StudentLessons")
-                        .Where(model => model._GroupId == lesson._GroupId
-                                        || (model._StreamId == lesson._StreamId
-                                            && !model._GroupId.HasValue))
-                        .ToListAsync();
-                lessonModels.Reverse();
-                foreach (var lessonModel in lessonModels) {
-                    var id = IdGenerator.GenerateId(10);
-                    this.LessonModels.Add(id, lessonModel);
-                    this.Columns.Add(BuildStudentLessonColumn(id, lessonModel));
-                }
-
-                var studentModels = (lesson.Group == null
-                        ? lesson.Stream.Groups.Aggregate(new List<StudentModel>(),
-                            (list, model) => {
-                                list.AddRange(model.Students);
-                                return list;
-                            })
-                        : lesson.Group.Students.ToList())
-                    .Select(model => new StudentLessonView(this.Id, model, this.LessonModels))
-                    .OrderBy(view => view.FullName).ToList();
-                _items.AddRange(studentModels);
-            });
-            return Task.CompletedTask;
-        }
     }
 
     public class StudentLessonView : INotifyPropertyChanged {
@@ -161,23 +158,23 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
         }
 
-        public StudentModel Model { get; set; }
+        public StudentEntity Model { get; set; }
 
-        public StudentLessonView(string tableId, StudentModel student, Dictionary<string, LessonModel> lessonModels) {
+        public StudentLessonView(string tableId, StudentEntity student, Dictionary<string, LessonEntity> lessonModels) {
             this.TableId = tableId;
             this.Model = student;
             this.FullName = student.LastName + " " + student.FirstName;
             foreach (var keyValuePair in lessonModels) {
                 var studentLessonModel =
                     keyValuePair.Value.StudentLessons.FirstOrDefault(model => model._StudentId == student.Id) ??
-                    new StudentLessonModel {
+                    new StudentLessonEntity {
                         Lesson = keyValuePair.Value,
                         Student = student,
                         IsRegistered = false,
                         Mark = ""
                     };
                 if (studentLessonModel.Id == 0) {
-                    GeneralDbContext.Instance.StudentLessonModels.Add(studentLessonModel);
+                    GeneralDbContext.Instance.StudentLessons.Add(studentLessonModel);
                     GeneralDbContext.Instance.ThrottleSave();
                 }
 
@@ -185,7 +182,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
 
             this.MissedLessons =
-                this.LessonToLessonMark.Values.Aggregate(0, (i, model) => model.Model.IsLessonMissed ? i + 1 : i);
+                this.LessonToLessonMark.Values.Aggregate(0, (i, model) => model.Entity.IsLessonMissed ? i + 1 : i);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -197,18 +194,18 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     }
 
     public class StudentLessonMarkModel : INotifyPropertyChanged {
-        public StudentLessonModel Model { get; set; }
+        public StudentLessonEntity Entity { get; set; }
 
-        public StudentLessonMarkModel(StudentLessonModel model) {
-            this.Model = model;
+        public StudentLessonMarkModel(StudentLessonEntity model) {
+            this.Entity = model;
             this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;
         }
 
         public string Mark {
-            get => Model.Mark;
+            get => this.Entity.Mark;
             set {
-                if (Model.Mark.Equals(value)) return;
-                Model.Mark = value;
+                if (this.Entity.Mark.Equals(value)) return;
+                this.Entity.Mark = value;
                 GeneralDbContext.Instance.ThrottleSave();
                 OnPropertyChanged();
             }

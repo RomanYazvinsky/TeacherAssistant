@@ -34,7 +34,7 @@
             <!--This is the hidden helper Field which is used to bind to, using the "Fill" column of the helper grid-->
             <Grid Grid.Column="1" x:Name="HelperField" />
         </Grid>
-        <ListView ItemContainerStyle="{StaticResource AddContextMenu}" Name="Groups" ItemsSource="{Binding Path=Groups}" SelectedItem="{Binding Path=SelectedGroupModel}">
+        <ListView ItemContainerStyle="{StaticResource AddContextMenu}" Name="Groups" ItemsSource="{Binding Path=Groups}" SelectedItem="{Binding Path=SelectedGroupEntity}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn x:Name="NameColumn" DisplayMemberBinding="{Binding Path=Name}">

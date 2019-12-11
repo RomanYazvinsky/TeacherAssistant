@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +14,7 @@ namespace TeacherAssistant {
             this.ProviderId = providerId;
         }
 
-        protected override Window PlaceInContainer(string id, Control page, PageProperties properties) {
+        protected override Window PlaceInContainer(string id, Control page, IPageProperties properties) {
             var window = new Window() {
                 Uid = id,
                 Content = page,
@@ -60,7 +61,7 @@ namespace TeacherAssistant {
             CallPageClosed(window);
         }
 
-        public override void ChangePage(string id, PageProperties config) {
+        public override void ChangePage<TPage>(string id, PageProperties<TPage> config) {
         }
 
         public override void GoBack(string id) {

@@ -8,7 +8,7 @@ using TeacherAssistant.Dao;
 namespace Model.Models
 {
     [Table("DISCIPLINE")]
-    public class DisciplineModel : INotifyPropertyChanged
+    public class DisciplineEntity : INotifyPropertyChanged
     {
         private string _name;
         private string _description;

@@ -10,9 +10,9 @@ namespace Model.Models
       //  [Key]
         public long id { get; set; }
 
-        public virtual StudentModel Student { get; set; }
+        public virtual StudentEntity Student { get; set; }
 
-        public virtual GroupModel Group { get; set; }
+        public virtual GroupEntity Group { get; set; }
         
         [Key, Column("student_id")]
         public long? student_id { get; set; }

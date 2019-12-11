@@ -1,0 +1,23 @@
+<UserControl x:Class="TeacherAssistant.Pages.SettingsPage.Views.AlarmSettingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:TeacherAssistant"
+             xmlns:models="clr-namespace:TeacherAssistant.Pages.SettingsPage"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance models:AlarmSettingsViewModel}">
+    <StackPanel Orientation="Horizontal" Margin="0, 5, 0, 5" Height="30">
+        <xctk:DoubleUpDown  Margin="5, 0, 5, 0" Maximum="1" Width="60" Increment="0.05" Minimum="0" Value="{Binding Path=Volume}" />
+        <xctk:IntegerUpDown Maximum="130" Width="60" Increment="1" Minimum="-40" Value="{Binding Path=Minutes}" />
+        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="5, 0, 5, 0"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                Content="{Binding Path=DoPlay.Text}" IsEnabled="{Binding Path=DoPlay.IsEnabled}"
+                Command="{Binding Path=DoPlay.Command}" />
+        <Button VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="5, 0, 5, 0"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                Content="{Binding Path=DoSelectSound.Text}" IsEnabled="{Binding Path=DoSelectSound.IsEnabled}"
+                Command="{Binding Path=DoSelectSound.Command}" />
+    </StackPanel>
+</UserControl>

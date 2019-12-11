@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Forms;
@@ -38,6 +37,7 @@ namespace TeacherAssistant.Pages {
             this.OpenGroupsTable = new CommandHandler(Groups_Click);
             this.OpenSelectPhotoDirectoryDialog = new CommandHandler(SelectPhotoDir_Click);
             this.OpenSelectDatabaseDialog = new CommandHandler(SelectDatabase_Click);
+            this.OpenSettings = new CommandHandler(OpenSettingsClick);
             this.OpenAddStudentForm = new CommandHandler(AddStudent_Click);
             this.OpenAddLessonForm = new CommandHandler(AddLesson_Click);
             this.OpenAddGroupForm = new CommandHandler(AddGroup_Click);
@@ -82,6 +82,7 @@ namespace TeacherAssistant.Pages {
         public CommandHandler OpenGroupsTable { get; set; }
         public CommandHandler OpenSelectPhotoDirectoryDialog { get; set; }
         public CommandHandler OpenSelectDatabaseDialog { get; set; }
+        public CommandHandler OpenSettings { get; set; }
         public CommandHandler OpenAddStudentForm { get; set; }
         public CommandHandler OpenAddLessonForm { get; set; }
         public CommandHandler OpenAddStreamForm { get; set; }
@@ -132,11 +133,10 @@ namespace TeacherAssistant.Pages {
             this.PageService.OpenPage
             (
                 this.Id,
-                new PageProperties {
+                new PageProperties<StudentTable.StudentTable> {
                     Header = "Студенты",
                     MinHeight = 600,
                     MinWidth = 600,
-                    PageType = typeof(StudentTable.StudentTable)
                 }
             );
         }
@@ -145,11 +145,10 @@ namespace TeacherAssistant.Pages {
             this.PageService.OpenPage
             (
                 this.Id,
-                new PageProperties {
+                new PageProperties<GroupTable.GroupTable> {
                     Header = "Группы",
                     MinHeight = 600,
                     MinWidth = 600,
-                    PageType = typeof(GroupTable.GroupTable)
                 }
             );
         }
@@ -169,56 +168,64 @@ namespace TeacherAssistant.Pages {
             var pageId = this.PageService.OpenPage
             (
                 "Modal",
-                new PageProperties {
+                new PageProperties<StudentForm.StudentForm> {
                     Header = "Добавить студента",
                     MinHeight = 700,
                     MinWidth = 800,
-                    PageType = typeof(StudentForm.StudentForm)
                 }
             );
-            StoreManager.Publish(pageId + ".Student", new StudentModel());
+            StoreManager.Publish(pageId + ".Student", new StudentEntity());
         }
 
         private void AddLesson_Click() {
             var pageId = this.PageService.OpenPage
             (
                 "Modal",
-                new PageProperties {
+                new PageProperties<LessonForm.LessonForm> {
                     Header = "Добавить занятие",
                     MinHeight = 550,
                     MinWidth = 650,
-                    PageType = typeof(LessonForm.LessonForm)
                 }
             );
-            StoreManager.Publish(pageId + ".LessonChange", new LessonModel());
+            StoreManager.Publish(pageId + ".LessonChange", new LessonEntity());
         }
 
         private void AddGroup_Click() {
             var pageId = this.PageService.OpenPage
             (
                 "Modal",
-                new PageProperties {
+                new PageProperties<GroupForm> {
                     Header = "Добавить группу",
                     MinHeight = 500,
                     MinWidth = 650,
-                    PageType = typeof(GroupForm),
                 }
             );
-            StoreManager.Publish(new GroupModel(), pageId, "GroupChange");
+            StoreManager.Publish(new GroupEntity(), pageId, "GroupChange");
         }
 
         private void AddStreamHandler() {
             var pageId = this.PageService.OpenPage
             (
                 "Modal",
-                new PageProperties {
+                new PageProperties<StreamForm> {
                     Header = "Добавить поток",
                     MinHeight = 500,
                     MinWidth = 650,
-                    PageType = typeof(StreamForm),
                 }
             );
-            StoreManager.Publish(new StreamModel(), pageId, "StreamChange");
+            StoreManager.Publish(new StreamEntity(), pageId, "StreamChange");
+        }
+
+        private void OpenSettingsClick() {
+            this.PageService.OpenPage
+            (
+                this.Id, 
+                new PageProperties<SettingsPage.SettingsPage> {
+                    Header = "Настройки",
+                    MinHeight = 500,
+                    MinWidth = 650,
+                }
+            );
         }
 
 
@@ -230,10 +237,6 @@ namespace TeacherAssistant.Pages {
 
         protected override string GetLocalizationKey() {
             return "main";
-        }
-
-        public override Task Init() {
-            return Task.CompletedTask;
         }
     }
 }

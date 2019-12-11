@@ -7,7 +7,7 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
+using System.Text;
 using EntityFramework.Rx;
 using EntityFramework.Triggers;
 using Model;
@@ -33,6 +33,9 @@ namespace TeacherAssistant.Dao {
     }
 
     public class GeneralDbContext : DbContextWithTriggers {
+        public const string MpegStartMetadata = "ID3"; // ID3v2 start metadata
+        public const string WavStartMetadata = "RIFF"; // wav start metadata
+
         private static GeneralDbContext _instance;
 
         public static readonly string FixDbScript = @"
@@ -48,9 +51,7 @@ namespace TeacherAssistant.Dao {
             this._delayedUpdateStart = new Subject<object>();
             this._delayedUpdateStart.AsObservable()
                 .Throttle(TimeSpan.FromMilliseconds(1000))
-                .Subscribe(o => {
-                    SaveChanges();
-                });
+                .Subscribe(o => { SaveChanges(); });
         }
 
         public static GeneralDbContext Instance {
@@ -72,25 +73,25 @@ namespace TeacherAssistant.Dao {
         public static string Path { get; private set; }
         private Subject<object> _delayedUpdateStart { get; }
 
-        public DbSet<DepartmentModel> DepartmentModels { get; set; }
-        public DbSet<AlarmModel> AlarmModels { get; set; }
+        public DbSet<DepartmentEntity> Departments { get; set; }
+        public DbSet<AlarmEntity> Alarms { get; set; }
 
-        public DbSet<StudentModel> StudentModels { get; set; }
+        public DbSet<StudentEntity> Students { get; set; }
 
         //  public DbSet<StreamGroupModel> StreamGroupModels { get; set; }
-        public DbSet<StudentLessonModel> StudentLessonModels { get; set; }
-        public DbSet<StreamModel> StreamModels { get; set; }
-        public DbSet<LessonModel> LessonModels { get; set; }
-        public DbSet<LessonTypeModel> LessonTypeModels { get; set; }
-        public DbSet<GroupModel> GroupModels { get; set; }
-        public DbSet<DisciplineModel> DisciplineModels { get; set; }
+        public DbSet<StudentLessonEntity> StudentLessons { get; set; }
+        public DbSet<StreamEntity> Streams { get; set; }
+        public DbSet<LessonEntity> Lessons { get; set; }
+        public DbSet<LessonTypeEntity> LessonTypes { get; set; }
+        public DbSet<GroupEntity> Groups { get; set; }
+        public DbSet<DisciplineEntity> Disciplines { get; set; }
 
         public DbSet<LessonNote> LessonNotes { get; set; }
         public DbSet<StudentNote> StudentNotes { get; set; }
         public DbSet<StudentLessonNote> StudentLessonNotes { get; set; }
 
         //      public DbSet<StudentGroupModel> StudentGroupModels { get; set; }
-        public DbSet<ScheduleModel> ScheduleModels { get; set; }
+        public DbSet<ScheduleEntity> Schedules { get; set; }
         public static event EventHandler<string> DatabaseChanged;
 
 
@@ -126,26 +127,27 @@ namespace TeacherAssistant.Dao {
                 }
                 .ConnectionString;
             _instance = new GeneralDbContext(dataSource, dbConnection);
-            Init();
+            //    Init();
+            _instance.TrySetAudioDiscriminator();
+            // TODO remove event from singleton
             DatabaseChanged?.Invoke(_instance, dataSource);
         }
 
+        // TODO optional
         private static void Init() {
-//            Task.Run(() => {
-                var count = Instance.LessonTypeModels.Count();
-                var isDbVersionNotLast = count < 5 && count >= 3;
-                if (isDbVersionNotLast) {
-                    Instance.LessonTypeModels.Add(new LessonTypeModel {Name = "Аттестация"});
-                    Instance.LessonTypeModels.Add(new LessonTypeModel {Name = "Экзамен"});
-                    Instance.SaveChanges();
-                }
+            var count = Instance.LessonTypes.Count();
+            var isDbVersionNotLast = count < 5 && count >= 3;
+            if (isDbVersionNotLast) {
+                Instance.LessonTypes.Add(new LessonTypeEntity {Name = "Аттестация"});
+                Instance.LessonTypes.Add(new LessonTypeEntity {Name = "Экзамен"});
+                Instance.SaveChanges();
+            }
 
-                // TODO optional
-                Instance.Database.ExecuteSqlCommand(FixDbScript);
-                Instance.Database.ExecuteSqlCommand("PRAGMA foreign_keys=off;");
-                Instance.Database.ExecuteSqlCommand
-                (
-                    @"
+            Instance.Database.ExecuteSqlCommand(FixDbScript);
+            Instance.Database.ExecuteSqlCommand("PRAGMA foreign_keys=off;");
+            Instance.Database.ExecuteSqlCommand
+            (
+                @"
                 CREATE TABLE GROUP_TYPE2 (
                      id INTEGER PRIMARY KEY AUTOINCREMENT,
                      name TEXT
@@ -171,11 +173,51 @@ namespace TeacherAssistant.Dao {
                     SELECT * FROM STUDENT_LESSON;
                 DROP TABLE STUDENT_LESSON;
                 ALTER TABLE STUDENT_LESSON2 RENAME TO STUDENT_LESSON;
-"
-                );
 
-                Instance.Database.ExecuteSqlCommand("PRAGMA foreign_keys=on;");
-//            });
+            ");
+
+            Instance.Database.ExecuteSqlCommand(@"
+                CREATE TABLE `ALARM2` (
+	                `id`	INTEGER PRIMARY KEY AUTOINCREMENT,
+	                `active`	INTEGER DEFAULT 0,
+	                `time`	INTEGER,
+	                `volume`	DECIMAL ( 1 , 1 ),
+	                `sound`	BLOB,
+	                `discriminator` TEXT,
+	                `resource_name` TEXT
+                );
+                
+                INSERT INTO ALARM2 (id, active, time, volume, sound)
+                    SELECT id, active, time, volume, sound FROM ALARM;
+                
+                DROP TABLE ALARM;
+                ALTER TABLE ALARM2 RENAME TO ALARM;
+            ");
+
+            Instance.Database.ExecuteSqlCommand("PRAGMA foreign_keys=on;");
+        }
+
+        private void TrySetAudioDiscriminator() {
+            var alarms = this.Alarms.ToList();
+            foreach (var alarmEntity in alarms) {
+                var sound = alarmEntity._Sound;
+                if (sound == null || sound.Length == 0 || !string.IsNullOrWhiteSpace(alarmEntity.Discriminator)) {
+                    continue;
+                }
+
+                var metadataStart = new byte[20];
+                Array.Copy(sound, metadataStart, 20);
+                string metadataAsString = Encoding.ASCII.GetString(metadataStart);
+                if (metadataAsString.StartsWith(MpegStartMetadata)) {
+                    alarmEntity.Discriminator = ".mp3";
+                }
+
+                if (metadataAsString.StartsWith(WavStartMetadata)) {
+                    alarmEntity.Discriminator = ".wav";
+                }
+            }
+
+            SaveChangesAsync();
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder) {
@@ -184,7 +226,7 @@ namespace TeacherAssistant.Dao {
             modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
             modelBuilder.Conventions.Remove<ManyToManyCascadeDeleteConvention>();
             modelBuilder.Conventions.Remove<OneToManyCascadeDeleteConvention>();
-            modelBuilder.Entity<StudentModel>()
+            modelBuilder.Entity<StudentEntity>()
                 .HasMany(model => model.Groups)
                 .WithMany(group => group.Students)
                 .Map
@@ -196,7 +238,7 @@ namespace TeacherAssistant.Dao {
                             .ToTable("STUDENT_GROUP");
                     }
                 );
-            modelBuilder.Entity<StreamModel>()
+            modelBuilder.Entity<StreamEntity>()
                 .HasMany(model => model.Groups)
                 .WithMany(group => group.Streams)
                 .Map
@@ -208,8 +250,8 @@ namespace TeacherAssistant.Dao {
                             .ToTable("STREAM_GROUP");
                     }
                 );
-            modelBuilder.Entity<StudentLessonModel>()
-                .HasRequired(model => model._Student)
+            modelBuilder.Entity<StudentLessonEntity>()
+                .HasRequired(model => model.Student)
                 .WithMany(model => model.StudentLessons)
                 .Map
                 (
@@ -220,9 +262,9 @@ namespace TeacherAssistant.Dao {
                     }
                 )
                 .WillCascadeOnDelete(true);
-            modelBuilder.Entity<LessonModel>()
+            modelBuilder.Entity<LessonEntity>()
                 .HasMany(model => model.StudentLessons)
-                .WithRequired(model => model._Lesson)
+                .WithRequired(model => model.Lesson)
                 .Map
                 (
                     configuration => {
@@ -232,9 +274,9 @@ namespace TeacherAssistant.Dao {
                     }
                 )
                 .WillCascadeOnDelete(true);
-            modelBuilder.Entity<StreamModel>()
+            modelBuilder.Entity<StreamEntity>()
                 .HasMany(model => model.StreamLessons)
-                .WithRequired(lesson => lesson._Stream)
+                .WithRequired(lesson => lesson.Stream)
                 .Map
                 (
                     configuration => {
@@ -244,29 +286,29 @@ namespace TeacherAssistant.Dao {
                     }
                 )
                 .WillCascadeOnDelete(true);
-            modelBuilder.Entity<NoteModel>()
+            modelBuilder.Entity<NoteEntity>()
                 .Map<LessonNote>(model => model.Requires("type").HasValue(NoteType.LESSON.ToString()));
-            modelBuilder.Entity<NoteModel>()
+            modelBuilder.Entity<NoteEntity>()
                 .Map<StudentNote>(model => model.Requires("type").HasValue(NoteType.STUDENT.ToString()));
-            modelBuilder.Entity<NoteModel>()
+            modelBuilder.Entity<NoteEntity>()
                 .Map<StudentLessonNote>
                     (model => model.Requires("type").HasValue(NoteType.STUDENT_LESSON.ToString()));
 
-            modelBuilder.Entity<StudentModel>()
+            modelBuilder.Entity<StudentEntity>()
                 .HasMany(model => model.Notes)
                 .WithRequired(note => note.Student)
                 .Map(
                     configuration => { configuration.MapKey("EntityId").ToTable("STUDENT"); })
                 .WillCascadeOnDelete(true);
 
-            modelBuilder.Entity<LessonModel>()
+            modelBuilder.Entity<LessonEntity>()
                 .HasMany(model => model.Notes)
                 .WithRequired(note => note.Lesson)
                 .Map(
                     configuration => { configuration.MapKey("EntityId").ToTable("LESSON"); })
                 .WillCascadeOnDelete(true);
 
-            modelBuilder.Entity<StudentLessonModel>()
+            modelBuilder.Entity<StudentLessonEntity>()
                 .HasMany(model => model.Notes)
                 .WithRequired(note => note.StudentLesson)
                 .Map(
@@ -274,18 +316,18 @@ namespace TeacherAssistant.Dao {
                 .WillCascadeOnDelete(true);
         }
 
-        public IQueryable<LessonModel> GetGroupLessons(GroupModel group) {
-            return this.LessonModels
+        public IQueryable<LessonEntity> GetGroupLessons(GroupEntity group) {
+            return this.Lessons
                 .Where
                 (
-                    model => model._Group != null && model._Group.Id == group.Id
-                             || model._Stream.Groups.Any(streamGroup => streamGroup.Id == group.Id)
+                    model => model.Group != null && model.Group.Id == group.Id
+                             || model.Stream.Groups.Any(streamGroup => streamGroup.Id == group.Id)
                 );
         }
 
-        public List<StudentLessonModel> GetStudentMissedLessons(
-            StudentModel student,
-            StreamModel stream,
+        public List<StudentLessonEntity> GetStudentMissedLessons(
+            StudentEntity student,
+            StreamEntity stream,
             DateTime until
         ) {
             var lessonModels = stream.StreamLessons.Where
@@ -307,12 +349,50 @@ namespace TeacherAssistant.Dao {
                         studentLesson => studentLesson.Student?.Id == student.Id
                     )
                 )
-                .Where
-                (
-                    studentLesson =>
-                        studentLesson.IsLessonMissed
-                )
+                .Where(studentLesson => studentLesson.IsLessonMissed)
                 .ToList();
+        }
+
+        public void SetLessonOrder(LessonEntity entity) {
+            var lessons = this.Lessons.Where(lessonEntity =>
+                    lessonEntity._StreamId == entity._StreamId
+                    && lessonEntity._GroupId == entity._GroupId
+                    && lessonEntity.Date.HasValue
+                    && lessonEntity._ScheduleId.HasValue)
+                .OrderBy(lessonEntity => lessonEntity._Order)
+                .ToList();
+            LessonEntity previous = null;
+            bool isOrderSet = false;
+            foreach (var lessonEntity in lessons) {
+                if (isOrderSet) {
+                    lessonEntity.Order++;
+                    continue;
+                }
+
+                var dateCompare = lessonEntity.Date.Value.CompareTo(entity.Date.Value);
+                if (dateCompare < 0) {
+                    previous = lessonEntity;
+                    continue;
+                }
+
+                if (dateCompare > 0) {
+                    entity.Order = (previous?.Order ?? 0) + 1;
+                    isOrderSet = true;
+                    continue;
+                }
+
+                var compareTo = lessonEntity.Schedule.Begin.Value.CompareTo(entity.Schedule.Begin.Value);
+                if (compareTo > 0) {
+                    entity.Order = (previous?.Order ?? 0) + 1;
+                    isOrderSet = true;
+                }
+
+                previous = lessonEntity;
+            }
+
+            if (!isOrderSet) {
+                entity.Order = 1;
+            }
         }
     }
 }

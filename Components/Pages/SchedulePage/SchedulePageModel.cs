@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -16,25 +17,25 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     public class LessonScheduleView {
-        public LessonModel Lesson { get; }
+        public LessonEntity Lesson { get; }
 
         public string GroupNames => this.Lesson._GroupId == null
-                                        ? string.Join(", ", this.Lesson._Stream.Groups.Select(model => model.Name))
-                                        : this.Lesson._Group.Name;
+            ? string.Join(", ", this.Lesson.Stream.Groups.Select(model => model.Name))
+            : this.Lesson.Group.Name;
 
         public string LocalizedType { get; }
 
         public SchedulePageModel Model { get; }
 
-        public LessonScheduleView(SchedulePageModel sm, LessonModel model) {
-            this.Lesson = model;
+        public LessonScheduleView(SchedulePageModel sm, LessonEntity entity) {
+            this.Lesson = entity;
             this.Model = sm;
-            this.LocalizedType = AbstractModel.Localization[$"common.lesson.type.{model.LessonType}"];
+            this.LocalizedType = AbstractModel.Localization[$"common.lesson.type.{entity.LessonType}"];
         }
     }
 
 
-    public class ScheduleComboboxItem : ScheduleModel {
+    public class ScheduleComboboxItem : ScheduleEntity {
         public override string ToString() {
             return AbstractModel.Localization["common.empty.dropdown"];
         }
@@ -58,12 +59,12 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
 
         public static readonly string SelectedLessonKey = "SelectedLesson";
 
-        private static readonly StreamModel EmptyStream = new StreamModel {
+        private static readonly StreamEntity EmptyStream = new StreamEntity {
             Id = -1,
             Name = Localization["common.empty.dropdown"]
         };
 
-        private static readonly GroupModel EmptyGroup = new GroupModel {
+        private static readonly GroupEntity EmptyGroup = new GroupEntity {
             Id = -1,
             Name = Localization["common.empty.dropdown"]
         };
@@ -83,7 +84,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 (
                     () => {
                         var newId = this.PageService.OpenPage
-                            ("Modal",  new PageProperties{PageType = typeof(LessonForm)});
+                            ("Modal", new PageProperties<LessonForm>());
                         StoreManager.Publish(this.SelectedLesson.Lesson, newId, "LessonChange");
                     }
                 )
@@ -98,50 +99,70 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             );
             this.WhenAnyValue(model => model.SelectedStream)
                 .Subscribe
-                 (
-                     stream => {
-                         List<GroupModel> groups;
-                         if (stream == null || stream.Id == -1) {
-                             groups = _db.GroupModels.ToList();
-                         }
-                         else {
-                             groups = stream.Groups.ToList();
-                         }
+                (
+                    stream => {
+                        List<GroupEntity> groups;
+                        if (stream == null || stream.Id == -1) {
+                            groups = _db.Groups.ToList();
+                        }
+                        else {
+                            groups = stream.Groups.ToList();
+                        }
 
-                         groups.Insert(0, EmptyGroup);
-                         this.Groups.Clear();
-                         this.Groups.AddRange(groups);
-                         if (this.SelectedGroup == null
-                             || this.Groups.FirstOrDefault(model => this.SelectedGroup.Id == model.Id) != null) {
-                             this.SelectedGroup = EmptyGroup;
-                         }
-                     }
-                 );
+                        groups.Insert(0, EmptyGroup);
+                        this.Groups.Clear();
+                        this.Groups.AddRange(groups);
+                        if (this.SelectedGroup == null
+                            || this.Groups.FirstOrDefault(model => this.SelectedGroup.Id == model.Id) != null) {
+                            this.SelectedGroup = EmptyGroup;
+                        }
+                    }
+                );
+            this.RefreshSubject.AsObservable()
+                .Subscribe
+                (
+                    async _ => {
+                        this.Streams.Clear();
+                        this.Groups.Clear();
+                        var streamModels = await _db.Streams.ToListAsync();
+                        streamModels.Insert(0, EmptyStream); // default value
+                        this.Streams.AddRange(streamModels);
+                        var schedules = await _db.Schedules.ToListAsync();
+                        schedules.Insert(0, EmptyScheduleComboboxItem);
+                        schedules.ForEach(this.Schedules.Add);
+                        (await _db.Groups.ToListAsync()).ForEach(this.Groups.Add);
+                        this.Groups.Insert(0, EmptyGroup);
+                        this.SelectedGroup = EmptyGroup;
+                        this.SelectedLessonType = this.LessonTypes[0];
+                        this.SelectedSchedule = EmptyScheduleComboboxItem;
+                        this.SelectedStream = EmptyStream;
+                    }
+                );
         }
 
 
         public ObservableRangeCollection<LessonScheduleView> Lessons { get; set; } =
             new WpfObservableRangeCollection<LessonScheduleView>();
 
-        public ObservableRangeCollection<StreamModel> Streams { get; set; } =
-            new WpfObservableRangeCollection<StreamModel>();
+        public ObservableRangeCollection<StreamEntity> Streams { get; set; } =
+            new WpfObservableRangeCollection<StreamEntity>();
 
-        public ObservableRangeCollection<GroupModel> Groups { get; set; } =
-            new WpfObservableRangeCollection<GroupModel>();
+        public ObservableRangeCollection<GroupEntity> Groups { get; set; } =
+            new WpfObservableRangeCollection<GroupEntity>();
 
-        public ObservableRangeCollection<ScheduleModel> Schedules { get; set; } =
-            new WpfObservableRangeCollection<ScheduleModel>();
+        public ObservableRangeCollection<ScheduleEntity> Schedules { get; set; } =
+            new WpfObservableRangeCollection<ScheduleEntity>();
 
         [Reactive] public LessonScheduleView SelectedLesson { get; set; }
 
         [Reactive] public ICommand Show { get; set; }
 
 
-        [Reactive] public GroupModel SelectedGroup { get; set; }
+        [Reactive] public GroupEntity SelectedGroup { get; set; }
 
-        [Reactive] public StreamModel SelectedStream { get; set; }
+        [Reactive] public StreamEntity SelectedStream { get; set; }
 
-        [Reactive] public ScheduleModel SelectedSchedule { get; set; }
+        [Reactive] public ScheduleEntity SelectedSchedule { get; set; }
 
         public List<LessonTypeComboboxItem> LessonTypes { get; set; } =
             new List<LessonTypeComboboxItem>
@@ -163,13 +184,14 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         /// <summary>
         ///     SQLite EF6 provider does not support TruncateTime and other functions.
         /// </summary>
-        private IEnumerable<LessonModel> BuildQuery() {
-            var query = _db.LessonModels.Where(model => model._Date != null)
-                           .Include("Schedule")
-                           .Include("_Group.Streams")
-                           .Include("_Stream.Groups"); // eager loading. Using name instead of lambda is faster
+        private IEnumerable<LessonEntity> BuildQuery() {
+            var query = _db.Lessons
+                .Where(model => model._Date != null)
+                .Include(lesson => lesson.Schedule)
+                .Include(lesson => lesson.Group.Streams)
+                .Include(lesson => lesson.Stream.Groups);
             if (this.SelectedStream != null && this.SelectedStream.Id != -1)
-                query = query.Where(model => model._Stream.Id == this.SelectedStream.Id);
+                query = query.Where(model => model.Stream.Id == this.SelectedStream.Id);
 
             if (this.SelectedSchedule != null && this.SelectedSchedule.Id != -1)
                 query = query.Where(model => model.Schedule.Id == this.SelectedSchedule.Id);
@@ -182,9 +204,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 query = query.Where
                 (
                     model =>
-                        model._Group != null
-                            ? model._Group.Id == this.SelectedGroup.Id
-                            : model._Stream.Groups.Any
+                        model.Group != null
+                            ? model.Group.Id == this.SelectedGroup.Id
+                            : model.Stream.Groups.Any
                             (
                                 groupModel =>
                                     groupModel.Id == this.SelectedGroup.Id
@@ -202,30 +224,6 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             var lessonTabId = this.PageService.OpenPage
                 (PageConfigs.RegistrationPageConfig, this.Id);
             StoreManager.Publish(this.SelectedLesson.Lesson, lessonTabId, SelectedLessonKey);
-        }
-
-        public override Task Init() {
-            Select<object>("")
-               .Subscribe
-                (
-                    async _ => {
-                        this.Streams.Clear();
-                        this.Groups.Clear();
-                        var streamModels = await _db.StreamModels.ToListAsync();
-                        streamModels.Insert(0, EmptyStream); // default value
-                        this.Streams.AddRange(streamModels);
-                        var schedules = await _db.ScheduleModels.ToListAsync();
-                        schedules.Insert(0, EmptyScheduleComboboxItem);
-                        schedules.ForEach(this.Schedules.Add);
-                        (await _db.GroupModels.ToListAsync()).ForEach(this.Groups.Add);
-                        this.Groups.Insert(0, EmptyGroup);
-                        this.SelectedGroup = EmptyGroup;
-                        this.SelectedLessonType = this.LessonTypes[0];
-                        this.SelectedSchedule = EmptyScheduleComboboxItem;
-                        this.SelectedStream = EmptyStream;
-                    }
-                );
-            return Task.CompletedTask;
         }
     }
 }

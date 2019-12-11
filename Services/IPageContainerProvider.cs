@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Controls;
 using Containers;
 using TeacherAssistant.State;
@@ -18,9 +19,9 @@ namespace TeacherAssistant.Components {
 
     public interface IPageProvider : IDisposable {
         string ProviderId { get; }
-        string AddPage(PageProperties config);
+        string AddPage<T>(PageProperties<T> config);
         void ClosePage(string id);
-        void ChangePage(string id, PageProperties config);
+        void ChangePage<T>(string id, PageProperties<T> config);
         void GoBack(string id);
         void GoForward(string id);
         void Refresh(string id);

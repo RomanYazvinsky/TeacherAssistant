@@ -22,43 +22,43 @@ namespace TeacherAssistant.RegistrationPage {
                 this.Bind(this.ViewModel, model => model.IsAutoRegistrationEnabled,
                         page => page.AutoRegBox.IsChecked)
                     .DisposeWith(action);
-                this.OneWayBind(this.ViewModel, model => model.StudentPhoto,
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.Photo,
                         page => page.StudentPhoto.Source)
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.ActiveStudentInfoVisibility,
                         page => page.StudentPhoto.Visibility)
                     .DisposeWith(action);
-                this.OneWayBind(this.ViewModel, model => model.StudentDescription,
-                        page => page.StudentDescription.Text)
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.LastName,
+                        page => page.LastNameText.Text)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.FirstName,
+                        page => page.FirstNameText.Text)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.SecondName,
+                        page => page.SecondNameText.Text)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.LessonStat,
+                        page => page.LessonStatText.Text)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.GroupName,
+                        page => page.GroupNamesText.Text)
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.ActiveStudentInfoVisibility,
                         page => page.StudentDescription.Visibility)
-                    .DisposeWith(action);
-                this.Bind(this.ViewModel, model => model.SelectedStudent,
-                        page => page.LessonStudents.SelectedItem)
-                    .DisposeWith(action);
-                this.Bind(this.ViewModel, model => model.SelectedStudent,
-                        page => page.RegisteredStudents.SelectedItem)
                     .DisposeWith(action);
                 this.BindCommand(this.ViewModel, model => model.DoRegister, page => page.RegisterButton)
                     .DisposeWith(action);
                 this.BindCommand(this.ViewModel, model => model.DoUnRegister, page => page.UnregisterButton)
                     .DisposeWith(action);
+                this.Bind(this.ViewModel, model => model.AllStudentsTableConfig, page => page.AllStudents.TableConfig)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.ToggleAllStudentTable.Text,
+                    page => page.ToggleAllStudentsMode.Content).DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.ToggleAllStudentTable.Command,
+                    page => page.ToggleAllStudentsMode.Command).DisposeWith(action);
             });
-            LessonStudents.FilterFunction = this.ViewModel.Filter;
-            LessonStudents.Sorts = this.ViewModel.Sorts;
-            LessonStudents.SelectedItems = this.ViewModel.SelectedLessonStudents;
-            LessonStudents.TableItems = this.ViewModel.LessonStudents;
-            RegisteredStudents.FilterFunction = this.ViewModel.Filter;
-            RegisteredStudents.Sorts = this.ViewModel.RegisteredStudentsSorts;
-            RegisteredStudents.SelectedItems = this.ViewModel.SelectedRegisteredStudents;
-            RegisteredStudents.TableItems = this.ViewModel.RegisteredStudents;
-            RegisteredStudents.DropAvailability = this.ViewModel.RegisteredDropAvailability;
-            LessonStudents.DropAvailability = this.ViewModel.LessonStudentsTableDropAvailability;
-            RegisteredStudents.Drop = this.ViewModel.DropOnRegisteredStudents;
-            LessonStudents.Drop = this.ViewModel.DropOnLessonStudents;
-            RegisteredStudents.DragStart = this.ViewModel.DragStartRegisteredStudents;
-            LessonStudents.DragStart = this.ViewModel.DragStartLessonStudents;
+            LessonStudents.TableConfig = this.ViewModel.LessonStudentsTableConfig;
+            RegisteredStudents.TableConfig = this.ViewModel.RegisteredStudentsTableConfig;
         }
 
         private void List_OnMouseEnter(object sender, MouseEventArgs e) {

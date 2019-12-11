@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
 using Ninject;
@@ -9,13 +10,13 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant {
     public class PageInfo<T> where T : Control {
-        public PageInfo(PageInfo<T> info, T container, Control page, PageProperties properties) :
+        public PageInfo(PageInfo<T> info, T container, Control page, IPageProperties properties) :
             this(info.Id, container, page, properties) {
             info.Next = this;
             this.Previous = info;
         }
 
-        public PageInfo(string id, T container, Control page, PageProperties properties) {
+        public PageInfo(string id, T container, Control page, IPageProperties properties) {
             this.Id = id;
             this.Properties = properties;
             this.Page = page;
@@ -26,8 +27,8 @@ namespace TeacherAssistant {
         public Control Page { get; set; }
         public T Container { get; set; }
         public PageInfo<T> Previous { get; }
-        public PageInfo<T> Next { get; private set; }
-        public PageProperties Properties { get; set; }
+        public PageInfo<T> Next { get; set; }
+        public IPageProperties Properties { get; set; }
     }
 
     public static class IdGenerator {
@@ -44,20 +45,20 @@ namespace TeacherAssistant {
         }
     }
 
-    public abstract class AbstractPageHost<T> : IPageContainerProvider<T> where T : Control {
-        protected Dictionary<string, PageInfo<T>> _pages = new Dictionary<string, PageInfo<T>>();
+    public abstract class AbstractPageHost<TContainer> : IPageContainerProvider<TContainer> where TContainer : Control {
+        protected Dictionary<string, PageInfo<TContainer>> _pages = new Dictionary<string, PageInfo<TContainer>>();
         protected readonly PageService pageService;
 
         protected AbstractPageHost(PageService pageService) {
             this.pageService = pageService;
         }
 
-        protected abstract T PlaceInContainer(string id, Control page, PageProperties properties);
+        protected abstract TContainer PlaceInContainer(string id, Control page, IPageProperties properties);
 
-        protected PageInfo<T> BuildPageInfo(string id,
+        protected PageInfo<TContainer> BuildPageInfo<TPage>(string id,
             Type componentType,
-            PageProperties properties,
-            PageInfo<T> prevPage = null
+            PageProperties<TPage> properties,
+            PageInfo<TContainer> prevPage = null
         ) {
             var page = (UserControl) Injector.Instance.Kernel.Get
             (
@@ -67,53 +68,53 @@ namespace TeacherAssistant {
             );
 
             return prevPage == null
-                ? new PageInfo<T>(id, PlaceInContainer(id, page, properties), page, properties)
-                : new PageInfo<T>(prevPage, PlaceInContainer(id, page, properties), page, properties);
+                ? new PageInfo<TContainer>(id, PlaceInContainer(id, page, properties), page, properties)
+                : new PageInfo<TContainer>(prevPage, PlaceInContainer(id, page, properties), page, properties);
         }
 
-        public abstract event EventHandler<T> PageAdded;
-        public abstract event EventHandler<T> PageClosed;
-        public abstract event EventHandler<T> PageDetached;
-        public abstract event EventHandler<T> PageAttached;
+        public abstract event EventHandler<TContainer> PageAdded;
+        public abstract event EventHandler<TContainer> PageClosed;
+        public abstract event EventHandler<TContainer> PageDetached;
+        public abstract event EventHandler<TContainer> PageAttached;
         public abstract event EventHandler<PageChanges> PageChanged;
 
         public abstract string ProviderId { get; }
 
-        public string AddPage(PageProperties config) {
+        public string AddPage<TPage>(PageProperties<TPage> config) {
             var id = IdGenerator.GenerateId(10);
-            var pageInfo = BuildPageInfo(id, config.PageType, config);
+            var pageInfo = BuildPageInfo(id, typeof(TPage), config);
             _pages.Add(id, pageInfo);
             CallPageAdded(pageInfo.Container);
             return id;
         }
 
         public abstract void ClosePage(string id);
-        public abstract void ChangePage(string id, PageProperties config);
+        public abstract void ChangePage<TPage>(string id, PageProperties<TPage> config);
         public abstract void GoBack(string id);
         public abstract void GoForward(string id);
         public abstract void Refresh(string id);
 
-        public T GetCurrentControl(string id) {
+        public TContainer GetCurrentControl(string id) {
             return _pages[id].Container;
         }
 
         public abstract string Attach<T1>(PageInfo<T1> info) where T1 : Control;
 
-        public virtual PageInfo<T> Detach(string id) {
-            PageInfo<T> detached = _pages[id];
+        public virtual PageInfo<TContainer> Detach(string id) {
+            var detached = _pages[id];
             _pages.Remove(id);
             CallPageDetached(detached.Container);
             return detached;
         }
 
-        protected PageInfo<T> WrapToContainer<TV>(PageInfo<TV> pageInfo) where TV : Control {
+        protected PageInfo<TContainer> WrapToContainer<TV>(PageInfo<TV> pageInfo) where TV : Control {
             var currentOldPage = pageInfo;
             while (pageInfo.Previous != null) {
                 // find the first page
                 currentOldPage = pageInfo.Previous;
             }
 
-            var currentNew = new PageInfo<T>
+            var currentNew = new PageInfo<TContainer>
             (
                 currentOldPage.Id,
                 PlaceInContainer(currentOldPage.Id, currentOldPage.Page, currentOldPage.Properties),
@@ -124,7 +125,7 @@ namespace TeacherAssistant {
             while (currentOldPage.Next != null) {
                 // restore the sequence of pages
                 currentOldPage = currentOldPage.Next;
-                currentNew = new PageInfo<T>
+                currentNew = new PageInfo<TContainer>
                 (
                     currentNew,
                     PlaceInContainer(currentOldPage.Id, currentOldPage.Page, currentOldPage.Properties),
@@ -139,9 +140,9 @@ namespace TeacherAssistant {
             return result;
         }
 
-        protected abstract void CallPageAdded(T container);
-        protected abstract void CallPageClosed(T container);
-        protected abstract void CallPageDetached(T container);
+        protected abstract void CallPageAdded(TContainer container);
+        protected abstract void CallPageClosed(TContainer container);
+        protected abstract void CallPageDetached(TContainer container);
 
         public void Dispose() {
         }
