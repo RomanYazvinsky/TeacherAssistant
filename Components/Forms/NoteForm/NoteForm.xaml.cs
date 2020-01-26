@@ -10,7 +10,6 @@ namespace TeacherAssistant.Forms.NoteForm
         public NoteForm(string id)
         {
             InitializeComponent();
-            InitializeViewModel(id);
         }
     }
 }

@@ -1,32 +1,28 @@
 ﻿using System.Linq;
 using Ninject;
+using Ninject.Extensions.ChildKernel;
+using Ninject.Modules;
 using Ninject.Parameters;
+using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant.State
-{
-    public class Injector
-    {
+namespace TeacherAssistant.State {
+    public class Injector {
         public IKernel Kernel { get; }
         private static Injector _instance;
-        private Injector()
-        {
+
+        private Injector() {
             this.Kernel = new StandardKernel();
-            Bind();
         }
 
         public static Injector Instance => _instance ?? (_instance = new Injector());
 
-        private void Bind()
-        {
-        }
 
-        public static T Get<T>(params (string, object)[] constructorArgs)
-        {
+        public static T Get<T>(params (string, object)[] constructorArgs) {
             return Instance.Kernel.Get<T>
             (
                 constructorArgs.Select((key) => new ConstructorArgument(key.Item1, key.Item2)).ToArray()
             );
         }
-
+       
     }
 }

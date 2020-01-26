@@ -8,7 +8,7 @@ using System.Threading;
 using SerialPortLib;
 
 namespace TeacherAssistant.ReaderPlugin {
-    public class SerialUtil : ISerialUtil {
+    public class SerialUtil {
         private SerialPortInput _serialPort;
         public event EventHandler<string> Connected;
         public event EventHandler Disconnected;

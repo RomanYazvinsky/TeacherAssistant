@@ -12,17 +12,13 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Footer.TaskExpandList;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.StudentTable {
     public class StudentTableModel : AbstractModel {
         private static readonly string LocalizationKey = "page.student.table";
 
-        public StudentTableModel(string id,
-            IPhotoService photoService
-        ) : base(id) {
+        public StudentTableModel(PhotoService photoService) {
             this.PhotoService = photoService;
             this.StudentTableConfig = new TableConfig {
                 Sorts = this.Sorts,
@@ -43,12 +39,12 @@ namespace TeacherAssistant.StudentTable {
                         return;
                     }
 
-                    var pageId = this.PageService.OpenPage
-                    (new PageProperties<StudentViewPage.StudentViewPage> {
-                            Header = ((StudentViewModel) selectedItem).Student.LastName
-                        },
-                        this.Id);
-                    StoreManager.Publish(((StudentViewModel) selectedItem).Student, pageId, "Student");
+                    // var pageId = this._pageService.OpenPage
+                    // (new PageProperties<StudentViewPage.StudentViewPage> {
+                    //         Header = ((StudentViewModel) selectedItem).Student.LastName
+                    //     },
+                    //     this.Id);
+                    // StoreManager.Publish(((StudentViewModel) selectedItem).Student, pageId, "Student");
                 }
             );
             this.DeleteStudent = new CommandHandler
@@ -59,18 +55,18 @@ namespace TeacherAssistant.StudentTable {
                         return;
                     }
 
-                    _db.Students.Remove(((StudentViewModel) selectedItem).Student);
-                    _db.SaveChangesAsync();
+                    // Database.Students.Remove(((StudentViewModel) selectedItem).Student);
+                    // Database.SaveChangesAsync();
                     this.StudentTableConfig.TableItems.Remove(selectedItem);
                 }
             );
             this.RefreshSubject.AsObservable().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => {
                 this.StudentTableConfig.TableItems.Clear();
-                var studentEntities = _db.Students
-                    .Include("Groups")
-                    .ToList();
-                var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
-                this.StudentTableConfig.TableItems.AddRange(studentViewModels);
+                // var studentEntities = Database.Students
+                //     .Include("Groups")
+                //     .ToList();
+                // var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
+                // this.StudentTableConfig.TableItems.AddRange(studentViewModels);
             });
         }
 
@@ -80,30 +76,30 @@ namespace TeacherAssistant.StudentTable {
                 Command = new CommandHandler
                 (
                     () => {
-                        var taskHandler = new TaskHandler
-                        (
-                            "Загрузка фото",
-                            this.StudentTableConfig.TableItems.Count,
-                            true,
-                            async progressControl => {
-                                var items = this.StudentTableConfig.TableItems
-                                    .Select(model => ((StudentViewModel) model).Student).ToList();
-                                for (var i = 0; i < items.Count; i += 5) {
-                                    if (progressControl.IsCancelled()) {
-                                        progressControl.ConfirmCancel();
-                                        break;
-                                    }
-
-                                    var portion = items.GetRange(i, 5);
-                                    await LoadImages(portion);
-                                    progressControl.Next();
-                                }
-
-                                progressControl.Complete();
-                            }
-                        );
-                        StoreManager.Add("TaskList", taskHandler);
-                        taskHandler.Start();
+                        // var taskHandler = new TaskHandler
+                        // (
+                        //     "Загрузка фото",
+                        //     this.StudentTableConfig.TableItems.Count,
+                        //     true,
+                        //     async progressControl => {
+                        //         var items = this.StudentTableConfig.TableItems
+                        //             .Select(model => ((StudentViewModel) model).Student).ToList();
+                        //         for (var i = 0; i < items.Count; i += 5) {
+                        //             if (progressControl.IsCancelled()) {
+                        //                 progressControl.ConfirmCancel();
+                        //                 break;
+                        //             }
+                        //
+                        //             var portion = items.GetRange(i, 5);
+                        //             await LoadImages(portion);
+                        //             progressControl.Next();
+                        //         }
+                        //
+                        //         progressControl.Complete();
+                        //     }
+                        // );
+                        // StoreManager.Add("TaskList", taskHandler);
+                        // taskHandler.Start();
                     }
                 ),
                 Text = "Загрузить фото"
@@ -116,7 +112,7 @@ namespace TeacherAssistant.StudentTable {
                 this.PhotoService.DownloadPhoto(StudentEntity.CardUidToId(entity.CardUid))));
         }
 
-        private IPhotoService PhotoService { get; }
+        private PhotoService PhotoService { get; }
 
 
         public TableConfig StudentTableConfig { get; set; }

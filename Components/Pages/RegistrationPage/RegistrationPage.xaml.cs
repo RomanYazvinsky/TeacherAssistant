@@ -2,10 +2,36 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Model.Models;
+using Ninject;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Core.Module;
+using TeacherAssistant.State;
 
 namespace TeacherAssistant.RegistrationPage {
+    public class RegistrationPageModuleToken : PageModuleToken<RegistrationPageModule> {
+        public RegistrationPageModuleToken(string title, LessonEntity lesson) :
+            base(IdGenerator.GenerateId(), title) {
+            this.Lesson = lesson;
+        }
+
+        public LessonEntity Lesson { get; }
+    }
+
+    public class RegistrationPageModule : Module {
+        public RegistrationPageModule()
+            : base(new[] {
+                typeof(RegistrationPage),
+                typeof(RegistrationPageModel),
+            }) {
+        }
+
+        public override Control GetEntryComponent() {
+            return this.Kernel?.Get<RegistrationPage>();
+        }
+    }
+
     public class RegistrationPageBase : View<RegistrationPageModel> {
     }
 
@@ -13,9 +39,11 @@ namespace TeacherAssistant.RegistrationPage {
     /// Interaction logic for RegistrationPage.xaml
     /// </summary>
     public partial class RegistrationPage : RegistrationPageBase {
-        public RegistrationPage(string id) {
+        public RegistrationPage() {
             InitializeComponent();
-            InitializeViewModel(id);
+        }
+
+        public override void Initialize() {
             this.WhenActivated(action => {
                 this.OneWayBind(this.ViewModel, model => model.TimerString, page => page.TimeBox.Text)
                     .DisposeWith(action);

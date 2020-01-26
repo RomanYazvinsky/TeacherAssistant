@@ -47,7 +47,7 @@ namespace TeacherAssistant.StudentViewPage {
             get => this.StudentLesson.Mark;
             set {
                 this.StudentLesson.Mark = string.IsNullOrWhiteSpace(value) ? null : value;
-                GeneralDbContext.Instance.ThrottleSave();
+                LocalDbContext.Instance.ThrottleSave();
                 _model.UpdateLessonMark();
             }
         }

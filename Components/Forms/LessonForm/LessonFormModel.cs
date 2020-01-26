@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.State;
+using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormModel : AbstractModel {
+        private readonly IPageHost _pageHost;
+        private readonly LessonFormModuleToken _token;
+        private readonly LocalDbContext _db;
         private const string LocalizationKey = "lesson.form";
         private LessonEntity _originalEntity;
 
@@ -29,10 +32,17 @@ namespace TeacherAssistant.Pages.LessonForm {
             }
         }
 
-        public LessonFormModel(string id) : base(id) {
-            WhenAdded<StreamEntity>().Subscribe(models => RunInUiThread(() => this.Streams.AddRange(models.ToList())));
+        public LessonFormModel(IPageHost pageHost, LessonFormModuleToken token,
+            LocalDbContext db) {
+            _pageHost = pageHost;
+            _token = token;
+            _db = db;
+            WhenAdded<StreamEntity>()
+                .Subscribe(models =>
+                    RunInUiThread(() => this.Streams.AddRange(models.ToList())));
             WhenRemoved<StreamEntity>()
-               .Subscribe(models => RunInUiThread(() => this.Streams.RemoveRange(models.ToList())));
+                .Subscribe(models =>
+                    RunInUiThread(() => this.Streams.RemoveRange(models.ToList())));
             this.Streams.AddRange(_db.Streams.ToList());
             this.ScheduleList.AddRange(_db.Schedules.ToList());
             this.SaveButtonConfig = new ButtonConfig {
@@ -41,7 +51,7 @@ namespace TeacherAssistant.Pages.LessonForm {
                 (
                     () => {
                         Save();
-                        this.PageService.ClosePage(id);
+                        _pageHost.ClosePage(token.Id);
                     }
                 )
             };
@@ -57,68 +67,66 @@ namespace TeacherAssistant.Pages.LessonForm {
                 (
                     () => {
                         Save();
-                        StoreManager.Publish(this.Id + ".LessonChange", new LessonEntity());
+                        Init(new LessonEntity());
                     }
                 )
             };
-            this.LessonTypes = (Enum.GetValues(typeof(LessonType)))
-                              .Cast<LessonType>()
-                              .Where(type => type != LessonType.Unknown)
-                              .Select(type => new LessonTypeView(type))
-                              .ToList();
+            this.LessonTypes = Enum.GetValues(typeof(LessonType))
+                .Cast<LessonType>()
+                .Where(type => type != LessonType.Unknown)
+                .Select(type => new LessonTypeView(type))
+                .ToList();
             this.WhenAnyValue(model => model.SelectedStream)
                 .Where(NotNull)
                 .Subscribe
-                 (
-                     stream => {
-                         this.Groups.Clear();
-                         this.Groups.AddRange(stream.Groups.ToList());
-                         this.Lesson.Group = this.Groups.FirstOrDefault();
-                     }
-                 );
+                (
+                    stream => {
+                        this.Groups.Clear();
+                        this.Groups.AddRange(stream.Groups.ToList());
+                        this.Lesson.Group = this.Groups.FirstOrDefault();
+                    }
+                );
             this.WhenAnyValue(model => model.Lesson)
-                .Where(NotNull)
-                .Subscribe
-                 (
-                     lesson => {
-                         this.SelectedStream = lesson.Stream ?? this.Streams.FirstOrDefault();
-                         this.Description = lesson.Description ?? "";
-                         this.LessonDate = lesson.Date ?? DateTime.Today;
-                         var lessonType = this.LessonTypes.Find(view => view.Type == lesson.LessonType);
-                         this.SelectedLessonType = lessonType ?? this.LessonTypes.FirstOrDefault();
-                         this.SelectedSchedule = lesson.Schedule ?? this.ScheduleList.FirstOrDefault();
-                     }
-                 );
-            this.WhenAnyValue(model => model.SelectedLessonType)
-                .Where(NotNull)
-                .Subscribe
-                 (
-                     type => {
-                         this.Lesson.LessonType = type.Type;
-                         this.IsGroupsAvailable = this.Lesson.LessonType != LessonType.Lecture;
-                     }
-                 );
-            this.WhenAnyValue(model => model.SelectedSchedule)
-                .Where(NotNull)
-                .Subscribe
-                 (
-                     schedule => { this.Lesson.Schedule = schedule; }
-                 );
-            this.WhenAnyValue(model => model.IsGroupsAvailable)
-                .Where(b => this.Lesson != null)
-                .Subscribe
-                 (
-                     isAvailable => { this.Lesson.Group = isAvailable ? this.Groups.FirstOrDefault() : null; }
-                 );
-            Select<LessonEntity>(this.Id + ".LessonChange")
                 .Where(NotNull)
                 .Subscribe
                 (
                     lesson => {
-                        _originalEntity = lesson;
-                        this.Lesson = new LessonEntity(lesson);
+                        this.SelectedStream = lesson.Stream ?? this.Streams.FirstOrDefault();
+                        this.Description = lesson.Description ?? "";
+                        this.LessonDate = lesson.Date ?? DateTime.Today;
+                        var lessonType = this.LessonTypes.Find(view => view.Type == lesson.LessonType);
+                        this.SelectedLessonType = lessonType ?? this.LessonTypes.FirstOrDefault();
+                        this.SelectedSchedule = lesson.Schedule ?? this.ScheduleList.FirstOrDefault();
                     }
                 );
+            this.WhenAnyValue(model => model.SelectedLessonType)
+                .Where(NotNull)
+                .Subscribe
+                (
+                    type => {
+                        this.Lesson.LessonType = type.Type;
+                        this.IsGroupsAvailable = this.Lesson.LessonType != LessonType.Lecture;
+                    }
+                );
+            this.WhenAnyValue(model => model.SelectedSchedule)
+                .Where(NotNull)
+                .Subscribe
+                (
+                    schedule => { this.Lesson.Schedule = schedule; }
+                );
+            this.WhenAnyValue(model => model.IsGroupsAvailable)
+                .Where(b => this.Lesson != null)
+                .Subscribe
+                (
+                    isAvailable => { this.Lesson.Group = isAvailable ? this.Groups.FirstOrDefault() : null; }
+                );
+
+            Init(token.Lesson);
+        }
+
+        private void Init(LessonEntity lesson) {
+            _originalEntity = lesson;
+            this.Lesson = new LessonEntity(lesson);
         }
 
         protected override string GetLocalizationKey() {
@@ -173,15 +181,15 @@ namespace TeacherAssistant.Pages.LessonForm {
 
         private void SaveAndOpenRegistration() {
             Save();
-            this.PageService.ClosePage(this.Id);
-            var newId = this.PageService.OpenPage(PageConfigs.SchedulePageConfig, this.Id);
-            StoreManager.Publish
-            (
-                this.Lesson,
-                newId,
-                "SelectedLesson"
-            );
-        }
 
+            _pageHost.ClosePage(_token.Id);
+            // var newId = _pageHost.AddPage<>(PageConfigs.SchedulePageConfig, this.Id);
+            // StoreManager.Publish
+            // (
+            //     this.Lesson,
+            //     newId,
+            //     "SelectedLesson"
+            // );
+        }
     }
 }

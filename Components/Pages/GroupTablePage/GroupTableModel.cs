@@ -8,36 +8,42 @@ using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 using TeacherAssistant.Forms.GroupForm;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.GroupTable {
     public class GroupTableModel : AbstractModel {
+        private readonly LocalDbContext _db;
+        private readonly IPageHost _host;
         private static readonly string LocalizationKey = "page.group.table";
 
-        public GroupTableModel(string id) : base(id) {
+        public GroupTableModel(LocalDbContext db, WindowPageHost host) {
+            _db = db;
+            _host = host;
             this.DeleteMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(DeleteGroup)
             };
             this.ShowMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(ShowGroup)
             };
-            WhenAdded<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler).Subscribe(models =>  this.Groups.AddRange(models));
-            WhenRemoved<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler).Subscribe(models =>  this.Groups.RemoveRange(models));
-            Select<object>("").Subscribe(o => {
-                this.Groups.Clear();
-                this.Groups.AddRange(_db.Groups.ToList());
-            });
+            WhenAdded<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(models => this.Groups.AddRange(models));
+            WhenRemoved<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(models => this.Groups.RemoveRange(models));
+            this.Groups.Clear();
+            this.Groups.AddRange(db.Groups.ToList());
         }
 
         protected override string GetLocalizationKey() {
             return LocalizationKey;
         }
-        
+
         private void ShowGroup() {
-            var id = this.PageService.OpenPage("Modal", new PageProperties<GroupForm>());
-            StoreManager.Publish(this.SelectedGroupEntity, id, "GroupChange");
+            _host.AddPage<GroupFormModule, GroupFormModuleToken>(
+                    new GroupFormModuleToken(this.SelectedGroupEntity.Name, this.SelectedGroupEntity));
         }
 
         private void DeleteGroup() {

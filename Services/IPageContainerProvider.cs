@@ -1,43 +1,15 @@
-﻿using System;
-using System.ComponentModel;
-using System.Windows.Controls;
-using Containers;
-using TeacherAssistant.State;
+﻿using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.Components {
-    public class PageChanges {
-        public string Id { get; }
-        public Control From { get; }
-        public Control To { get; }
 
-        public PageChanges(string id, Control from, Control to) {
-            this.Id = id;
-            this.From = from;
-            this.To = to;
-        }
-    }
+    public interface IPageHost {
+        TModule AddPage<TModule, TActivation>(TActivation activation)
+            where TActivation : PageModuleToken<TModule>
+            where TModule : Module;
 
-    public interface IPageProvider : IDisposable {
-        string ProviderId { get; }
-        string AddPage<T>(PageProperties<T> config);
+        Module AddPage<TActivation>(TActivation activation)
+            where TActivation : IModuleToken;
+
         void ClosePage(string id);
-        void ChangePage<T>(string id, PageProperties<T> config);
-        void GoBack(string id);
-        void GoForward(string id);
-        void Refresh(string id);
-        
-    
-        string Attach<T>(PageInfo<T> info) where T : Control; 
-    }
-
-    public interface IPageContainerProvider<T> : IPageProvider where T : Control {
-        event EventHandler<T> PageAdded;
-        event EventHandler<T> PageClosed;
-        event EventHandler<T> PageDetached;
-        event EventHandler<T> PageAttached;
-        event EventHandler<PageChanges> PageChanged;
-        T GetCurrentControl(string id);
-
-        PageInfo<T> Detach(string id);
     }
 }

@@ -6,25 +6,30 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.ReaderPlugin;
 
 namespace TeacherAssistant.Components {
-    public class StudentCardService {
-        private ISerialUtil _serialUtil;
+    public class StudentCardService: IDisposable {
+        private SerialUtil _serialUtil;
+        private IDisposable _subscription;
         public ObservableCollection<StudentCard> ReadStudentCards { get; } = new ObservableCollection<StudentCard>();
         public IObservable<StudentCard> ReadStudentCard { get; private set; }
 
-        public StudentCardService(ISerialUtil serialUtil) {
+        public StudentCardService(SerialUtil serialUtil, LocalDbContext context) {
             _serialUtil = serialUtil;
-            GeneralDbContext.DatabaseChanged += (sender, s) => Init();
+            LocalDbContext.DatabaseChanged += (sender, s) => Init();
             Init();
         }
 
         private void Init() {
             this.ReadStudentCard = _serialUtil.OnRead()
                                               .Select(strings => new StudentCard(strings));
-            this.ReadStudentCard.Subscribe(Save);
+            _subscription = this.ReadStudentCard.Subscribe(Save);
         }
 
         private void Save(StudentCard card) {
             this.ReadStudentCards.Add(card);
+        }
+
+        public void Dispose() {
+            _subscription.Dispose();
         }
     }
 }

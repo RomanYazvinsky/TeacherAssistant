@@ -10,7 +10,6 @@ namespace TeacherAssistant.StudentTable
         public StudentTable(string id)
         {
             InitializeComponent();
-            InitializeViewModel(id);
         }
     }
 }

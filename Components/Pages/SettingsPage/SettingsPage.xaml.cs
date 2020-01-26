@@ -12,7 +12,6 @@ namespace TeacherAssistant.Pages.SettingsPage {
 
         public SettingsPage(string id) {
             InitializeComponent();
-            InitializeViewModel(id);
             this.WhenActivated(disposable => {
                 this.OneWayBind(this.ViewModel, model => model.Alarms, page => page.AlarmControl.ItemsSource)
                     .DisposeWith(disposable);

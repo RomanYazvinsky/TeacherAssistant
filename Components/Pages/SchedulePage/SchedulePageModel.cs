@@ -12,6 +12,7 @@ using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
+using TeacherAssistant.Dao;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.State;
 
@@ -71,7 +72,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
 
         private static readonly ScheduleComboboxItem EmptyScheduleComboboxItem = new ScheduleComboboxItem {Id = -1};
 
-        public SchedulePageModel(string id) : base(id) {
+        public SchedulePageModel(TabPageHost host, LocalDbContext context) {
             this.DeleteMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler
                 (
@@ -83,9 +84,12 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 Command = new CommandHandler
                 (
                     () => {
-                        var newId = this.PageService.OpenPage
-                            ("Modal", new PageProperties<LessonForm>());
-                        StoreManager.Publish(this.SelectedLesson.Lesson, newId, "LessonChange");
+                        var lesson = this.SelectedLesson.Lesson;
+                        var lessonFormModuleToken = new LessonFormModuleToken("Lesson", lesson);
+                        host.AddPage<LessonFormModule, LessonFormModuleToken>(lessonFormModuleToken);
+                        // var newId = this._pageService.OpenPage
+                        // ("Modal", new PageProperties<LessonForm>());
+                        // StoreManager.Publish(this.SelectedLesson.Lesson, newId, "LessonChange");
                     }
                 )
             };
@@ -103,7 +107,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                     stream => {
                         List<GroupEntity> groups;
                         if (stream == null || stream.Id == -1) {
-                            groups = _db.Groups.ToList();
+                            groups = context.Groups.ToList();
                         }
                         else {
                             groups = stream.Groups.ToList();
@@ -124,13 +128,13 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                     async _ => {
                         this.Streams.Clear();
                         this.Groups.Clear();
-                        var streamModels = await _db.Streams.ToListAsync();
+                        var streamModels = await context.Streams.ToListAsync();
                         streamModels.Insert(0, EmptyStream); // default value
                         this.Streams.AddRange(streamModels);
-                        var schedules = await _db.Schedules.ToListAsync();
+                        var schedules = await context.Schedules.ToListAsync();
                         schedules.Insert(0, EmptyScheduleComboboxItem);
                         schedules.ForEach(this.Schedules.Add);
-                        (await _db.Groups.ToListAsync()).ForEach(this.Groups.Add);
+                        (await context.Groups.ToListAsync()).ForEach(this.Groups.Add);
                         this.Groups.Insert(0, EmptyGroup);
                         this.SelectedGroup = EmptyGroup;
                         this.SelectedLessonType = this.LessonTypes[0];
@@ -185,7 +189,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         ///     SQLite EF6 provider does not support TruncateTime and other functions.
         /// </summary>
         private IEnumerable<LessonEntity> BuildQuery() {
-            var query = _db.Lessons
+            var query = LocalDbContext.Instance.Lessons
                 .Where(model => model._Date != null)
                 .Include(lesson => lesson.Schedule)
                 .Include(lesson => lesson.Group.Streams)
@@ -221,9 +225,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
 
         public void OpenRegistration() {
-            var lessonTabId = this.PageService.OpenPage
-                (PageConfigs.RegistrationPageConfig, this.Id);
-            StoreManager.Publish(this.SelectedLesson.Lesson, lessonTabId, SelectedLessonKey);
+            // var lessonTabId = this._pageService.OpenPage
+            //     (PageConfigs.RegistrationPageConfig, this.Id);
+            // StoreManager.Publish(this.SelectedLesson.Lesson, lessonTabId, SelectedLessonKey);
         }
     }
 }

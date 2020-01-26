@@ -13,7 +13,6 @@ namespace TeacherAssistant.StudentViewPage
         public StudentViewPage(string id)
         {
             InitializeComponent();
-            InitializeViewModel(id);
         }
 
         private void LessonMarkMouseEnter(object sender, MouseEventArgs e)

@@ -13,10 +13,10 @@ using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel {
-        public SettingsPageModel(string id) : base(id) {
+        public SettingsPageModel(string id) {
             this.RefreshSubject.AsObservable().Subscribe(_ => {
                 this.Alarms.Clear();
-                this.Alarms.AddRange(_db.Alarms.ToEnumerable()
+                this.Alarms.AddRange(LocalDbContext.Instance.Alarms.ToEnumerable()
                     .Select(alarm => new AlarmSettingsViewModel(alarm)).ToList());
             });
         }
@@ -38,7 +38,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
             get => (double) this.Alarm.Volume;
             set {
                 this.Alarm.Volume = (decimal) value;
-                GeneralDbContext.Instance.ThrottleSave();
+                LocalDbContext.Instance.ThrottleSave();
             }
         }
 
@@ -46,7 +46,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
             get => (int) (this.Alarm.Timer ?? 0);
             set {
                 this.Alarm.Timer = value;
-                GeneralDbContext.Instance.ThrottleSave();
+                LocalDbContext.Instance.ThrottleSave();
             }
         }
 
@@ -79,7 +79,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
                         alarm._Sound = File.ReadAllBytes(file.FullName);
                     }
 
-                    GeneralDbContext.Instance.SaveChangesAsync();
+                    LocalDbContext.Instance.SaveChangesAsync();
                 }),
                 Text = AbstractModel.Localization["Выбрать файл"]
             };

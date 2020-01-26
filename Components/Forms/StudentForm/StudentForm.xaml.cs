@@ -8,7 +8,6 @@ namespace TeacherAssistant.StudentForm {
     public partial class StudentForm : View<StudentFormModel> {
         public StudentForm(string id) {
             InitializeComponent();
-            InitializeViewModel(id);
         }
 
         private void OnExit(object sender, RoutedEventArgs e) {

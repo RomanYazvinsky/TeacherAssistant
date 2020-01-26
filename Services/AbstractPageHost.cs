@@ -1,24 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
-using Ninject;
-using Ninject.Parameters;
+using Ninject.Infrastructure.Language;
 using TeacherAssistant.Components;
-using TeacherAssistant.State;
+using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant {
     public class PageInfo<T> where T : Control {
-        public PageInfo(PageInfo<T> info, T container, Control page, IPageProperties properties) :
-            this(info.Id, container, page, properties) {
+        public PageInfo(PageInfo<T> info, T container, Control page) :
+            this(info.Id, container, page) {
             info.Next = this;
             this.Previous = info;
         }
 
-        public PageInfo(string id, T container, Control page, IPageProperties properties) {
+        public PageInfo(string id, T container, Control page) {
             this.Id = id;
-            this.Properties = properties;
             this.Page = page;
             this.Container = container;
         }
@@ -28,123 +24,43 @@ namespace TeacherAssistant {
         public T Container { get; set; }
         public PageInfo<T> Previous { get; }
         public PageInfo<T> Next { get; set; }
-        public IPageProperties Properties { get; set; }
     }
 
-    public static class IdGenerator {
-        private const string IdValues = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        private static readonly Random Random = new Random();
+    public abstract class AbstractPageHost<TContainer> : IPageHost where TContainer : Control {
+        private readonly ModuleLoader _loader;
 
-        public static string GenerateId(int length) {
-            return new string
-            (
-                Enumerable.Repeat(IdValues, length)
-                    .Select(s => s[Random.Next(s.Length)])
-                    .ToArray()
-            );
-        }
-    }
+        protected readonly Dictionary<string, PageInfo<TContainer>> Pages =
+            new Dictionary<string, PageInfo<TContainer>>();
 
-    public abstract class AbstractPageHost<TContainer> : IPageContainerProvider<TContainer> where TContainer : Control {
-        protected Dictionary<string, PageInfo<TContainer>> _pages = new Dictionary<string, PageInfo<TContainer>>();
-        protected readonly PageService pageService;
-
-        protected AbstractPageHost(PageService pageService) {
-            this.pageService = pageService;
+        protected AbstractPageHost(ModuleLoader loader) {
+            _loader = loader;
         }
 
-        protected abstract TContainer PlaceInContainer(string id, Control page, IPageProperties properties);
-
-        protected PageInfo<TContainer> BuildPageInfo<TPage>(string id,
-            Type componentType,
-            PageProperties<TPage> properties,
-            PageInfo<TContainer> prevPage = null
-        ) {
-            var page = (UserControl) Injector.Instance.Kernel.Get
-            (
-                componentType,
-                new ConstructorArgument("id", id),
-                new ConstructorArgument("pageProvider", this)
-            );
-
-            return prevPage == null
-                ? new PageInfo<TContainer>(id, PlaceInContainer(id, page, properties), page, properties)
-                : new PageInfo<TContainer>(prevPage, PlaceInContainer(id, page, properties), page, properties);
+        public virtual TModule AddPage<TModule, TActivation>(TActivation activation)
+            where TActivation : PageModuleToken<TModule>
+            where TModule : Module {
+            var module = _loader.Activate<TModule, TActivation>(activation);
+            var control = module.GetEntryComponent();
+            var pageInfo = new PageInfo<TContainer>(activation.Id,
+                BuildContainer(activation, control), control);
+            Pages.Add(activation.Id, pageInfo);
+            return module;
         }
 
-        public abstract event EventHandler<TContainer> PageAdded;
-        public abstract event EventHandler<TContainer> PageClosed;
-        public abstract event EventHandler<TContainer> PageDetached;
-        public abstract event EventHandler<TContainer> PageAttached;
-        public abstract event EventHandler<PageChanges> PageChanged;
-
-        public abstract string ProviderId { get; }
-
-        public string AddPage<TPage>(PageProperties<TPage> config) {
-            var id = IdGenerator.GenerateId(10);
-            var pageInfo = BuildPageInfo(id, typeof(TPage), config);
-            _pages.Add(id, pageInfo);
-            CallPageAdded(pageInfo.Container);
-            return id;
+        public Module AddPage<TActivation>(TActivation activation) where TActivation : IModuleToken {
+            var module = _loader.Activate(activation);
+            var control = module.GetEntryComponent();
+            var pageInfo = new PageInfo<TContainer>(activation.Id,
+                BuildContainer(activation, control), control);
+            Pages.Add(activation.Id, pageInfo);
+            return module;
         }
 
         public abstract void ClosePage(string id);
-        public abstract void ChangePage<TPage>(string id, PageProperties<TPage> config);
-        public abstract void GoBack(string id);
-        public abstract void GoForward(string id);
-        public abstract void Refresh(string id);
 
-        public TContainer GetCurrentControl(string id) {
-            return _pages[id].Container;
-        }
+        public IEnumerable<TContainer> CurrentPages => Pages.Values.Select(info => info.Container).ToEnumerable();
 
-        public abstract string Attach<T1>(PageInfo<T1> info) where T1 : Control;
-
-        public virtual PageInfo<TContainer> Detach(string id) {
-            var detached = _pages[id];
-            _pages.Remove(id);
-            CallPageDetached(detached.Container);
-            return detached;
-        }
-
-        protected PageInfo<TContainer> WrapToContainer<TV>(PageInfo<TV> pageInfo) where TV : Control {
-            var currentOldPage = pageInfo;
-            while (pageInfo.Previous != null) {
-                // find the first page
-                currentOldPage = pageInfo.Previous;
-            }
-
-            var currentNew = new PageInfo<TContainer>
-            (
-                currentOldPage.Id,
-                PlaceInContainer(currentOldPage.Id, currentOldPage.Page, currentOldPage.Properties),
-                currentOldPage.Page,
-                currentOldPage.Properties
-            );
-            var result = currentNew;
-            while (currentOldPage.Next != null) {
-                // restore the sequence of pages
-                currentOldPage = currentOldPage.Next;
-                currentNew = new PageInfo<TContainer>
-                (
-                    currentNew,
-                    PlaceInContainer(currentOldPage.Id, currentOldPage.Page, currentOldPage.Properties),
-                    currentOldPage.Page,
-                    currentOldPage.Properties
-                );
-                if (currentOldPage.Id.Equals(pageInfo.Id)) {
-                    result = currentNew; // find currently active page
-                }
-            }
-
-            return result;
-        }
-
-        protected abstract void CallPageAdded(TContainer container);
-        protected abstract void CallPageClosed(TContainer container);
-        protected abstract void CallPageDetached(TContainer container);
-
-        public void Dispose() {
-        }
+        public abstract TContainer BuildContainer<TActivation>(TActivation activation, Control control)
+            where TActivation : IModuleToken;
     }
 }

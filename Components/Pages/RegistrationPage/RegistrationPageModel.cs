@@ -6,12 +6,8 @@ using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Security.Policy;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -22,21 +18,17 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.ComponentsImpl.SchedulePage;
-using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.ViewModels;
-using TeacherAssistant.Forms.NoteForm;
-using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
-using TeacherAssistant.State;
-using TeacherAssistant.StudentTable;
 
 namespace TeacherAssistant.RegistrationPage {
     public class RegistrationPageModel : AbstractModel {
+        private readonly LocalDbContext _db;
         private static readonly string LocalizationKey = "page.registration";
         private StudentCardService StudentCardService { get; }
-        private IPhotoService PhotoService { get; }
+        private PhotoService PhotoService { get; }
         private List<StudentLessonEntity> _studentLessons = new List<StudentLessonEntity>();
         private List<StudentLessonEntity> _internalStudentLessons = new List<StudentLessonEntity>();
         private DispatcherTimer _timerToEnd;
@@ -44,10 +36,13 @@ namespace TeacherAssistant.RegistrationPage {
 
 
         public RegistrationPageModel(
-            string id,
             StudentCardService studentCardService,
-            IPhotoService photoService
-        ) : base(id) {
+            PhotoService photoService,
+            // IPageHost pageHost,
+            LocalDbContext db,
+            RegistrationPageModuleToken token
+        ) {
+            _db = db;
             this.StudentCardService = studentCardService;
             this.PhotoService = photoService;
             this.DoRegister = new CommandHandler(() => {
@@ -64,25 +59,25 @@ namespace TeacherAssistant.RegistrationPage {
 
             this.ShowStudent = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
-                var openPage = this.PageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
-                    Header = selectedStudent.LastName,
-                }, this.Id);
-                StoreManager.Publish(selectedStudent, openPage, "Student");
+                // var openPage = this._pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
+                //     Header = selectedStudent.LastName,
+                // }, this.Id);
+                // StoreManager.Publish(selectedStudent, openPage, "Student");
             });
             this.AddStudentNote = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
-                var openPage = this.PageService.OpenPage("Modal", new PageProperties<NoteForm> {
-                    Header = "Заметка",
-                    DefaultHeight = 400,
-                    DefaultWidth = 400,
-                    MinHeight = 400,
-                    MinWidth = 400
-                });
-                var note = new StudentNote {
-                    Student = selectedStudent,
-                    Description = ""
-                };
-                StoreManager.Publish(note, openPage, "Note");
+                // var openPage = this._pageService.OpenPage("Modal", new PageProperties<NoteForm> {
+                //     Header = "Заметка",
+                //     DefaultHeight = 400,
+                //     DefaultWidth = 400,
+                //     MinHeight = 400,
+                //     MinWidth = 400
+                // });
+                // var note = new StudentNote {
+                //     Student = selectedStudent,
+                //     Description = ""
+                // };
+                // StoreManager.Publish(note, openPage, "Note");
             });
             this.ToggleAllStudentTable = new ButtonConfig {
                 Command = new CommandHandler(() => this.AllStudentsMode = !this.AllStudentsMode),
@@ -123,7 +118,7 @@ namespace TeacherAssistant.RegistrationPage {
                 .ObserveOn(RxApp.MainThreadScheduler).Subscribe(b => {
                     this.ToggleAllStudentTable.Text = b ? Localization["Занятие"] : Localization["Все студенты"];
                     if (!b || this.AllStudents.Count != 0) return;
-                    var studentViewModels = _db.Students
+                    var studentViewModels = db.Students
                         .Include(model => model.Groups)
                         .ToList() // create query and load
                         .Select(model => new StudentViewModel(model))
@@ -135,7 +130,7 @@ namespace TeacherAssistant.RegistrationPage {
                 Sorts = Sorts,
                 Filter = this.AllStudentsFilter,
                 DragConfig = new DragConfig {
-                    SourceId = this.Id + nameof(this.AllStudentsTableConfig),
+                    SourceId = token.Id + nameof(this.AllStudentsTableConfig),
                     SourceType = nameof(StudentEntity),
                     DragValuePath = "Student"
                 }
@@ -144,7 +139,7 @@ namespace TeacherAssistant.RegistrationPage {
                 Sorts = RegisteredStudentsSorts,
                 Filter = this.Filter,
                 DragConfig = new DragConfig {
-                    SourceId = this.Id + nameof(this.RegisteredStudentsTableConfig),
+                    SourceId = token.Id + nameof(this.RegisteredStudentsTableConfig),
                     SourceType = nameof(StudentLessonEntity),
                     DropAvailability = data => data.Data.Count > 0 &&
                                                ((data.SenderType.Equals(nameof(StudentLessonEntity))
@@ -169,7 +164,7 @@ namespace TeacherAssistant.RegistrationPage {
                 Sorts = Sorts,
                 Filter = this.Filter,
                 DragConfig = new DragConfig {
-                    SourceId = this.Id + nameof(this.LessonStudentsTableConfig),
+                    SourceId = token.Id + nameof(this.LessonStudentsTableConfig),
                     SourceType = nameof(StudentLessonEntity),
                     DropAvailability = data => data.Data.Count > 0
                                                && data.SenderId.Equals(this.RegisteredStudentsTableConfig.DragConfig
@@ -180,7 +175,7 @@ namespace TeacherAssistant.RegistrationPage {
                     }
                 }
             };
-            
+
             this.LessonStudentsTableConfig.SelectedItem.AsObservable()
                 .Where(NotNull)
                 .Select(o => ((IStudentViewModel) o).Student)
@@ -195,31 +190,29 @@ namespace TeacherAssistant.RegistrationPage {
                         this._selectedStudent = studentEntity;
                         UpdateDescription(studentEntity);
                     });
-            Select<LessonEntity>(this.Id, SchedulePageModel.SelectedLessonKey)
-                .Subscribe
-                (
-                    lesson => {
-                        if (lesson == null)
-                            return;
-                        this.Lesson = lesson;
-                        StopTimer();
-                        this.LessonStudents.Clear();
-                        this.RegisteredStudents.Clear();
-                        var loadedStudentLessons = lesson.StudentLessons.ToList();
-                        AddMissingStudents(loadedStudentLessons, this.Lesson);
-                        _studentLessons = loadedStudentLessons;
-                        var notRegisteredStudentLessons =
-                            _studentLessons.Where(lessonModel => !(lessonModel.IsRegistered ?? false)).ToList();
-                        this.LessonStudents.AddRange(notRegisteredStudentLessons);
+            Init(token.Lesson);
+        }
 
-                        var registeredStudentLesson =
-                            _studentLessons.Where(lessonModel => lessonModel.IsRegistered == true).ToList();
-                        this.RegisteredStudents.AddRange(registeredStudentLesson);
-                        _internalStudentLessons = FindInternalStudents(_studentLessons, lesson);
-                        UpdateRegistrationInfo();
-                        StartTimer(this.Lesson);
-                    }
-                );
+        private void Init(LessonEntity lesson) {
+            if (lesson == null)
+                return;
+            this.Lesson = lesson;
+            StopTimer();
+            this.LessonStudents.Clear();
+            this.RegisteredStudents.Clear();
+            var loadedStudentLessons = lesson.StudentLessons.ToList();
+            AddMissingStudents(loadedStudentLessons, this.Lesson);
+            _studentLessons = loadedStudentLessons;
+            var notRegisteredStudentLessons =
+                _studentLessons.Where(lessonModel => !(lessonModel.IsRegistered ?? false)).ToList();
+            this.LessonStudents.AddRange(notRegisteredStudentLessons);
+
+            var registeredStudentLesson =
+                _studentLessons.Where(lessonModel => lessonModel.IsRegistered == true).ToList();
+            this.RegisteredStudents.AddRange(registeredStudentLesson);
+            _internalStudentLessons = FindInternalStudents(_studentLessons, lesson);
+            UpdateRegistrationInfo();
+            StartTimer(this.Lesson);
         }
 
         private static bool IsDragFromStudentTable(List<object> list) {
@@ -261,7 +254,8 @@ namespace TeacherAssistant.RegistrationPage {
         private ObservableRangeCollection<object> SelectedRegisteredStudents =>
             this.RegisteredStudentsTableConfig.SelectedItems;
 
-        private ObservableRangeCollection<object> SelectedLessonStudents => this.LessonStudentsTableConfig.SelectedItems;
+        private ObservableRangeCollection<object> SelectedLessonStudents =>
+            this.LessonStudentsTableConfig.SelectedItems;
 
         private ObservableRangeCollection<object> SelectedStudents => this.AllStudentsTableConfig.SelectedItems;
 
@@ -312,19 +306,19 @@ namespace TeacherAssistant.RegistrationPage {
 
         public override List<ButtonConfig> GetControls() {
             var buttonConfigs = base.GetControls();
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler(() => {
-                    var openPage = this.PageService.OpenPage(new PageProperties<CommonStudentLessonViewPage> {
-                        Header = this.Lesson.Group == null
-                            ? this.Lesson.Stream.Name
-                            : this.Lesson.Group.Name + " " +
-                              Localization["common.lesson.type." + this.Lesson.LessonType] + " " +
-                              this.Lesson.Date?.ToString("dd.MM")
-                    }, this.Id);
-                    StoreManager.Publish(Lesson, openPage, "Lesson");
-                }),
-                Text = "Занятие 1"
-            });
+            // buttonConfigs.Add(new ButtonConfig {
+            //     Command = new CommandHandler(() => {
+            //         var openPage = this._pageService.OpenPage(new PageProperties<TableLessonViewPage> {
+            //             Header = this.Lesson.Group == null
+            //                 ? this.Lesson.Stream.Name
+            //                 : this.Lesson.Group.Name + " " +
+            //                   Localization["common.lesson.type." + this.Lesson.LessonType] + " " +
+            //                   this.Lesson.Date?.ToString("dd.MM")
+            //         }, this.Id);
+            //         StoreManager.Publish(Lesson, openPage, "Lesson");
+            //     }),
+            //     Text = "Занятие 1"
+            // });
             return buttonConfigs;
         }
 

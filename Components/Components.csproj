@@ -82,6 +82,10 @@
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject.Extensions.ChildKernel, Version=3.3.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <HintPath>..\packages\Ninject.Extensions.ChildKernel.3.3.0\lib\net45\Ninject.Extensions.ChildKernel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Ninject.Extensions.Conventions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.Extensions.Conventions.3.3.0\lib\net45\Ninject.Extensions.Conventions.dll</HintPath>
     </Reference>
@@ -192,20 +196,11 @@
     </Compile>
     <Compile Include="BooleanToVisibilityConverter.cs" />
     <Compile Include="Components\DataGridAsyncTemplateColumn.cs" />
-    <Compile Include="Components\Footer\Footer.xaml.cs">
-      <DependentUpon>Footer.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Components\Footer\FooterModel.cs" />
-    <Compile Include="Components\Footer\TaskExpandList\TaskExpandList.xaml.cs">
-      <DependentUpon>TaskExpandList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Components\Footer\TaskExpandList\TaskExpandListModel.cs" />
-    <Compile Include="Components\Footer\TaskExpandList\TaskHandler.cs" />
     <Compile Include="Components\TableFilter\TableFilter.xaml.cs">
       <DependentUpon>TableFilter.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Components\Tabs\TabManager.xaml.cs">
-      <DependentUpon>TabManager.xaml</DependentUpon>
+    <Compile Include="Components\Tabs\TabController.xaml.cs">
+      <DependentUpon>TabController.xaml</DependentUpon>
     </Compile>
     <Compile Include="DataTemplateContentPresenter.cs" />
     <Compile Include="Forms\GroupForm\GroupForm.xaml.cs">
@@ -220,16 +215,21 @@
       <DependentUpon>StreamForm.xaml</DependentUpon>
     </Compile>
     <Compile Include="Forms\StreamForm\StreamFormModel.cs" />
-    <Compile Include="PageConfigs.cs" />
+    <Compile Include="Modules\MainModule\MainModule.cs" />
+    <Compile Include="Modules\MainModule\MainModuleToken.cs" />
+    <Compile Include="Modules\MainModule\MainReducer.cs" />
+    <Compile Include="Modules\MainModule\MainState.cs" />
     <Compile Include="PageHostProviders\TabPageHost.cs" />
-    <Compile Include="PageHostProviders\MainWindowPageHost.cs" />
+    <Compile Include="PageHostProviders\WindowPageHost.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml.cs">
       <DependentUpon>StudentNameCell.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CommonStudentLessonViewPage\CommonStudentLessonViewPage.xaml.cs">
-      <DependentUpon>CommonStudentLessonViewPage.xaml</DependentUpon>
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonMarkModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonView.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPage.xaml.cs">
+      <DependentUpon>TableLessonViewPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CommonStudentLessonViewPage\CommonStudentLessonViewPageModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPageModel.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\NameColumn.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\TextColumn.cs" />
     <Compile Include="Pages\GroupTablePage\GroupTable.xaml.cs">
@@ -246,10 +246,13 @@
     <Compile Include="Pages\LessonViewPage\LessonViewPage.xaml.cs">
       <DependentUpon>LessonViewPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\MainPage\MainWindowPage.xaml.cs">
-      <DependentUpon>MainWindowPage.xaml</DependentUpon>
+    <Compile Include="Pages\PageController\PageController.cs">
+      <DependentUpon>PageController.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\MainPage\MainWindowPageModel.cs" />
+    <Compile Include="Pages\PageController\PageControllerToken.cs" />
+    <Compile Include="Pages\PageController\PageControllerModel.cs" />
+    <Compile Include="Pages\PageController\PageControllerModule.cs" />
+    <Compile Include="Pages\PageController\PageControllerModuleFactory.cs" />
     <Compile Include="Pages\SettingsPage\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
@@ -289,7 +292,7 @@
       <DependentUpon>StudentViewPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\StudentViewPage\StudentViewPageModel.cs" />
-    <Compile Include="Components\Tabs\TabManagerModel.cs" />
+    <Compile Include="Components\Tabs\TabControllerModel.cs" />
     <Compile Include="Converters\TypedBooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\TypedValueConverter.cs" />
     <Compile Include="View.cs" />
@@ -300,19 +303,11 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AudioPlayerNotification.xaml" />
-    <Page Include="Components\Footer\Footer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\Footer\TaskExpandList\TaskExpandList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Components\TableFilter\TableFilter.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Components\Tabs\TabManager.xaml">
+    <Page Include="Components\Tabs\TabController.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -332,7 +327,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\CommonStudentLessonViewPage\CommonStudentLessonViewPage.xaml">
+    <Page Include="Pages\CommonStudentLessonViewPage\TableLessonViewPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -352,7 +347,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\MainPage\MainWindowPage.xaml">
+    <Page Include="Pages\PageController\PageController.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -388,6 +383,10 @@
       <Project>{0b04b309-e379-45e6-85e8-0a2d03299184}</Project>
       <Name>Containers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2d9434ac-6498-4aac-805b-06c6ab95c40c}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{e17e2ae5-5531-498e-b686-87d654ff123d}</Project>
       <Name>Model</Name>
@@ -399,10 +398,6 @@
     <ProjectReference Include="..\Services\Services.csproj">
       <Project>{63c8d7d0-e63b-4424-bf20-3376048a6d0b}</Project>
       <Name>Services</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\State\State.csproj">
-      <Project>{2d9434ac-6498-4aac-805b-06c6ab95c40c}</Project>
-      <Name>State</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

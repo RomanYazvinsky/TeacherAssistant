@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc">
+      <HintPath>..\packages\Castle.Core.4.2.0\lib\net45\Castle.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -48,6 +52,14 @@
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
     </Reference>
+    <Reference Include="Ninject.Extensions.ChildKernel, Version=3.3.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <HintPath>..\packages\Ninject.Extensions.ChildKernel.3.3.0\lib\net45\Ninject.Extensions.ChildKernel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Ninject.Extensions.Factory, Version=3.3.2.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <HintPath>..\packages\Ninject.Extensions.Factory.3.3.2\lib\net45\Ninject.Extensions.Factory.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Redux, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -58,6 +70,7 @@
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Reactive, Version=4.1.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Reactive.4.1.5\lib\net46\System.Reactive.dll</HintPath>
@@ -104,9 +117,7 @@
     <Compile Include="AbstractPageHost.cs" />
     <Compile Include="Injector.cs" />
     <Compile Include="IPageContainerProvider.cs" />
-    <Compile Include="IPhotoService.cs" />
     <Compile Include="LessonTimerService.cs" />
-    <Compile Include="PageService.cs" />
     <Compile Include="PhotoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -129,6 +140,10 @@
       <Project>{0B04B309-E379-45E6-85E8-0A2D03299184}</Project>
       <Name>Containers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2d9434ac-6498-4aac-805b-06c6ab95c40c}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{e17e2ae5-5531-498e-b686-87d654ff123d}</Project>
       <Name>Model</Name>
@@ -136,10 +151,6 @@
     <ProjectReference Include="..\Reader\Reader.csproj">
       <Project>{0E540879-8D37-495A-A02C-9DD4C202870A}</Project>
       <Name>Reader</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\State\State.csproj">
-      <Project>{2D9434AC-6498-4AAC-805B-06C6AB95C40C}</Project>
-      <Name>State</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

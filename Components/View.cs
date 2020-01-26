@@ -1,23 +1,29 @@
-﻿using System;
+﻿using System.Windows;
+using Ninject;
 using ReactiveUI;
-using TeacherAssistant.State;
+using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.ComponentsImpl {
-    public class View<T> : ReactiveUserControl<T> where T : AbstractModel {
+    public class View<T> : ReactiveUserControl<T>, IInitializable where T : AbstractModel {
 
-        protected event EventHandler<T> ViewModelLoaded; 
-        public void InitializeViewModel(string id) {
-            this.Uid = id;
-//            Loaded += (sender, args) => {
-                this.ViewModel = Injector.Get<T>
-                (
-                    ("id", this.Uid)
-                );
-                this.DataContext = this.ViewModel;
-                ViewModelLoaded?.Invoke(this, this.ViewModel);
-//            };
-            MouseDown += (sender, args) => { args.Handled = !this.ViewModel.Blocked; };
-            Unloaded += (sender, args) => this.ViewModel?.Dispose();
+        [Inject]
+        public void SetModuleActivationToken(IModuleToken token) {
+            void Handler(object sender, RoutedEventArgs args) {
+                token.Deactivate();
+                Unloaded -= Handler;
+            }
+
+            Unloaded += Handler;
+            this.Uid = token.Id;
+        }
+
+        [Inject]
+        public void SetViewModel(T model) {
+            this.ViewModel = model;
+            this.DataContext = model;
+        }
+
+        public virtual void Initialize() {
         }
     }
 }

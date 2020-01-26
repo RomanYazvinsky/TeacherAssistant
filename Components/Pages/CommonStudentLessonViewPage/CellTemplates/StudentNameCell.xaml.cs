@@ -24,7 +24,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var service = (IPhotoService) Injector.Instance.Kernel.Get(typeof(IPhotoService));
+            var service = Injector.Instance.Kernel.Get<PhotoService>();
             var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Model.CardUid));
             if (string.IsNullOrWhiteSpace(path)) {
                 return;
@@ -39,11 +39,12 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var pageService = Injector.Instance.Kernel.Get<PageService>();
-            var pageId = pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
-                Header = view.FullName
-            }, view.TableId);
-            StoreManager.Publish(view.Model, pageId, "Student");
+            var activation = Injector.Instance.Kernel.Get<TableLessonViewModuleToken>();
+            var pageHost = Injector.Instance.Kernel.Get<IPageHost>();
+            // var pageId = pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
+            //     Header = view.FullName
+            // }, activation.Id);
+            // StoreManager.Publish(view.Model, pageId, "Student");
         }
     }
 }

@@ -11,13 +11,13 @@ using static System.IO.Directory;
 
 namespace TeacherAssistant.Components
 {
-    public class PhotoService : IPhotoService
+    public class PhotoService
     {
         private const int CacheCapacity = 20;
         private readonly Dictionary<string, BitmapImage> _cache = new Dictionary<string, BitmapImage>(CacheCapacity);
         private bool _exist = false;
 
-        public string Directory = Path.Combine(Environment.CurrentDirectory, "photos");
+        public string Directory { get; set; } = Path.Combine(Environment.CurrentDirectory, "photos");
 
         private async Task<string> GetPersonalId(string cardUid)
         {

@@ -74,6 +74,10 @@
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Castle.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc">
+      <HintPath>..\packages\Castle.Core.4.2.0\lib\net45\Castle.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="CoContra.net45, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\CoContra.1.0.2\lib\net45\CoContra.net45.dll</HintPath>
     </Reference>
@@ -122,6 +126,14 @@
     </Reference>
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject.Extensions.ChildKernel, Version=3.3.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <HintPath>..\packages\Ninject.Extensions.ChildKernel.3.3.0\lib\net45\Ninject.Extensions.ChildKernel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Ninject.Extensions.Factory, Version=3.3.2.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7">
+      <HintPath>..\packages\Ninject.Extensions.Factory.3.3.2\lib\net45\Ninject.Extensions.Factory.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ReactiveUI, Version=10.3.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\ReactiveUI.10.3.6\lib\net461\ReactiveUI.dll</HintPath>
@@ -278,6 +290,10 @@
       <Project>{0B04B309-E379-45E6-85E8-0A2D03299184}</Project>
       <Name>Containers</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2d9434ac-6498-4aac-805b-06c6ab95c40c}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{E17E2AE5-5531-498E-B686-87D654FF123D}</Project>
       <Name>Model</Name>
@@ -289,10 +305,6 @@
     <ProjectReference Include="..\Services\Services.csproj">
       <Project>{63C8D7D0-E63B-4424-BF20-3376048A6D0B}</Project>
       <Name>Services</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\State\State.csproj">
-      <Project>{2D9434AC-6498-4AAC-805B-06C6AB95C40C}</Project>
-      <Name>State</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

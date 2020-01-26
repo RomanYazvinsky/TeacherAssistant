@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
@@ -11,6 +12,7 @@ using Model.Models;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Forms.StreamForm {
     public class StreamFormModel : AbstractModel {
@@ -22,7 +24,7 @@ namespace TeacherAssistant.Forms.StreamForm {
 
         private StreamEntity _entity;
 
-        public StreamFormModel(string id) : base(id) {
+        public StreamFormModel(string id) {
             this.SaveHandler = new CommandHandler(Save);
             this.AddGroupsHandler = new CommandHandler(SelectGroups);
             this.RemoveGroupsHandler = new CommandHandler(DeselectGroups);
@@ -34,7 +36,7 @@ namespace TeacherAssistant.Forms.StreamForm {
                 Filter = this.GroupFilter,
                 Sorts = GroupSorts
             };
-            Select<StreamEntity>(this.Id, "StreamChange").Subscribe(Initialize);
+            // Select<StreamEntity>(this.Id, "StreamChange").Subscribe(Initialize);
         }
 
         private void Initialize(StreamEntity stream) {
@@ -47,13 +49,13 @@ namespace TeacherAssistant.Forms.StreamForm {
             this.AvailableCourses.AddRange(dropDownItems);
             this.Disciplines.Clear();
             this.Departments.Clear();
-            this.Disciplines.AddRange(_db.Disciplines.ToList());
+            this.Disciplines.AddRange(LocalDbContext.Instance.Disciplines.ToList());
             this.Departments.Add(DefaultDepartment);
-            this.Departments.AddRange(_db.Departments.ToList());
+            this.Departments.AddRange(LocalDbContext.Instance.Departments.ToList());
 
             _entity = stream;
             this.ChosenGroups.AddRange(stream.Groups.ToList());
-            this.AvailableGroups.AddRange(_db.Groups
+            this.AvailableGroups.AddRange(LocalDbContext.Instance.Groups
                 .Where(groupModel => stream.Groups.All(o => groupModel.Id != o.Id)).ToList());
             this.StreamName = stream.Name;
             this.IsActive = stream.IsActive;
@@ -120,9 +122,9 @@ namespace TeacherAssistant.Forms.StreamForm {
             _entity.PracticalCount = this.PracticeCount;
             _entity.Course = this.SelectedCourse.Value == DefaultCourse.Value ? 0 : DefaultCourse.Value;
             if (_entity.Id == 0) {
-                _db.Streams.Add(_entity);
+                LocalDbContext.Instance.Streams.Add(_entity);
             }
-            _db.SaveChangesAsync();
+            LocalDbContext.Instance.SaveChangesAsync();
         }
 
         private void SelectGroups() {

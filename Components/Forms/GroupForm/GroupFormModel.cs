@@ -12,17 +12,27 @@ using Model;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Forms.GroupForm {
     public class GroupFormModel : AbstractModel {
+        private readonly IPageHost _pageHost;
+        private readonly GroupFormModuleToken _token;
+        private readonly LocalDbContext _db;
         private List<StudentEntity> _students = new List<StudentEntity>();
         private bool isValid;
+
         private static readonly Dictionary<string, ListSortDirection> Sorts = new Dictionary<string, ListSortDirection> {
             {"Name", ListSortDirection.Ascending}
         };
-        public GroupFormModel(string id) : base(id) {
+
+        public GroupFormModel(IPageHost pageHost, GroupFormModuleToken token, LocalDbContext db) {
+            _db = db;
+            _pageHost = pageHost;
+            _token = token;
             this.StudentsTableConfig = new TableConfig {
                 Filter = (o, s) => {
                     var upperString = s.ToUpper();
@@ -66,52 +76,47 @@ namespace TeacherAssistant.Forms.GroupForm {
                 (
                     s => { isValid = !string.IsNullOrWhiteSpace(s); }
                 );
-            Select<GroupEntity>(this.Id, "GroupChange")
-                .Subscribe
+            Init(token.Group);
+        }
+
+        
+        private async void Init(GroupEntity group) {
+            this.Group = group.Id == 0 ? group : new GroupEntity(group); // todo fill in parallel
+            var departments = await _db.Departments.ToListAsync();
+            departments.Insert
+            (
+                0,
+                new DepartmentEntity {
+                    Id = -1, Name = Localization["dropdown.empty"]
+                }
+            );
+            this.Departments.Clear();
+            this.Departments.AddRange(departments);
+            this.SelectedDepartment = this.Group.Department ?? this.Departments[0];
+            this.Students.Clear();
+            _students = await _db.Students.Include("Groups").ToListAsync();
+            _students.Sort
+            (
+                (model, model2) => string.Compare
                 (
-                    async group => {
-                        if (group == null) {
-                            return;
-                        }
+                    model.LastName.ToLower(),
+                    model2.LastName.ToLower(),
+                    StringComparison.InvariantCultureIgnoreCase
+                )
+            );
+            this.GroupStudents.AddRange
+                (group.Students.Select(model => new StudentListItem(model)).ToList());
 
-                        this.Group = group.Id == 0 ? group : new GroupEntity(group);
-                        var departments = await _db.Departments.ToListAsync();
-                        departments.Insert
-                        (
-                            0,
-                            new DepartmentEntity {
-                                Id = -1, Name = Localization["dropdown.empty"]
-                            }
-                        );
-                        this.Departments.Clear();
-                        this.Departments.AddRange(departments);
-                        this.SelectedDepartment = this.Group.Department ?? this.Departments[0];
-                        this.Students.Clear();
-                        _students = await _db.Students.Include("Groups").ToListAsync();
-                        _students.Sort
-                        (
-                            (model, model2) => string.Compare
-                            (
-                                model.LastName.ToLower(),
-                                model2.LastName.ToLower(),
-                                StringComparison.InvariantCultureIgnoreCase
-                            )
-                        );
-                        this.GroupStudents.AddRange
-                            (group.Students.Select(model => new StudentListItem(model)).ToList());
+            var studentListItems = _students.Where
+                    (model => group.Students.All(s => s.Id != model.Id))
+                .Select(model => new StudentListItem(model));
+            this.Students.AddRange(studentListItems);
 
-                        var studentListItems = _students.Where
-                                (model => group.Students.All(s => s.Id != model.Id))
-                            .Select(model => new StudentListItem(model));
-                        this.Students.AddRange(studentListItems);
-
-                        this.ChiefStudents.Clear();
-                        this.ChiefStudents.AddRange
-                        (
-                            _students.Select(model => new StudentDropdownItem(model)).ToList()
-                        );
-                    }
-                );
+            this.ChiefStudents.Clear();
+            this.ChiefStudents.AddRange
+            (
+                _students.Select(model => new StudentDropdownItem(model)).ToList()
+            );
         }
 
         public TableConfig StudentsTableConfig { get; set; }
@@ -167,14 +172,13 @@ namespace TeacherAssistant.Forms.GroupForm {
                 this.GroupStudents.Cast<StudentListItem>().Select(item => item.Student).ToList();
             if (this.Group.Id == 0) {
                 _db.Groups.Add(this.Group);
-            }
-            else {
+            } else {
                 var group = _db.Groups.Find(this.Group.Id);
-                group.Apply(this.Group);
+                group?.Apply(this.Group);
             }
 
             _db.SaveChangesAsync();
-            this.PageService.ClosePage(this.Id);
+            _pageHost.ClosePage(_token.Id);
         }
     }
 

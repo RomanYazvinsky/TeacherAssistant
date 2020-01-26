@@ -1,23 +1,25 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Reactive.Linq;
 using Containers;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Forms.NoteForm {
     public class NoteFormModel : AbstractModel {
         private const string LocalizationKey = "note.form";
         private NoteEntity _originalNote;
-        public NoteFormModel(string id) : base(id) {
+        public NoteFormModel(string id) {
             this.SaveButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(Save),
                 Text = Localization["Сохранить"]
             };
-            Select<NoteEntity>(this.Id, "Note").Where(NotNull).Subscribe(note => {
-                _originalNote = note;
-                this.Text = note.Description;
-            });
+            // Select<NoteEntity>(this.Id, "Note").Where(NotNull).Subscribe(note => {
+            //     _originalNote = note;
+            //     this.Text = note.Description;
+            // });
         }
 
         protected override string GetLocalizationKey() {
@@ -33,11 +35,11 @@ namespace TeacherAssistant.Forms.NoteForm {
             }
             if (_originalNote.Id == default) {
                 _originalNote.Date = DateTime.Now;
-                _db.Set<NoteEntity>().Add(_originalNote);
+                LocalDbContext.Instance.Set<NoteEntity>().Add(_originalNote);
             }
             _originalNote.Description = this.Text;
-            _db.SaveChangesAsync();
-            this.PageService.ClosePage(this.Id);
+            // Database.SaveChangesAsync();
+            // this._pageService.ClosePage(this.Id);
         }
 
 

@@ -9,21 +9,22 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageModel : AbstractModel {
         private const string LocalizationKey = "page.student.view";
-        private readonly IPhotoService _photoService;
+        private readonly PhotoService _photoService;
 
-        public StudentViewPageModel(string id, IPhotoService photoService) : base(id) {
+        public StudentViewPageModel(PhotoService photoService) {
             _photoService = photoService;
             this.AddAttestationButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(AddAttestation),
@@ -40,14 +41,15 @@ namespace TeacherAssistant.StudentViewPage {
                         return;
                     }
 
-                    var openPageId = this.PageService.OpenPage(new PageProperties<RegistrationPage.RegistrationPage> {
-                        Header = "Регистрация",
-                    }, this.Id);
-                    StoreManager.Publish(selectedExternalLesson.Lesson, openPageId, "SelectedLesson");
+                    // var openPageId = this._pageService.OpenPage(new PageProperties<RegistrationPage.RegistrationPage> {
+                    //     Header = "Регистрация",
+                    // }, this.Id);
+                    // StoreManager.Publish(selectedExternalLesson.Lesson, openPageId, "SelectedLesson");
                 })
             };
             this.WhenAnyValue(model => model.Student)
                 .Where(NotNull)
+                .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe
                 (
                     student => {
@@ -58,7 +60,7 @@ namespace TeacherAssistant.StudentViewPage {
                 );
             this.WhenAnyValue(model => model.SelectedStream).Subscribe(OnSelectedStreamUpdate);
             this.WhenAnyValue(model => model.SelectedGroup).Subscribe(OnSelectedGroupUpdate);
-            Select<StudentEntity>(this.Id, "Student").Where(NotNull).Subscribe(Initialize);
+            // Select<StudentEntity>(this.Id, "Student").Where(NotNull).Subscribe(Initialize);
         }
 
         private void UpdateExternalLessons(StudentEntity student) {
@@ -70,14 +72,14 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private void UpdateStudentLessonNotes(StudentEntity student) {
-            var studentLessonNotes = _db.StudentLessonNotes
-                .Include(note => note.StudentLesson)
-                .Where(note => note.StudentLesson._StudentId == student.Id)
-                .ToList();
-            this.StudentLessonNotes.Clear();
-            this.StudentLessonNotes.AddRange(studentLessonNotes);
-            InterpolateLocalization("page.student.view.lesson.notes", studentLessonNotes.Count);
-            this.IsStudentLessonNotesEnabled = studentLessonNotes.Count > 0;
+            // var studentLessonNotes = Database.StudentLessonNotes
+            //     .Include(note => note.StudentLesson)
+            //     .Where(note => note.StudentLesson._StudentId == student.Id)
+            //     .ToList();
+            // this.StudentLessonNotes.Clear();
+            // this.StudentLessonNotes.AddRange(studentLessonNotes);
+            // InterpolateLocalization("page.student.view.lesson.notes", studentLessonNotes.Count);
+            // this.IsStudentLessonNotesEnabled = studentLessonNotes.Count > 0;
         }
 
         private void UpdateStudentNotes(StudentEntity student) {
@@ -107,7 +109,7 @@ namespace TeacherAssistant.StudentViewPage {
                 stream.PracticalCount,
                 stream.LabCount
             );
-            var missedLessons = _db.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
+            var missedLessons = LocalDbContext.Instance.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
             var missedLectures = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Lecture);
             var missedPractices = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Practice);
             var missedLabs = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Laboratory);
@@ -125,43 +127,43 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private async void OnSelectedGroupUpdate(GroupEntity selectedGroup) {
-            if (selectedGroup == null) {
-                this.StudentGroups.Clear();
-                return;
-            }
-
-            var groupLessons = await _db.GetGroupLessons(selectedGroup).ToListAsync();
-            this.SelectedStream = _db.Streams
-                .Include(model => model.Discipline)
-                .FirstOrDefault(model => model.Groups.Any(groupModel => groupModel.Id == selectedGroup.Id));
-            var lessons = (await _db.StudentLessons
-                    .Where(lessonModel => this.Student.Id == lessonModel.Student.Id)
-                    .ToListAsync())
-                .Where(lessonModel => groupLessons.Any(model => model.Id == lessonModel.Lesson.Id))
-                .ToArray(); // to init lazy sequence
-            var studentLessonViewBoxes = lessons
-                .Where(view => view.Lesson.LessonType < LessonType.Attestation)
-                .Select(model => new StudentLessonViewBox(model, this))
-                .ToList();
-            this.StudentLessons.Clear();
-            this.StudentLessons.AddRange(studentLessonViewBoxes);
-            var attestations = 0;
-            var exams = 0;
-            var studentAttestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Attestation)
-                .Select(model => new StudentAttestationExamView(model, this, ++attestations))
-                .OrderBy(view => view.StudentLesson.Lesson._Order)
-                .ToList();
-            this.StudentAttestations.Clear();
-            this.StudentAttestations.AddRange(studentAttestationExamViews);
-            var attestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Exam)
-                .Select(model => new StudentAttestationExamView(model, this, ++exams))
-                .OrderBy(view => view.StudentLesson.Lesson._Order)
-                .ToList();
-            this.StudentExams.Clear();
-            this.StudentExams.AddRange(attestationExamViews);
-            this.AddExamButtonConfig.IsEnabled = this.StudentExams.Count < 1;
-            UpdateLessonMark();
-            UpdateExamMark();
+            // if (selectedGroup == null) {
+            //     this.StudentGroups.Clear();
+            //     return;
+            // }
+            //
+            // var groupLessons = await Database.GetGroupLessons(selectedGroup).ToListAsync();
+            // this.SelectedStream = Database.Streams
+            //     .Include(model => model.Discipline)
+            //     .FirstOrDefault(model => model.Groups.Any(groupModel => groupModel.Id == selectedGroup.Id));
+            // var lessons = (await Database.StudentLessons
+            //         .Where(lessonModel => this.Student.Id == lessonModel.Student.Id)
+            //         .ToListAsync())
+            //     .Where(lessonModel => groupLessons.Any(model => model.Id == lessonModel.Lesson.Id))
+            //     .ToArray(); // to init lazy sequence
+            // var studentLessonViewBoxes = lessons
+            //     .Where(view => view.Lesson.LessonType < LessonType.Attestation)
+            //     .Select(model => new StudentLessonViewBox(model, this))
+            //     .ToList();
+            // this.StudentLessons.Clear();
+            // this.StudentLessons.AddRange(studentLessonViewBoxes);
+            // var attestations = 0;
+            // var exams = 0;
+            // var studentAttestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Attestation)
+            //     .Select(model => new StudentAttestationExamView(model, this, ++attestations))
+            //     .OrderBy(view => view.StudentLesson.Lesson._Order)
+            //     .ToList();
+            // this.StudentAttestations.Clear();
+            // this.StudentAttestations.AddRange(studentAttestationExamViews);
+            // var attestationExamViews = lessons.Where(view => view.Lesson.LessonType == LessonType.Exam)
+            //     .Select(model => new StudentAttestationExamView(model, this, ++exams))
+            //     .OrderBy(view => view.StudentLesson.Lesson._Order)
+            //     .ToList();
+            // this.StudentExams.Clear();
+            // this.StudentExams.AddRange(attestationExamViews);
+            // this.AddExamButtonConfig.IsEnabled = this.StudentExams.Count < 1;
+            // UpdateLessonMark();
+            // UpdateExamMark();
         }
 
         private async void Initialize(StudentEntity student) {
@@ -233,12 +235,13 @@ namespace TeacherAssistant.StudentViewPage {
         [Reactive] public string ResultMark { get; set; }
         public ButtonConfig AddAttestationButtonConfig { get; set; }
         public ButtonConfig AddExamButtonConfig { get; set; }
-        
+
         public ButtonConfig OpenExternalLesson { get; set; }
 
         private List<StudentLessonEntity> GetExternalLessons(StudentEntity student) {
             var studentGroupsIds = student.Groups.Select(group => group.Id).AsEnumerable();
-            return _db.StudentLessons
+            return LocalDbContext
+                .Instance.StudentLessons
                 .Where(studentLesson => studentLesson.Student.Id == student.Id)
                 .Where(studentLesson => studentLesson.Lesson._GroupId > 0
                     ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
@@ -297,23 +300,23 @@ namespace TeacherAssistant.StudentViewPage {
 
         public override List<ButtonConfig> GetControls() {
             var buttonConfigs = base.GetControls();
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler
-                (
-                    () => {
-                        var id = this.PageService.OpenPage
-                        (
-                            new PageProperties<StudentForm.StudentForm> {
-                                MinHeight = 600,
-                                Header = "Редактирование " + this.Student.LastName,
-                            },
-                            this.Id
-                        );
-                        StoreManager.Publish(this.Student, id, "Student");
-                    }
-                ),
-                Text = "Редактировать"
-            });
+            // buttonConfigs.Add(new ButtonConfig {
+            //     Command = new CommandHandler
+            //     (
+            //         () => {
+            //             var id = this._pageService.OpenPage
+            //             (
+            //                 new PageProperties<StudentForm.StudentForm> {
+            //                     MinHeight = 600,
+            //                     Header = "Редактирование " + this.Student.LastName,
+            //                 },
+            //                 this.Id
+            //             );
+            //             StoreManager.Publish(this.Student, id, "Student");
+            //         }
+            //     ),
+            //     Text = "Редактировать"
+            // });
             return buttonConfigs;
         }
 
@@ -350,7 +353,7 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private async Task AddAttestation() {
-            var schedules = await _db.Schedules.ToListAsync();
+            var schedules = await LocalDbContext.Instance.Schedules.ToListAsync();
             var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
@@ -369,8 +372,8 @@ namespace TeacherAssistant.StudentViewPage {
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            _db.Lessons.Add(lesson);
-            await _db.SaveChangesAsync();
+            LocalDbContext.Instance.Lessons.Add(lesson);
+            await LocalDbContext.Instance.SaveChangesAsync();
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students.Select
                     (
@@ -380,7 +383,7 @@ namespace TeacherAssistant.StudentViewPage {
                         }
                     )
                     .ToList();
-                _db.StudentLessons.AddRange(newStudentLessons);
+                LocalDbContext.Instance.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentAttestations.Add
                 (
@@ -398,12 +401,12 @@ namespace TeacherAssistant.StudentViewPage {
                 );
             }
 
-            await _db.SaveChangesAsync();
+            await LocalDbContext.Instance.SaveChangesAsync();
             UpdateExamMark();
         }
 
         private async Task AddExam() {
-            var schedules = await _db.Schedules.ToListAsync();
+            var schedules = await LocalDbContext.Instance.Schedules.ToListAsync();
             var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
@@ -422,8 +425,8 @@ namespace TeacherAssistant.StudentViewPage {
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            _db.Lessons.Add(lesson);
-            await _db.SaveChangesAsync();
+            LocalDbContext.Instance.Lessons.Add(lesson);
+            await LocalDbContext.Instance.SaveChangesAsync();
 
 
             if (this.SelectedGroup != null) {
@@ -436,7 +439,7 @@ namespace TeacherAssistant.StudentViewPage {
                         }
                     )
                     .ToArray();
-                _db.StudentLessons.AddRange(newStudentLessons);
+                LocalDbContext.Instance.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentExams.Add
                 (
@@ -454,14 +457,14 @@ namespace TeacherAssistant.StudentViewPage {
                 );
             }
 
-            await _db.SaveChangesAsync();
+            await LocalDbContext.Instance.SaveChangesAsync();
             UpdateExamMark();
         }
 
         public StudentLessonViewBox ToggleRegistration(StudentLessonViewBox box) {
             box.StudentLesson.IsRegistered = box.StudentLesson.IsLessonMissed;
             var indexOf = this.StudentLessons.IndexOf(box);
-            _db.SaveChangesAsync();
+            LocalDbContext.Instance.SaveChangesAsync();
             var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
             this.StudentLessons.ReplaceRange(indexOf, 1, new[] {studentLessonViewBox});
             return studentLessonViewBox;

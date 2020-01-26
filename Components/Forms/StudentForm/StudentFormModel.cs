@@ -20,19 +20,20 @@ using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
 using TeacherAssistant.ReaderPlugin;
 
 namespace TeacherAssistant.StudentForm {
     public class StudentFormModel : AbstractModel, IValidatableViewModel {
         public static readonly string LocalizationKey = "student.form";
-        private IPhotoService _photoService;
+        private PhotoService _photoService;
         private StudentEntity _originalStudent;
 
         public StudentFormModel(
             string id,
-            IPhotoService photoService,
+            PhotoService photoService,
             StudentCardService studentCardService
-        ) : base(id) {
+        ) {
             _photoService = photoService;
             this.ChosenGroupTableConfig = new TableConfig {
                 Sorts = this.ChosenGroupSorts
@@ -79,7 +80,7 @@ namespace TeacherAssistant.StudentForm {
                             this.ChoseGroups.Cast<ChoseGroupModel>().Select(model => model.Group).ToList();
                         _originalStudent.Apply(this.Student);
                         if (isNew) {
-                            _db.Students.Add(_originalStudent);
+                            LocalDbContext.Instance.Students.Add(_originalStudent);
                         }
 
                         foreach (ChoseGroupModel selectedChoseGroup in this.ChoseGroups) {
@@ -93,8 +94,8 @@ namespace TeacherAssistant.StudentForm {
                             }
                         }
 
-                        _db.SaveChangesAsync();
-                        this.PageService.ClosePage(this.Id);
+                        LocalDbContext.Instance.SaveChangesAsync();
+                        // this._pageService.ClosePage(this.Id);
                     }
                 )
             };
@@ -142,7 +143,7 @@ namespace TeacherAssistant.StudentForm {
 
             ManageObservable(studentCardService.ReadStudentCards.Changes())
                 .Subscribe(onNext: _ => this.ReadStudents = new List<StudentCard>(studentCardService.ReadStudentCards));
-            Select<StudentEntity>(this.Id, "Student").Subscribe(Initialize);
+            // Select<StudentEntity>(this.Id, "Student").Subscribe(Initialize);
         }
 
         private void Initialize(StudentEntity entity) {
@@ -156,7 +157,7 @@ namespace TeacherAssistant.StudentForm {
                 IsPraepostorAlreadySet = group.Chief != null && @group.Chief.Id > 0
             }).ToList();
             this.ChoseGroups.AddRange(choseGroupModels);
-            var groupModels = _db.Groups.Include(group => group.Students)
+            var groupModels = LocalDbContext.Instance.Groups.Include(group => group.Students)
                 .AsEnumerable()
                 .Where
                 (
