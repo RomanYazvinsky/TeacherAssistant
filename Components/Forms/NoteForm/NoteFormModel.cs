@@ -11,7 +11,7 @@ namespace TeacherAssistant.Forms.NoteForm {
     public class NoteFormModel : AbstractModel {
         private const string LocalizationKey = "note.form";
         private NoteEntity _originalNote;
-        public NoteFormModel(string id) {
+        public NoteFormModel() {
             this.SaveButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(Save),
                 Text = Localization["Сохранить"]

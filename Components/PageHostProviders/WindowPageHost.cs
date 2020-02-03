@@ -15,11 +15,8 @@ namespace TeacherAssistant {
             };
 
             void Handler(object sender, EventArgs args) {
-                Pages.Remove(((Window) sender).Uid);
-                if (Pages.Count == 0) {
-                    _token.Deactivate();
-                }
-
+                this.Pages.Remove(((Window) sender).Uid);
+                activation.Deactivate();
                 window.Closed -= Handler;
             }
 
@@ -27,9 +24,10 @@ namespace TeacherAssistant {
             window.Show();
             return window;
         }
+
         public override void ClosePage(string id) {
-            Pages[id].Container.Close();
-            Pages.Remove(id);
+            this.Pages[id].Container.Close();
+            this.Pages.Remove(id);
         }
 
         public WindowPageHost(IModuleToken token, ModuleLoader loader) : base(loader) {

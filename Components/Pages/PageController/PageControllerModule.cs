@@ -1,20 +1,18 @@
-using System.Windows.Controls;
-using Ninject;
+using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.Pages {
-    public class PageControllerModule : Module {
-        public PageControllerModule()
-            : base(new[] {
-                typeof(PageController),
-                typeof(PageControllerReducer),
-                typeof(PageControllerModel),
-                typeof(ModuleLoader)
-            }) {
+    public class PageControllerModule : SimpleModule {
+        public PageControllerModule() : base(typeof(PageController)) {
         }
 
-        public override Control GetEntryComponent() {
-            return this.Kernel?.Get<PageController>();
+        public override void Configure(IExportRegistrationBlock block) {
+            block.ExportModuleScope<PageController>(this.ModuleToken.Id)
+                .ImportProperty(controller => controller.ModuleToken)
+                .ImportProperty(controller => controller.ViewModel);
+            block.ExportModuleScope<PageControllerModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<PageControllerReducer>(this.ModuleToken.Id);
+            block.ExportModuleScope<PageControllerEffects>(this.ModuleToken.Id);
         }
     }
 }

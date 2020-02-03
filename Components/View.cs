@@ -1,29 +1,48 @@
 ﻿using System.Windows;
-using Ninject;
+using System.Windows.Controls;
 using ReactiveUI;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.ComponentsImpl {
-    public class View<T> : ReactiveUserControl<T>, IInitializable where T : AbstractModel {
+    public interface IView : IViewFor {
+        IModuleToken ModuleToken { get; }
+    }
 
-        [Inject]
-        public void SetModuleActivationToken(IModuleToken token) {
-            void Handler(object sender, RoutedEventArgs args) {
-                token.Deactivate();
-                Unloaded -= Handler;
+    public abstract class View<TToken, TModel> : UserControl, IViewFor<TModel>
+        where TModel : AbstractModel
+        where TToken : class, IModuleToken {
+        private TToken _moduleToken;
+        private TModel _viewModel;
+
+        public IModuleToken ModuleToken {
+            get => _moduleToken;
+            set {
+                _moduleToken = value as TToken;
+                if (value == null || this.Uid != null) {
+                    return;
+                }
+
+                void Handler(object sender, RoutedEventArgs args) {
+                    value.Deactivate();
+                    Unloaded -= Handler;
+                }
+
+                Unloaded += Handler;
+                this.Uid = value.Id;
             }
-
-            Unloaded += Handler;
-            this.Uid = token.Id;
         }
 
-        [Inject]
-        public void SetViewModel(T model) {
-            this.ViewModel = model;
-            this.DataContext = model;
+        object IViewFor.ViewModel {
+            get => this.ViewModel;
+            set => this.ViewModel = (TModel) value;
         }
 
-        public virtual void Initialize() {
+        public TModel ViewModel {
+            get => _viewModel;
+            set {
+                _viewModel = value;
+                this.DataContext = value;
+            }
         }
     }
 }

@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
+using Grace.DependencyInjection;
+using Grace.DependencyInjection.Lifestyle;
 using Model;
 using Model.Models;
-using Ninject;
 using ReactiveUI;
+using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Core.State;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Properties;
@@ -21,7 +24,7 @@ namespace TeacherAssistant {
     /// Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application {
-        private IKernel _container;
+        private IInjectionScope _container;
 
         protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
@@ -30,11 +33,16 @@ namespace TeacherAssistant {
         }
 
         private void ConfigureContainer() {
-            _container = new StandardKernel();
-            _container.Bind<ModuleLoader>().ToSelf().InSingletonScope();
-            var rootModuleLoader = _container.Get<ModuleLoader>();
+            var containerBuilder = new DependencyInjectionContainer();
+            _container = containerBuilder;
+            _container.Configure(block => {
+                block.Export<ModuleLoader>().Lifestyle.SingletonPerNamedScope("RootScope");
+                block.ExportModuleScope<Storage>("RootScope");
+                block.ExportModuleScope<SimpleEffectsMiddleware<GlobalState>>("RootScope");
+            });
+            var rootModuleLoader = _container.Locate<ModuleLoader>();
             var mainModuleToken = new MainModuleToken("TeacherAssistant") {ExitOnClose = true};
-            var mainModule = rootModuleLoader.Activate<MainModule, MainModuleToken>(mainModuleToken);
+            var mainModule = rootModuleLoader.Activate(mainModuleToken);
             mainModule.GetEntryComponent();
         }
 
@@ -53,7 +61,7 @@ namespace TeacherAssistant {
 
         private void StartTimer() {
             var generalDbContext = LocalDbContext.Instance;
-            var lessonTimerService = _container.Get<LessonTimerService>();
+            var lessonTimerService = _container.Locate<LessonTimerService>();
             var alarms = generalDbContext.Alarms
                 .Where(model => model._Active > 0 && model.Timer.HasValue && model._Active == 1)
                 .ToList()
@@ -70,7 +78,7 @@ namespace TeacherAssistant {
             );
             var dateTime = lessonTimerService.Start();
             if (dateTime != null) {
-                _container.Get<Notifier>().ShowTimerNotification(dateTime.Value);
+                _container.Locate<Notifier>().ShowTimerNotification(dateTime.Value);
             }
         }
     }

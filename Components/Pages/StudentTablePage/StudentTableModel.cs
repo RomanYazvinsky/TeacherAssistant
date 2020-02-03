@@ -5,20 +5,27 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using Containers;
 using Model.Models;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Dao;
+using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
+using TeacherAssistant.StudentViewPage;
 
 namespace TeacherAssistant.StudentTable {
     public class StudentTableModel : AbstractModel {
         private static readonly string LocalizationKey = "page.student.table";
 
-        public StudentTableModel(PhotoService photoService) {
+        public StudentTableModel(StudentTableToken token,
+            PageControllerReducer reducer,
+            PhotoService photoService,
+            TabPageHost pageHost,
+            LocalDbContext context) {
             this.PhotoService = photoService;
             this.StudentTableConfig = new TableConfig {
                 Sorts = this.Sorts,
@@ -39,12 +46,8 @@ namespace TeacherAssistant.StudentTable {
                         return;
                     }
 
-                    // var pageId = this._pageService.OpenPage
-                    // (new PageProperties<StudentViewPage.StudentViewPage> {
-                    //         Header = ((StudentViewModel) selectedItem).Student.LastName
-                    //     },
-                    //     this.Id);
-                    // StoreManager.Publish(((StudentViewModel) selectedItem).Student, pageId, "Student");
+                    var studentEntity = ((StudentViewModel) selectedItem).Student;
+                    pageHost.AddPage(new StudentViewPageToken(studentEntity.LastName, studentEntity));
                 }
             );
             this.DeleteStudent = new CommandHandler
@@ -55,55 +58,41 @@ namespace TeacherAssistant.StudentTable {
                         return;
                     }
 
-                    // Database.Students.Remove(((StudentViewModel) selectedItem).Student);
-                    // Database.SaveChangesAsync();
+                    context.Students.Remove(((StudentViewModel) selectedItem).Student);
+                    context.SaveChangesAsync();
                     this.StudentTableConfig.TableItems.Remove(selectedItem);
                 }
             );
-            this.RefreshSubject.AsObservable().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => {
-                this.StudentTableConfig.TableItems.Clear();
-                // var studentEntities = Database.Students
-                //     .Include("Groups")
-                //     .ToList();
-                // var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
-                // this.StudentTableConfig.TableItems.AddRange(studentViewModels);
-            });
+            this.RefreshSubject
+                .AsObservable()
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(_ => {
+                    this.StudentTableConfig.TableItems.Clear();
+                    var studentEntities = context.Students
+                        .Include("Groups")
+                        .ToList();
+                    var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
+                    this.StudentTableConfig.TableItems.AddRange(studentViewModels);
+                });
+            reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
         }
 
-        public override List<ButtonConfig> GetControls() {
-            var buttonConfigs = base.GetControls();
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler
-                (
-                    () => {
-                        // var taskHandler = new TaskHandler
-                        // (
-                        //     "Загрузка фото",
-                        //     this.StudentTableConfig.TableItems.Count,
-                        //     true,
-                        //     async progressControl => {
-                        //         var items = this.StudentTableConfig.TableItems
-                        //             .Select(model => ((StudentViewModel) model).Student).ToList();
-                        //         for (var i = 0; i < items.Count; i += 5) {
-                        //             if (progressControl.IsCancelled()) {
-                        //                 progressControl.ConfirmCancel();
-                        //                 break;
-                        //             }
-                        //
-                        //             var portion = items.GetRange(i, 5);
-                        //             await LoadImages(portion);
-                        //             progressControl.Next();
-                        //         }
-                        //
-                        //         progressControl.Complete();
-                        //     }
-                        // );
-                        // StoreManager.Add("TaskList", taskHandler);
-                        // taskHandler.Start();
-                    }
-                ),
-                Text = "Загрузить фото"
-            });
+        public List<ButtonConfig> GetControls() {
+            var buttonConfigs = new List<ButtonConfig> {
+                GetRefreshButtonConfig(),
+                new ButtonConfig {
+                    Command = new CommandHandler(() => {
+                        // todo load images
+                        // var items = this.Students.Select(model => ((StudentViewModel) model).Model).ToList();
+                        // foreach (var studentModel in items) {
+                        //    await this.PhotoService.DownloadPhoto
+                        //             (StudentModel.CardUidToId(studentModel.CardUid))
+                        //         .ConfigureAwait(false);
+                        // }
+                    }),
+                    Text = "Загрузить фото"
+                }
+            };
             return buttonConfigs;
         }
 

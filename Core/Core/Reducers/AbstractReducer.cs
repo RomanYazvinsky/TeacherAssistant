@@ -17,25 +17,25 @@ namespace TeacherAssistant.Core.Reducers {
 
     public abstract class AbstractReducer<TState> : IReducer, IDisposable where TState : new() {
         private readonly string _id;
-        private readonly Storage _storage;
+        protected readonly Storage Storage;
         private readonly Subject<object> _disposeSubject = new Subject<object>();
 
         protected AbstractReducer(IModuleToken token, Storage storage) {
             _id = token.Id;
-            _storage = storage;
-            _storage.RegisterReducer(_id, this);
+            Storage = storage;
+            Storage.RegisterReducer(_id, this);
             InitializeState();
         }
 
 
-        protected ImmutableDictionary<string, object> Set<TMember>(Expression<Func<TState, TMember>> expression,
+        protected GlobalState Set<TMember>(Expression<Func<TState, TMember>> expression,
             ImmutableDictionary<string, object> state,
             TMember value) {
             return state.SetItem(GetKey(expression), value);
         }
 
-        protected ImmutableDictionary<string, object> Set<TMember>(Expression<Func<TState, string>> expression,
-            ImmutableDictionary<string, object> state,
+        protected GlobalState Set<TMember>(Expression<Func<TState, string>> expression,
+            GlobalState state,
             TMember value) {
             return state.SetItem(GetKey(expression), value);
         }
@@ -45,16 +45,23 @@ namespace TeacherAssistant.Core.Reducers {
         }
 
         public IObservable<TMember> Select<TMember>(Expression<Func<TState, TMember>> expression) {
-            return _storage.CreateSelector<TMember>(GetKey(expression))().TakeUntil(_disposeSubject);
+            return Storage.CreateSelector<TMember>(GetKey(expression))().TakeUntil(_disposeSubject);
         }
 
+        public TMember SelectCurrentValue<TMember>(Expression<Func<TState, TMember>> expression, GlobalState state) {
+            return (TMember) state[GetKey(expression)];
+        }
 
+        public TAction SetActionId<TAction>(TAction action) where TAction: ModuleScopeAction {
+            action.Id = _id;
+            return action;
+        }
         public void Dispatch(IAction action) {
             if (action is ModuleScopeAction moduleScopeAction) {
                 moduleScopeAction.Id = _id;
             }
 
-            _storage.Store.Dispatch(action);
+            Storage.Store.Dispatch(action);
         }
 
         public void DispatchSetValueAction<TMember>(Expression<Func<TState, TMember>> expression, TMember value) {
@@ -63,19 +70,19 @@ namespace TeacherAssistant.Core.Reducers {
 
         private void InitializeState() {
             var localState = new TState();
-            var state = _storage.Store.GetState();
+            var state = Storage.Store.GetState();
             state = localState.GetType().GetProperties().Aggregate(state,
                 (current, propertyInfo) => current.SetItem(propertyInfo.Name, propertyInfo.GetValue(localState)));
             Dispatch(new Storage.SetupStateAction(state));
         }
 
         public void Dispose() {
-            _storage.UnregisterReducer(_id);
+            Storage.UnregisterReducer(_id);
             _disposeSubject.OnNext(1);
             _disposeSubject.OnCompleted();
         }
 
-        public abstract ImmutableDictionary<string, object> Reduce(ImmutableDictionary<string, object> state,
+        public abstract GlobalState Reduce(GlobalState state,
             IAction action);
     }
 }

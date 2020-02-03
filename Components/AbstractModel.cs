@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -13,6 +14,7 @@ using Containers;
 using EntityFramework.Rx;
 using FontAwesome5;
 using ReactiveUI;
+using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
     
@@ -20,9 +22,12 @@ namespace TeacherAssistant.ComponentsImpl {
         
         public static bool NotNull<T>(T t) => t != null;
         public static bool NotNull<T, TV>((T, TV) t) => t.Item1 != null && t.Item2 != null;
+        public static Tuple<T1, T2> ToTuple<T1, T2>(T1 t1, T2 t2) => new Tuple<T1, T2>(t1, t2);
+
         public static LocalizationContainer Localization { get; } = new LocalizationContainer();
         protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
         public ViewModelActivator Activator { get; }
+        private readonly string _uniqueKey = IdGenerator.GenerateId();
 
 
         protected AbstractModel() {
@@ -32,49 +37,31 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         public void InterpolateLocalization(string key, params object[] values) {
-            // this[key] = Interpolate(key, values);
+            this[key] = Interpolate(key, values);
         }
 
         public static string Interpolate(string key, params object[] values) {
             return string.Format(Localization[key], values);
         }
 
-        // [IndexerName("Item")]
-        // public string this[string key] {
-        //     get => Localization[key + _uniqueKey];
-        //     set {
-        //         Localization[key + _uniqueKey] = value;
-        //         this.RaisePropertyChanged("Item[]");
-        //     }
-        // }
+        [IndexerName("Item")]
+        public string this[string key] {
+            get => Localization[key + _uniqueKey];
+            set {
+                Localization[key + _uniqueKey] = value;
+                this.RaisePropertyChanged("Item[]");
+            }
+        }
 
-        public virtual List<ButtonConfig> GetControls() {
-            return new List<ButtonConfig> {
-                /*new ButtonConfig {
-                    Icon = new ImageAwesome {
-                        Icon = EFontAwesomeIcon.Solid_ArrowRight,
-                        Width = 12,
-                        Margin = new Thickness(1)
-                    },
-                    Tooltip = Localization["Forward"]
+        protected ButtonConfig GetRefreshButtonConfig() {
+            return new ButtonConfig {
+                Icon = new ImageAwesome {
+                    Icon = EFontAwesomeIcon.Solid_Redo,
+                    Width = 12,
+                    Margin = new Thickness(1)
                 },
-                new ButtonConfig {
-                    Icon = new ImageAwesome {
-                        Icon = EFontAwesomeIcon.Solid_ArrowLeft,
-                        Width = 12,
-                        Margin = new Thickness(1)
-                    },
-                    Tooltip = Localization["Back"]
-                },*/
-                new ButtonConfig {
-                    Icon = new ImageAwesome {
-                        Icon = EFontAwesomeIcon.Solid_Redo,
-                        Width = 12,
-                        Margin = new Thickness(1)
-                    },
-                    Tooltip = Localization["Refresh"],
-                    Command = new CommandHandler(Refresh)
-                }
+                Tooltip = Localization["Refresh"],
+                Command = new CommandHandler(Refresh)
             };
         }
         
@@ -121,9 +108,9 @@ namespace TeacherAssistant.ComponentsImpl {
         public virtual void Dispose() {
             RefreshSubject.OnCompleted();
             this.Activator.Dispose();
-            // foreach (var keyValuePair in Localization.Where(pair => pair.Key.EndsWith(_uniqueKey))) {
-            //     Localization.Remove(keyValuePair.Key);
-            // }
+            foreach (var keyValuePair in Localization.Where(pair => pair.Key.EndsWith(_uniqueKey))) {
+                Localization.Remove(keyValuePair.Key);
+            }
         }
 
         public void Refresh() {

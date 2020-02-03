@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reactive.Linq;
 using TeacherAssistant.Dao;
 using TeacherAssistant.ReaderPlugin;
@@ -12,7 +11,7 @@ namespace TeacherAssistant.Components {
         public ObservableCollection<StudentCard> ReadStudentCards { get; } = new ObservableCollection<StudentCard>();
         public IObservable<StudentCard> ReadStudentCard { get; private set; }
 
-        public StudentCardService(SerialUtil serialUtil, LocalDbContext context) {
+        public StudentCardService(SerialUtil serialUtil) {
             _serialUtil = serialUtil;
             LocalDbContext.DatabaseChanged += (sender, s) => Init();
             Init();

@@ -4,57 +4,66 @@ using System.Reactive.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using DynamicData;
+using Grace.DependencyInjection;
 using Model.Models;
-using Ninject;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class TableLessonViewModuleToken : PageModuleToken<TableLessonViewModule> {
-        public TableLessonViewModuleToken(string title, LessonEntity lesson) :
-            base(IdGenerator.GenerateId(), title) {
+    public class TableLessonViewToken : PageModuleToken<TableLessonViewModule> {
+        public TableLessonViewToken(string title, LessonEntity lesson) :
+            base(title) {
             this.Lesson = lesson;
         }
 
         public LessonEntity Lesson { get; }
     }
 
-    public class TableLessonViewModule : Module {
-        public TableLessonViewModule()
-            : base(new[] {
-                typeof(TableLessonViewPage),
-                typeof(TableLessonViewPageModel),
-            }) {
+    public class TableLessonViewModule : SimpleModule {
+        public TableLessonViewModule(): base(typeof(TableLessonViewPage)) {
         }
 
-        public override Control GetEntryComponent() {
-            return this.Kernel?.Get<TableLessonViewPage>();
+        public override void Configure(IExportRegistrationBlock block) {
+            block.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
+            block.ExportModuleScope<TableLessonViewPageModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<TableLessonViewPage>(this.ModuleToken.Id)
+                .ImportProperty(v => v.ModuleToken)
+                .ImportProperty(v => v.ViewModel)
+                ;
         }
+    }
+
+    public class TableLessonViewPageBase : View<TableLessonViewToken, TableLessonViewPageModel> {
     }
 
     /// <summary>
     /// Interaction logic for CommonStudentLessonViewPage.xaml
     /// </summary>
-    public partial class TableLessonViewPage : View<TableLessonViewPageModel> {
+    public partial class TableLessonViewPage : TableLessonViewPageBase, IInitializable {
         public TableLessonViewPage() {
             InitializeComponent();
         }
 
-        public override void Initialize() {
-            var dynamicColumns = new List<DataGridColumn>(this.ViewModel.Columns);
+        public void Initialize() {
+            var observableRangeCollection = this.ViewModel.Columns;
+            var dynamicColumns = new List<DataGridColumn>(observableRangeCollection);
             Table.Columns.AddRange(dynamicColumns);
-            var fromEventPattern = this.ViewModel.Columns.Changes();
+            var fromEventPattern = observableRangeCollection.Changes();
 
             var observable = fromEventPattern.Throttle(TimeSpan.FromMilliseconds(500));
             fromEventPattern
                 .Buffer(observable)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe((h) => {
-                    dynamicColumns.ForEach(item => Table.Columns.Remove(item));
+                    foreach (var item in dynamicColumns) {
+                        Table.Columns.Remove(item);
+                    }
+
                     dynamicColumns.Clear();
-                    dynamicColumns.AddRange(this.ViewModel.Columns);
-                    Table.Columns.AddRange(this.ViewModel.Columns);
+                    foreach (var dataGridColumn in observableRangeCollection) {
+                        dynamicColumns.Add(dataGridColumn);
+                        Table.Columns.Add(dataGridColumn);
+                    }
                 });
         }
     }

@@ -1,9 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Model.Models;
-using Ninject;
 using TeacherAssistant.Components;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
     /// <summary>
@@ -24,14 +22,14 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var service = Injector.Instance.Kernel.Get<PhotoService>();
-            var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Model.CardUid));
-            if (string.IsNullOrWhiteSpace(path)) {
-                return;
-            }
+            // var service = Injector.Instance.Kernel.Get<PhotoService>();
+            // var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Model.CardUid));
+            // if (string.IsNullOrWhiteSpace(path)) {
+                // return;
+            // }
 
-            Image.Source = service.GetImage(path);
-            Popup.IsOpen = true;
+            // Image.Source = service.GetImage(path);
+            // Popup.IsOpen = true;
         }
 
         private void OpenStudent(object sender, RoutedEventArgs e) {
@@ -39,8 +37,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var activation = Injector.Instance.Kernel.Get<TableLessonViewModuleToken>();
-            var pageHost = Injector.Instance.Kernel.Get<IPageHost>();
+            // var activation = Injector.Instance.Kernel.Get<TableLessonViewToken>();
+            // var pageHost = Injector.Instance.Kernel.Get<IPageHost>();
             // var pageId = pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
             //     Header = view.FullName
             // }, activation.Id);

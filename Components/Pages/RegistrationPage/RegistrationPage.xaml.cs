@@ -2,48 +2,47 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Grace.DependencyInjection;
 using Model.Models;
-using Ninject;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.RegistrationPage {
-    public class RegistrationPageModuleToken : PageModuleToken<RegistrationPageModule> {
-        public RegistrationPageModuleToken(string title, LessonEntity lesson) :
-            base(IdGenerator.GenerateId(), title) {
+    public class RegistrationPageToken : PageModuleToken<RegistrationPageModule> {
+        public RegistrationPageToken(string title, LessonEntity lesson) :
+            base(title) {
             this.Lesson = lesson;
         }
 
         public LessonEntity Lesson { get; }
     }
 
-    public class RegistrationPageModule : Module {
-        public RegistrationPageModule()
-            : base(new[] {
-                typeof(RegistrationPage),
-                typeof(RegistrationPageModel),
-            }) {
+    public class RegistrationPageModule : SimpleModule {
+        public RegistrationPageModule() : base(typeof(RegistrationPage)) {
         }
 
-        public override Control GetEntryComponent() {
-            return this.Kernel?.Get<RegistrationPage>();
+        public override void Configure(IExportRegistrationBlock block) {
+            block.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
+            block.ExportModuleScope<RegistrationPageModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<RegistrationPage>(this.ModuleToken.Id)
+                .ImportProperty(v => v.ModuleToken)
+                .ImportProperty(v => v.ViewModel);
         }
     }
 
-    public class RegistrationPageBase : View<RegistrationPageModel> {
+    public class RegistrationPageBase : View<RegistrationPageToken, RegistrationPageModel> {
     }
 
     /// <summary>
     /// Interaction logic for RegistrationPage.xaml
     /// </summary>
-    public partial class RegistrationPage : RegistrationPageBase {
+    public partial class RegistrationPage : RegistrationPageBase, IInitializable {
         public RegistrationPage() {
             InitializeComponent();
         }
 
-        public override void Initialize() {
+        public void Initialize() {
             this.WhenActivated(action => {
                 this.OneWayBind(this.ViewModel, model => model.TimerString, page => page.TimeBox.Text)
                     .DisposeWith(action);

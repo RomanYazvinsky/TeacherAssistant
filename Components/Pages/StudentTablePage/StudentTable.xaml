@@ -1,14 +1,15 @@
-﻿<componentsImpl:View x:TypeArguments="local:StudentTableModel" x:Class="TeacherAssistant.StudentTable.StudentTable"
-                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                     xmlns:local="clr-namespace:TeacherAssistant.StudentTable"
-                     xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-                     xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
-                     mc:Ignorable="d"
-                     d:DesignHeight="450" d:DesignWidth="800" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                     d:DataContext="{d:DesignInstance local:StudentTableModel}" x:Name="View">
+﻿<local:StudentTableBase x:Class="TeacherAssistant.StudentTable.StudentTable"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                        xmlns:local="clr-namespace:TeacherAssistant.StudentTable"
+                        xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+                        xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                        mc:Ignorable="d"
+                        d:DesignHeight="450" d:DesignWidth="800" HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        d:DataContext="{d:DesignInstance local:StudentTableModel}" x:Name="View">
     <UserControl.Resources>
         <ContextMenu x:Key="lwMenu">
             <ContextMenu.Items>
@@ -67,4 +68,4 @@
                    VerticalAlignment="Top" Width="240" />
         </Grid>
     </Grid>
-</componentsImpl:View>
+</local:StudentTableBase>

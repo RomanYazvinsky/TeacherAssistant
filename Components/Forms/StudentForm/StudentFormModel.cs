@@ -30,7 +30,6 @@ namespace TeacherAssistant.StudentForm {
         private StudentEntity _originalStudent;
 
         public StudentFormModel(
-            string id,
             PhotoService photoService,
             StudentCardService studentCardService
         ) {

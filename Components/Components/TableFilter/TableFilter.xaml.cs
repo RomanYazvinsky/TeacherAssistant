@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,10 +11,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using Containers;
-using Ninject;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Modules.MainModule;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.Components.TableFilter {
     public class DragConfig {
@@ -23,9 +19,9 @@ namespace TeacherAssistant.Components.TableFilter {
         public string SourceType { get; set; }
         public Func<DragData, bool> DropAvailability { get; set; } = data => false;
         public string DragValuePath { get; set; }
-        public Action<DragData> Drop { get; set; } = data => { };
+        public Action Drop { get; set; } = () => { };
         public Action DragSuccess { get; set; } = () => { };
-        public Action DragStart { get; set; } = () => { };
+        public Action<DragData> DragStart { get; set; } = d => { };
     }
 
 
@@ -114,8 +110,6 @@ namespace TeacherAssistant.Components.TableFilter {
         private static Point? _dragStartPoint;
         private bool _isMouseDown;
         private readonly List<object> _selectedItems = new List<object>();
-        private readonly MainReducer _reducer = Injector.Instance.Kernel.Get<MainReducer>();
-
         private DragConfig DragConfig => this.TableConfig.DragConfig;
 
         public string FilterText {
@@ -160,18 +154,6 @@ namespace TeacherAssistant.Components.TableFilter {
 
         public TableFilter() {
             InitializeComponent();
-            _dragSubscription = _reducer.Select(state => state.DragData)
-                .Where(data => data != null)
-                .Subscribe(container => {
-                    if (this.DragConfig == null) {
-                        return;
-                    }
-
-                    LView.AllowDrop = !Equals(container.SenderId, this.DragConfig?.SourceId)
-                                      && (this.DragConfig?.DropAvailability?.Invoke(container)
-                                          ?? false);
-                });
-            Unloaded += (sender, args) => { _dragSubscription.Dispose(); };
         }
 
         private void UpdateFilter(string text) {
@@ -223,8 +205,7 @@ namespace TeacherAssistant.Components.TableFilter {
         }
 
         private async void LView_OnDrop(object sender, DragEventArgs e) {
-            var dragData = await _reducer.Select(state => state.DragData).FirstAsync();
-            this.DragConfig?.Drop.Invoke(dragData);
+            this.DragConfig?.Drop.Invoke();
         }
 
         private static bool IsDrag(MouseEventArgs e) {
@@ -262,8 +243,7 @@ namespace TeacherAssistant.Components.TableFilter {
                     this.DragConfig.DragSuccess);
             }
 
-            this.DragConfig.DragStart?.Invoke();
-            _reducer.DispatchSetValueAction(state => state.DragData, dragData);
+            this.DragConfig.DragStart?.Invoke(dragData);
             DragDrop.DoDragDrop(this, dragData, DragDropEffects.Move);
         }
 

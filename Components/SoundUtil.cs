@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Model;
 using NAudio.Wave;
-using TeacherAssistant.State;
-using ToastNotifications;
 
 namespace TeacherAssistant {
     public class SoundUtil {
@@ -54,8 +52,8 @@ namespace TeacherAssistant {
                     handler => wo.PlaybackStopped -= handler);
                 wo.Init(waveProvider);
                 if (waveProvider.TotalTime > TimeSpan.FromMilliseconds(5000)) {
-                    var notifier = Injector.Get<Notifier>();
-                    notifier.ShowAudioNotification(wo);
+                    // var notifier = Injector.Instance.Kernel.Get<MainModule>()<Notifier>();
+                    // notifier.ShowAudioNotification(wo);
                 }
 
                 wo.Volume = (float) alarm.Volume;

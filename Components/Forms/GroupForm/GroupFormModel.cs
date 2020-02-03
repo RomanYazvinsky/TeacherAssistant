@@ -16,11 +16,12 @@ using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Modules.MainModule;
 
 namespace TeacherAssistant.Forms.GroupForm {
     public class GroupFormModel : AbstractModel {
         private readonly IPageHost _pageHost;
-        private readonly GroupFormModuleToken _token;
+        private readonly GroupFormToken _token;
         private readonly LocalDbContext _db;
         private List<StudentEntity> _students = new List<StudentEntity>();
         private bool isValid;
@@ -29,10 +30,11 @@ namespace TeacherAssistant.Forms.GroupForm {
             {"Name", ListSortDirection.Ascending}
         };
 
-        public GroupFormModel(IPageHost pageHost, GroupFormModuleToken token, LocalDbContext db) {
+        public GroupFormModel(TabPageHost pageHost, MainReducer reducer, GroupFormToken token, LocalDbContext db) {
             _db = db;
             _pageHost = pageHost;
             _token = token;
+            this.Reducer = reducer;
             this.StudentsTableConfig = new TableConfig {
                 Filter = (o, s) => {
                     var upperString = s.ToUpper();
@@ -119,6 +121,8 @@ namespace TeacherAssistant.Forms.GroupForm {
             );
         }
 
+        public MainReducer Reducer { get; }
+        
         public TableConfig StudentsTableConfig { get; set; }
         public TableConfig GroupStudentsTableConfig { get; set; }
 

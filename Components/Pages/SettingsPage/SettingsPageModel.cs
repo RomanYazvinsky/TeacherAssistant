@@ -7,16 +7,15 @@ using System.Windows.Data;
 using Containers;
 using Microsoft.Win32;
 using Model;
-using Ninject.Infrastructure.Language;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel {
-        public SettingsPageModel(string id) {
+        public SettingsPageModel() {
             this.RefreshSubject.AsObservable().Subscribe(_ => {
                 this.Alarms.Clear();
-                this.Alarms.AddRange(LocalDbContext.Instance.Alarms.ToEnumerable()
+                this.Alarms.AddRange(LocalDbContext.Instance.Alarms
                     .Select(alarm => new AlarmSettingsViewModel(alarm)).ToList());
             });
         }

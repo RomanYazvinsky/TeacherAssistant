@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using Containers;
 using Model.Models;
@@ -12,7 +11,6 @@ using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Forms.GroupForm;
-using TeacherAssistant.State;
 
 namespace TeacherAssistant.GroupTable {
     public class GroupTableModel : AbstractModel {
@@ -42,8 +40,8 @@ namespace TeacherAssistant.GroupTable {
         }
 
         private void ShowGroup() {
-            _host.AddPage<GroupFormModule, GroupFormModuleToken>(
-                    new GroupFormModuleToken(this.SelectedGroupEntity.Name, this.SelectedGroupEntity));
+            _host.AddPage<GroupFormModule, GroupFormToken>(
+                    new GroupFormToken(this.SelectedGroupEntity.Name, this.SelectedGroupEntity));
         }
 
         private void DeleteGroup() {

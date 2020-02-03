@@ -14,6 +14,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Pages.LessonForm;
+using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
@@ -56,6 +57,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     }
 
     public class SchedulePageModel : AbstractModel {
+        private readonly TabPageHost _host;
         private const string LocalizationKey = "page.schedule";
 
         public static readonly string SelectedLessonKey = "SelectedLesson";
@@ -73,6 +75,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         private static readonly ScheduleComboboxItem EmptyScheduleComboboxItem = new ScheduleComboboxItem {Id = -1};
 
         public SchedulePageModel(TabPageHost host, LocalDbContext context) {
+            _host = host;
             this.DeleteMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler
                 (
@@ -85,8 +88,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 (
                     () => {
                         var lesson = this.SelectedLesson.Lesson;
-                        var lessonFormModuleToken = new LessonFormModuleToken("Lesson", lesson);
-                        host.AddPage<LessonFormModule, LessonFormModuleToken>(lessonFormModuleToken);
+                        var lessonFormModuleToken = new LessonFormToken("Lesson", lesson);
+                        host.AddPage<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
                         // var newId = this._pageService.OpenPage
                         // ("Modal", new PageProperties<LessonForm>());
                         // StoreManager.Publish(this.SelectedLesson.Lesson, newId, "LessonChange");
@@ -225,9 +228,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
 
         public void OpenRegistration() {
-            // var lessonTabId = this._pageService.OpenPage
-            //     (PageConfigs.RegistrationPageConfig, this.Id);
-            // StoreManager.Publish(this.SelectedLesson.Lesson, lessonTabId, SelectedLessonKey);
+            _host.AddPage(new RegistrationPageToken("Регистрация", this.SelectedLesson.Lesson));
         }
     }
 }

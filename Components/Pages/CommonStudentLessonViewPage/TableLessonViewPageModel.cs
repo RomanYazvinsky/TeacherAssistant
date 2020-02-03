@@ -1,20 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using Model.Models;
-using Ninject.Modules;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Redux;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.State;
@@ -26,7 +22,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private readonly ObservableRangeCollection<StudentLessonView> _items =
             new WpfObservableRangeCollection<StudentLessonView>();
 
-        public TableLessonViewPageModel(TableLessonViewModuleToken token, LocalDbContext db) {
+        public TableLessonViewPageModel(TableLessonViewToken token, LocalDbContext db) {
             _db = db;
             this.Items = new CollectionViewSource {
                 Source = _items

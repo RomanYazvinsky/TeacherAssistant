@@ -16,6 +16,8 @@ using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Forms.StreamForm {
     public class StreamFormModel : AbstractModel {
+        private readonly LocalDbContext _context;
+
         private static DropDownItem<int> DefaultCourse =
             new DropDownItem<int>(Localization["common.empty.dropdown"], -1);
 
@@ -24,7 +26,8 @@ namespace TeacherAssistant.Forms.StreamForm {
 
         private StreamEntity _entity;
 
-        public StreamFormModel(string id) {
+        public StreamFormModel(StreamFormToken token, LocalDbContext context) {
+            _context = context;
             this.SaveHandler = new CommandHandler(Save);
             this.AddGroupsHandler = new CommandHandler(SelectGroups);
             this.RemoveGroupsHandler = new CommandHandler(DeselectGroups);
@@ -36,6 +39,7 @@ namespace TeacherAssistant.Forms.StreamForm {
                 Filter = this.GroupFilter,
                 Sorts = GroupSorts
             };
+            Initialize(token.Stream);
             // Select<StreamEntity>(this.Id, "StreamChange").Subscribe(Initialize);
         }
 
@@ -49,13 +53,13 @@ namespace TeacherAssistant.Forms.StreamForm {
             this.AvailableCourses.AddRange(dropDownItems);
             this.Disciplines.Clear();
             this.Departments.Clear();
-            this.Disciplines.AddRange(LocalDbContext.Instance.Disciplines.ToList());
+            this.Disciplines.AddRange(_context.Disciplines.ToList());
             this.Departments.Add(DefaultDepartment);
-            this.Departments.AddRange(LocalDbContext.Instance.Departments.ToList());
+            this.Departments.AddRange(_context.Departments.ToList());
 
             _entity = stream;
             this.ChosenGroups.AddRange(stream.Groups.ToList());
-            this.AvailableGroups.AddRange(LocalDbContext.Instance.Groups
+            this.AvailableGroups.AddRange(_context.Groups
                 .Where(groupModel => stream.Groups.All(o => groupModel.Id != o.Id)).ToList());
             this.StreamName = stream.Name;
             this.IsActive = stream.IsActive;
@@ -122,9 +126,9 @@ namespace TeacherAssistant.Forms.StreamForm {
             _entity.PracticalCount = this.PracticeCount;
             _entity.Course = this.SelectedCourse.Value == DefaultCourse.Value ? 0 : DefaultCourse.Value;
             if (_entity.Id == 0) {
-                LocalDbContext.Instance.Streams.Add(_entity);
+                _context.Streams.Add(_entity);
             }
-            LocalDbContext.Instance.SaveChangesAsync();
+            _context.SaveChangesAsync();
         }
 
         private void SelectGroups() {

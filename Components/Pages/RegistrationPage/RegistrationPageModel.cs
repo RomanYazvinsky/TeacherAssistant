@@ -19,12 +19,19 @@ using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Dao.ViewModels;
+using TeacherAssistant.Forms.NoteForm;
+using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.Pages;
+using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.StudentViewPage;
 
 namespace TeacherAssistant.RegistrationPage {
     public class RegistrationPageModel : AbstractModel {
+        private readonly TabPageHost _tabPageHost;
         private readonly LocalDbContext _db;
         private static readonly string LocalizationKey = "page.registration";
         private StudentCardService StudentCardService { get; }
@@ -38,10 +45,14 @@ namespace TeacherAssistant.RegistrationPage {
         public RegistrationPageModel(
             StudentCardService studentCardService,
             PhotoService photoService,
-            // IPageHost pageHost,
+            TabPageHost tabPageHost,
+            WindowPageHost windowPageHost,
             LocalDbContext db,
-            RegistrationPageModuleToken token
+            RegistrationPageToken token,
+            MainReducer mainReducer,
+            PageControllerReducer reducer
         ) {
+            _tabPageHost = tabPageHost;
             _db = db;
             this.StudentCardService = studentCardService;
             this.PhotoService = photoService;
@@ -59,25 +70,16 @@ namespace TeacherAssistant.RegistrationPage {
 
             this.ShowStudent = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
-                // var openPage = this._pageService.OpenPage(new PageProperties<StudentViewPage.StudentViewPage> {
-                //     Header = selectedStudent.LastName,
-                // }, this.Id);
-                // StoreManager.Publish(selectedStudent, openPage, "Student");
+                var studentViewPageToken = new StudentViewPageToken("Student", selectedStudent);
+                tabPageHost.AddPage<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
             });
             this.AddStudentNote = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
-                // var openPage = this._pageService.OpenPage("Modal", new PageProperties<NoteForm> {
-                //     Header = "Заметка",
-                //     DefaultHeight = 400,
-                //     DefaultWidth = 400,
-                //     MinHeight = 400,
-                //     MinWidth = 400
-                // });
-                // var note = new StudentNote {
-                //     Student = selectedStudent,
-                //     Description = ""
-                // };
-                // StoreManager.Publish(note, openPage, "Note");
+                var note = new StudentNote {
+                    Student = selectedStudent
+                };
+                var noteFormToken = new NoteFormToken("Note", note);
+                windowPageHost.AddPage<NoteFormModule, NoteFormToken>(noteFormToken);
             });
             this.ToggleAllStudentTable = new ButtonConfig {
                 Command = new CommandHandler(() => this.AllStudentsMode = !this.AllStudentsMode),
@@ -147,17 +149,19 @@ namespace TeacherAssistant.RegistrationPage {
                                                      .SourceId)
                                                 )
                                                 || data.SenderType.Equals(nameof(StudentEntity))),
-                    Drop = data => {
-                        if (nameof(StudentLessonEntity).Equals(data.SenderType)) {
+                    Drop = async () => {
+                        var dragData = await mainReducer.Select(state => state.DragData).FirstAsync();
+                        if (nameof(StudentLessonEntity).Equals(dragData.SenderType)) {
                             Register();
                         }
 
-                        if (nameof(StudentEntity).Equals(data.SenderType)) {
-                            AcceptDropFromStudentTable(data.Data);
+                        if (nameof(StudentEntity).Equals(dragData.SenderType)) {
+                            AcceptDropFromStudentTable(dragData.Data);
                         }
 
-                        data.Accept();
-                    }
+                        dragData.Accept();
+                    },
+                    DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 }
             };
             this.LessonStudentsTableConfig = new TableConfig {
@@ -169,10 +173,12 @@ namespace TeacherAssistant.RegistrationPage {
                     DropAvailability = data => data.Data.Count > 0
                                                && data.SenderId.Equals(this.RegisteredStudentsTableConfig.DragConfig
                                                    .SourceId),
-                    Drop = data => {
+                    Drop = async () => {
+                        var dragData = await mainReducer.Select(state => state.DragData).FirstAsync();
                         UnRegister();
-                        data.Accept();
-                    }
+                        dragData.Accept();
+                    },
+                    DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 }
             };
 
@@ -187,10 +193,11 @@ namespace TeacherAssistant.RegistrationPage {
                 (
                     o => {
                         var studentEntity = o as StudentEntity;
-                        this._selectedStudent = studentEntity;
+                        _selectedStudent = studentEntity;
                         UpdateDescription(studentEntity);
                     });
             Init(token.Lesson);
+            reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
         }
 
         private void Init(LessonEntity lesson) {
@@ -304,21 +311,28 @@ namespace TeacherAssistant.RegistrationPage {
         [Reactive] public string TimerString { get; set; }
 
 
-        public override List<ButtonConfig> GetControls() {
-            var buttonConfigs = base.GetControls();
-            // buttonConfigs.Add(new ButtonConfig {
-            //     Command = new CommandHandler(() => {
-            //         var openPage = this._pageService.OpenPage(new PageProperties<TableLessonViewPage> {
-            //             Header = this.Lesson.Group == null
-            //                 ? this.Lesson.Stream.Name
-            //                 : this.Lesson.Group.Name + " " +
-            //                   Localization["common.lesson.type." + this.Lesson.LessonType] + " " +
-            //                   this.Lesson.Date?.ToString("dd.MM")
-            //         }, this.Id);
-            //         StoreManager.Publish(Lesson, openPage, "Lesson");
-            //     }),
-            //     Text = "Занятие 1"
-            // });
+        private List<ButtonConfig> GetControls() {
+            var buttonConfigs = new List<ButtonConfig> {
+                GetRefreshButtonConfig(),
+                new ButtonConfig {
+                    Command = new CommandHandler(() => {
+                        
+                    }),
+                    
+                    Text = "Занятие 1"
+                }
+            };
+            buttonConfigs.Add(new ButtonConfig {
+                Command = new CommandHandler(() => {
+                    var title = this.Lesson.Group == null
+                        ? this.Lesson.Stream.Name
+                        : this.Lesson.Group.Name + " " +
+                          Localization["common.lesson.type." + this.Lesson.LessonType] + " " +
+                          this.Lesson.Date?.ToString("dd.MM");
+                    var token = new TableLessonViewToken(title, this.Lesson);
+                    _tabPageHost.AddPage<TableLessonViewModule, TableLessonViewToken>(token);
+                }),
+            });
             return buttonConfigs;
         }
 

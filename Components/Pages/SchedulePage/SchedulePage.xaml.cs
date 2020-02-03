@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Windows.Controls;
 using System.Windows.Input;
-using Ninject;
+using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
@@ -11,27 +10,29 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
     }
 
-    public class ScheduleModule : Module {
-        public ScheduleModule()
-            : base(new[] {
-                typeof(SchedulePage),
-                typeof(SchedulePageModel)
-            }) {
+    public class ScheduleModule : SimpleModule {
+        public ScheduleModule() : base(typeof(SchedulePage)) {
         }
 
-
-        public override Control GetEntryComponent() {
-            return this.Kernel?.Get<SchedulePage>();
+        public override void Configure(IExportRegistrationBlock block) {
+            block.ExportModuleScope<SchedulePage>(this.ModuleToken.Id)
+                .ImportProperty(page => page.ModuleToken)
+                .ImportProperty(page => page.ViewModel)
+                ;
+            block.ExportModuleScope<SchedulePageModel>(this.ModuleToken.Id);
         }
     }
+
+    public class SchedulePageBase : View<ScheduleToken, SchedulePageModel> {
+    }
+
 
     /// <summary>
     /// Interaction logic for SchedulePage.xaml
     /// </summary>
-    public partial class SchedulePage : View<SchedulePageModel> {
+    public partial class SchedulePage : SchedulePageBase {
         public SchedulePage() {
             InitializeComponent();
-            // SetViewModel(id);
             SortHelper.AddColumnSorting(LessonList, new Dictionary<string, ListSortDirection> {
                 {"Lesson.Date", ListSortDirection.Descending},
                 {"Lesson.Schedule.Begin", ListSortDirection.Descending},

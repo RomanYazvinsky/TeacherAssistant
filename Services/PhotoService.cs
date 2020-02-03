@@ -19,6 +19,9 @@ namespace TeacherAssistant.Components
 
         public string Directory { get; set; } = Path.Combine(Environment.CurrentDirectory, "photos");
 
+        public PhotoService() {
+            Console.WriteLine("13");
+        }
         private async Task<string> GetPersonalId(string cardUid)
         {
             var request =

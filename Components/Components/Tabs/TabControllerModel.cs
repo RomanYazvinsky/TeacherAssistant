@@ -7,15 +7,15 @@ using System.Reactive.Linq;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using Containers;
+using System.Windows.Threading;
 using Dragablz;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.Tabs;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Core.Module;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.Pages;
 
 namespace TeacherAssistant {
     public class TabControllerModel : AbstractModel {
@@ -68,7 +68,10 @@ namespace TeacherAssistant {
             );
         }
 
-        public TabControllerModel(TabControllerToken token, MainReducer reducer, TabPageHost host) {
+        public TabControllerModel(
+            MainReducer reducer,
+            PageControllerReducer controllerReducer,
+            TabPageHost host) {
             reducer.Select(state => state.DragData).Subscribe(data => {
                 if (data == null) {
                     foreach (var tabItem in this.Tabs) {
@@ -91,12 +94,12 @@ namespace TeacherAssistant {
             host.WhenTabClosed.Subscribe(RemoveTab);
             this.WhenAnyValue(model => model.ActiveTab)
                 .Where(NotNull)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(tab => tab.IsSelected = true);
-            // this.CloseCallback = control => {
-            //     this._pageService.ClosePage(((Control) control.DragablzItem.Content).Uid);
-            // };
-            host.AddPage(token.InitialModuleToken);
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(tab => {
+                    tab.IsSelected = true;
+                    var activeTabUid = tab.Uid;
+                    controllerReducer.DispatchSetValueAction(state => state.SelectedPage, host.Pages[activeTabUid].Token);
+                });
         }
 
         private void OpenTabOnHover(object sender, MouseEventArgs parameters) {
@@ -112,22 +115,18 @@ namespace TeacherAssistant {
             }
         }
 
-        public override List<ButtonConfig> GetControls() {
-            return new List<ButtonConfig>();
-        }
-
         protected override string GetLocalizationKey() {
             return LocalizationKey;
         }
 
-        [Reactive] public bool IsHeaderVisible { get; set; }
-
-        [Reactive] public ItemActionCallback CloseCallback { get; set; }
+        [Reactive] public bool IsHeaderVisible { get; set; } = true;
 
         public ObservableRangeCollection<TabItem> Tabs { get; set; } =
             new WpfObservableRangeCollection<TabItem>();
 
         [Reactive] public TabItem ActiveTab { get; set; }
+
+        public ItemActionCallback CloseCallback => args => { };
 
         /*
         public INewTabHost<Window> GetNewHost(IInterTabClient interTabClient, object partition, TabablzControl source) {
@@ -146,5 +145,9 @@ namespace TeacherAssistant {
             this._pageService.RemovePageHost(window.Uid);
             return TabEmptiedResponse.DoNothing;
         }*/
+
+        public override void Dispose() {
+            base.Dispose();
+        }
     }
 }

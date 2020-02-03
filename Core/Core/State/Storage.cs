@@ -22,7 +22,7 @@ namespace TeacherAssistant.Core.State {
                     }
 
                     if (action is SetValueAction setValueAction) {
-                        return state.SetItem(setValueAction.Id + setValueAction.PropertyName, setValueAction.Value);
+                        return state.SetItem(setValueAction.PropertyName, setValueAction.Value);
                     }
 
                     if (action is ModuleScopeAction moduleScopeAction && moduleScopeAction.Id != null) {

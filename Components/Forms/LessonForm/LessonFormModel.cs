@@ -15,7 +15,7 @@ using TeacherAssistant.Dao;
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormModel : AbstractModel {
         private readonly IPageHost _pageHost;
-        private readonly LessonFormModuleToken _token;
+        private readonly LessonFormToken _token;
         private readonly LocalDbContext _db;
         private const string LocalizationKey = "lesson.form";
         private LessonEntity _originalEntity;
@@ -32,7 +32,7 @@ namespace TeacherAssistant.Pages.LessonForm {
             }
         }
 
-        public LessonFormModel(IPageHost pageHost, LessonFormModuleToken token,
+        public LessonFormModel(TabPageHost pageHost, LessonFormToken token,
             LocalDbContext db) {
             _pageHost = pageHost;
             _token = token;
