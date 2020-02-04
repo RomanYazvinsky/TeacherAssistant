@@ -19,8 +19,8 @@ namespace TeacherAssistant.GroupTable {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<GroupTableModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<GroupTable>(this.ModuleToken.Id)
+            block.ExportModuleScope<GroupTableModel>();
+            block.ExportModuleScope<GroupTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

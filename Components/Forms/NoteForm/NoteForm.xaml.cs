@@ -17,11 +17,11 @@ namespace TeacherAssistant.Forms.NoteForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<NoteForm>(this.ModuleToken.Id)
+            block.ExportModuleScope<NoteForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;
-            block.ExportModuleScope<NoteFormModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<NoteFormModel>();
         }
     }
 

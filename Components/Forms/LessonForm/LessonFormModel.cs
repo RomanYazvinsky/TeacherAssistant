@@ -4,68 +4,81 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Data;
+using System.Windows.Threading;
 using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Dao;
+using TeacherAssistant.RegistrationPage;
 
-namespace TeacherAssistant.Pages.LessonForm {
-    public class LessonFormModel : AbstractModel {
-        private readonly IPageHost _pageHost;
+namespace TeacherAssistant.Pages.LessonForm
+{
+    public class LessonFormModel : AbstractModel
+    {
         private readonly LessonFormToken _token;
         private readonly LocalDbContext _db;
         private const string LocalizationKey = "lesson.form";
         private LessonEntity _originalEntity;
 
-        public class LessonTypeView {
+        public class LessonTypeView
+        {
             public LessonType Type;
 
-            public LessonTypeView(LessonType type) {
+            public LessonTypeView(LessonType type)
+            {
                 Type = type;
             }
 
-            public override string ToString() {
+            public override string ToString()
+            {
                 return Localization[$"common.lesson.type.{Type}"];
             }
         }
 
-        public LessonFormModel(TabPageHost pageHost, LessonFormToken token,
-            LocalDbContext db) {
-            _pageHost = pageHost;
+        public LessonFormModel(LessonFormToken token,
+            LocalDbContext db)
+        {
             _token = token;
             _db = db;
             WhenAdded<StreamEntity>()
+                .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(models =>
-                    RunInUiThread(() => this.Streams.AddRange(models.ToList())));
+                    this.Streams.AddRange(models.ToList()));
             WhenRemoved<StreamEntity>()
-                .Subscribe(models =>
-                    RunInUiThread(() => this.Streams.RemoveRange(models.ToList())));
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(models => this.Streams.RemoveRange(models.ToList()));
             this.Streams.AddRange(_db.Streams.ToList());
             this.ScheduleList.AddRange(_db.Schedules.ToList());
-            this.SaveButtonConfig = new ButtonConfig {
+            this.SaveButtonConfig = new ButtonConfig
+            {
                 Text = Localization["Save"],
                 Command = new CommandHandler
                 (
-                    () => {
+                    () =>
+                    {
                         Save();
-                        _pageHost.ClosePage(token.Id);
+                        token.Deactivate();
                     }
                 )
             };
 
 
-            this.RegisterButtonConfig = new ButtonConfig {
+            this.RegisterButtonConfig = new ButtonConfig
+            {
                 Text = Localization["Register"],
                 Command = new CommandHandler(SaveAndOpenRegistration)
             };
-            this.NewOneButtonConfig = new ButtonConfig {
+            this.NewOneButtonConfig = new ButtonConfig
+            {
                 Text = Localization["New one"],
                 Command = new CommandHandler
                 (
-                    () => {
+                    () =>
+                    {
                         Save();
                         Init(new LessonEntity());
                     }
@@ -80,7 +93,8 @@ namespace TeacherAssistant.Pages.LessonForm {
                 .Where(NotNull)
                 .Subscribe
                 (
-                    stream => {
+                    stream =>
+                    {
                         this.Groups.Clear();
                         this.Groups.AddRange(stream.Groups.ToList());
                         this.Lesson.Group = this.Groups.FirstOrDefault();
@@ -90,7 +104,8 @@ namespace TeacherAssistant.Pages.LessonForm {
                 .Where(NotNull)
                 .Subscribe
                 (
-                    lesson => {
+                    lesson =>
+                    {
                         this.SelectedStream = lesson.Stream ?? this.Streams.FirstOrDefault();
                         this.Description = lesson.Description ?? "";
                         this.LessonDate = lesson.Date ?? DateTime.Today;
@@ -103,7 +118,8 @@ namespace TeacherAssistant.Pages.LessonForm {
                 .Where(NotNull)
                 .Subscribe
                 (
-                    type => {
+                    type =>
+                    {
                         this.Lesson.LessonType = type.Type;
                         this.IsGroupsAvailable = this.Lesson.LessonType != LessonType.Lecture;
                     }
@@ -124,12 +140,14 @@ namespace TeacherAssistant.Pages.LessonForm {
             Init(token.Lesson);
         }
 
-        private void Init(LessonEntity lesson) {
+        private void Init(LessonEntity lesson)
+        {
             _originalEntity = lesson;
             this.Lesson = new LessonEntity(lesson);
         }
 
-        protected override string GetLocalizationKey() {
+        protected override string GetLocalizationKey()
+        {
             return LocalizationKey;
         }
 
@@ -160,17 +178,20 @@ namespace TeacherAssistant.Pages.LessonForm {
         public ButtonConfig RegisterButtonConfig { get; set; }
         public ButtonConfig NewOneButtonConfig { get; set; }
 
-        private void Save() {
+        private void Save()
+        {
             this.Lesson.Date = this.LessonDate;
             this.Lesson.Description = this.Description;
             this.Lesson.Stream = this.SelectedStream;
             this.Lesson.LessonType = this.SelectedLessonType.Type;
-            if (!this.IsGroupsAvailable) {
+            if (!this.IsGroupsAvailable)
+            {
                 this.Lesson.Group = null;
             }
 
             _originalEntity.Apply(this.Lesson);
-            if (this.Lesson.Id == 0) {
+            if (this.Lesson.Id == 0)
+            {
                 _originalEntity.CreationDate = DateTime.Now;
                 _db.SetLessonOrder(_originalEntity);
                 _db.Lessons.Add(_originalEntity);
@@ -179,17 +200,11 @@ namespace TeacherAssistant.Pages.LessonForm {
             _db.SaveChangesAsync();
         }
 
-        private void SaveAndOpenRegistration() {
+        private void SaveAndOpenRegistration()
+        {
             Save();
-
-            _pageHost.ClosePage(_token.Id);
-            // var newId = _pageHost.AddPage<>(PageConfigs.SchedulePageConfig, this.Id);
-            // StoreManager.Publish
-            // (
-            //     this.Lesson,
-            //     newId,
-            //     "SelectedLesson"
-            // );
+            _token.PageHost.AddPageAsync(new RegistrationPageToken("Registration", this.Lesson));
+            _token.Deactivate();
         }
     }
 }

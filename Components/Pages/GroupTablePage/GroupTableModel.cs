@@ -40,7 +40,7 @@ namespace TeacherAssistant.GroupTable {
         }
 
         private void ShowGroup() {
-            _host.AddPage<GroupFormModule, GroupFormToken>(
+            _host.AddPageAsync<GroupFormModule, GroupFormToken>(
                     new GroupFormToken(this.SelectedGroupEntity.Name, this.SelectedGroupEntity));
         }
 

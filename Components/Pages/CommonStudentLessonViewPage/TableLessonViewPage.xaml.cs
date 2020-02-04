@@ -25,8 +25,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         public override void Configure(IExportRegistrationBlock block) {
             block.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
-            block.ExportModuleScope<TableLessonViewPageModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<TableLessonViewPage>(this.ModuleToken.Id)
+            block.ExportModuleScope<TableLessonViewPageModel>();
+            block.ExportModuleScope<TableLessonViewPage>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;

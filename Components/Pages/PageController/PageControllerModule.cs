@@ -1,3 +1,4 @@
+using System.Windows.Controls;
 using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
 
@@ -7,12 +8,13 @@ namespace TeacherAssistant.Pages {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<PageController>(this.ModuleToken.Id)
+            block.ExportModuleScope<PageController>()
                 .ImportProperty(controller => controller.ModuleToken)
                 .ImportProperty(controller => controller.ViewModel);
-            block.ExportModuleScope<PageControllerModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<PageControllerReducer>(this.ModuleToken.Id);
-            block.ExportModuleScope<PageControllerEffects>(this.ModuleToken.Id);
+            block.ExportModuleScope<PageControllerModel>();
+            block.ExportModuleScope<PageControllerReducer>();
+            block.ExportModuleScope<PageControllerEffects>();
+            block.ExportModuleScope<ModuleActivator>();
         }
     }
 }

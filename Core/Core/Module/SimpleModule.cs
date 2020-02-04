@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using Containers.Annotations;
 using Grace.DependencyInjection;
@@ -10,7 +11,7 @@ namespace TeacherAssistant.Core.Module {
     public interface IInitializable {
         void Initialize();
     }
-    
+
     public abstract class SimpleModule : IConfigurationModule, IEntryPoint {
         private readonly Type _entryType;
 
@@ -19,18 +20,17 @@ namespace TeacherAssistant.Core.Module {
         }
 
         public IExportLocatorScope Injector { get; set; }
-        public IModuleToken ModuleToken { get; set; }
- 
 
-        public virtual Control GetEntryComponent() {
-            return this.Injector?.Locate(_entryType) as Control
-                   ?? throw new ArgumentException("injector is not set!");
+
+        public virtual Control GetEntryComponent()
+        {
+            return this.Injector?.Locate(_entryType) as Control;
         }
 
         [CanBeNull]
         public virtual IModuleToken GetToken() {
             return this.Injector?.Locate<IModuleToken>();
-        }    
+        }
 
         public abstract void Configure(IExportRegistrationBlock registrationBlock);
     }

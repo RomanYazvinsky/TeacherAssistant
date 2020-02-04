@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Modules.MainModule;
 
 namespace TeacherAssistant {
     public class WindowPageHost : AbstractPageHost<Window> {
-        private readonly IModuleToken _token;
+        private readonly MainReducer _reducer;
 
         public override Window BuildContainer<TActivation>(TActivation activation, Control page) {
             var window = new Window {
@@ -13,14 +15,34 @@ namespace TeacherAssistant {
                 Content = page,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
+            window.KeyDown += (sender, args) =>
+            {
+                if (args.Key == Key.F11)
+                {
+                    _reducer.Dispatch(new SetFullscreenModeAction());
+                }
+            };
+            var isDeactivated = false;
 
-            void Handler(object sender, EventArgs args) {
+            void OuterDeactivationHandler(object sender, EventArgs args)
+            {
+                DeactivationHandler(null, null);
+            }
+            void DeactivationHandler(object sender, EventArgs args)
+            {
+                if (isDeactivated)
+                {
+                    return;
+                }
+                isDeactivated = true;
                 this.Pages.Remove(((Window) sender).Uid);
                 activation.Deactivate();
-                window.Closed -= Handler;
+                window.Closed -= DeactivationHandler;
+                activation.Deactivated -= OuterDeactivationHandler;
             }
 
-            window.Closed += Handler;
+            activation.Deactivated += OuterDeactivationHandler;
+            window.Closed += DeactivationHandler;
             window.Show();
             return window;
         }
@@ -30,8 +52,9 @@ namespace TeacherAssistant {
             this.Pages.Remove(id);
         }
 
-        public WindowPageHost(IModuleToken token, ModuleLoader loader) : base(loader) {
-            _token = token;
+        public WindowPageHost( ModuleActivator activator, MainReducer reducer) : base(activator)
+        {
+            _reducer = reducer;
         }
     }
 }

@@ -71,7 +71,7 @@ namespace TeacherAssistant.RegistrationPage {
             this.ShowStudent = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
                 var studentViewPageToken = new StudentViewPageToken("Student", selectedStudent);
-                tabPageHost.AddPage<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
+                tabPageHost.AddPageAsync<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
             });
             this.AddStudentNote = new CommandHandler(() => {
                 var selectedStudent = _selectedStudent;
@@ -79,7 +79,7 @@ namespace TeacherAssistant.RegistrationPage {
                     Student = selectedStudent
                 };
                 var noteFormToken = new NoteFormToken("Note", note);
-                windowPageHost.AddPage<NoteFormModule, NoteFormToken>(noteFormToken);
+                windowPageHost.AddPageAsync<NoteFormModule, NoteFormToken>(noteFormToken);
             });
             this.ToggleAllStudentTable = new ButtonConfig {
                 Command = new CommandHandler(() => this.AllStudentsMode = !this.AllStudentsMode),
@@ -150,7 +150,11 @@ namespace TeacherAssistant.RegistrationPage {
                                                 )
                                                 || data.SenderType.Equals(nameof(StudentEntity))),
                     Drop = async () => {
-                        var dragData = await mainReducer.Select(state => state.DragData).FirstAsync();
+                        var dragData = await mainReducer.Select(state => state.DragData).FirstOrDefaultAsync();
+                        if (dragData == null)
+                        {
+                            return;
+                        }
                         if (nameof(StudentLessonEntity).Equals(dragData.SenderType)) {
                             Register();
                         }
@@ -313,14 +317,7 @@ namespace TeacherAssistant.RegistrationPage {
 
         private List<ButtonConfig> GetControls() {
             var buttonConfigs = new List<ButtonConfig> {
-                GetRefreshButtonConfig(),
-                new ButtonConfig {
-                    Command = new CommandHandler(() => {
-                        
-                    }),
-                    
-                    Text = "Занятие 1"
-                }
+                GetRefreshButtonConfig()
             };
             buttonConfigs.Add(new ButtonConfig {
                 Command = new CommandHandler(() => {
@@ -330,8 +327,9 @@ namespace TeacherAssistant.RegistrationPage {
                           Localization["common.lesson.type." + this.Lesson.LessonType] + " " +
                           this.Lesson.Date?.ToString("dd.MM");
                     var token = new TableLessonViewToken(title, this.Lesson);
-                    _tabPageHost.AddPage<TableLessonViewModule, TableLessonViewToken>(token);
+                    _tabPageHost.AddPageAsync<TableLessonViewModule, TableLessonViewToken>(token);
                 }),
+                Text = "Занятие 1"
             });
             return buttonConfigs;
         }

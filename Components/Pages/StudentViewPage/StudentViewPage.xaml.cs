@@ -21,11 +21,10 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StudentViewPageModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<StudentViewPage>(this.ModuleToken.Id)
+            block.ExportModuleScope<StudentViewPageModel>();
+            block.ExportModuleScope<StudentViewPage>()
                 .ImportProperty(v => v.ModuleToken)
-                .ImportProperty(v => v.ViewModel)
-                ;
+                .ImportProperty(v => v.ViewModel);
         }
     }
 

@@ -47,7 +47,7 @@ namespace TeacherAssistant.StudentTable {
                     }
 
                     var studentEntity = ((StudentViewModel) selectedItem).Student;
-                    pageHost.AddPage(new StudentViewPageToken(studentEntity.LastName, studentEntity));
+                    pageHost.AddPageAsync(new StudentViewPageToken(studentEntity.LastName, studentEntity));
                 }
             );
             this.DeleteStudent = new CommandHandler

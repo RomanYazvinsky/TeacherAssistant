@@ -3,11 +3,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Containers.Annotations;
+using Grace.DependencyInjection;
 using Model.Models;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class StudentLessonView : INotifyPropertyChanged {
+    public class StudentLessonViewModel : INotifyPropertyChanged {
         private int _missedLessons = 0;
 
         private Dictionary<string, StudentLessonMarkModel> _lessonToLessonMark =
@@ -23,6 +24,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 OnPropertyChanged();
             }
         }
+        public IExportLocatorScope ServiceLocator { get; }
 
         public Dictionary<string, StudentLessonMarkModel> LessonToLessonMark {
             get => _lessonToLessonMark;
@@ -35,8 +37,9 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         public StudentEntity Model { get; set; }
 
-        public StudentLessonView(StudentEntity student, Dictionary<string, LessonEntity> lessonModels) {
+        public StudentLessonViewModel(StudentEntity student, Dictionary<string, LessonEntity> lessonModels, IExportLocatorScope serviceLocator) {
             this.Model = student;
+            ServiceLocator = serviceLocator;
             this.FullName = student.LastName + " " + student.FirstName;
             foreach (var keyValuePair in lessonModels) {
                 var studentLessonModel =

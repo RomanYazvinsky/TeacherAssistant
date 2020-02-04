@@ -85,7 +85,7 @@ namespace TeacherAssistant {
                 }
             });
             reducer.Select(state => state.FullscreenMode)
-                .Subscribe(isFullscreen => this.IsHeaderVisible = isFullscreen);
+                .Subscribe(isFullscreen => this.IsHeaderVisible = !isFullscreen);
             host.WhenTabAdded.Subscribe(tab => {
                 this.Tabs.Add(tab);
                 this.ActiveTab = tab;

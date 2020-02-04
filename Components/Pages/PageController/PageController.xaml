@@ -5,9 +5,13 @@
           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
           xmlns:local="clr-namespace:TeacherAssistant.Pages"
           xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+          xmlns:pages="clr-namespace:TeacherAssistant.Pages"
           mc:Ignorable="d"
           d:DesignHeight="450" d:DesignWidth="800"
           d:DataContext="{d:DesignInstance local:PageControllerModel}">
+    <pages:PageControllerBase.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    </pages:PageControllerBase.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -15,7 +19,13 @@
             <RowDefinition Height="25" />
             <RowDefinition Height="0" />
         </Grid.RowDefinitions>
-        <DockPanel LastChildFill="False" Name="Menu" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+        <DockPanel LastChildFill="False"
+                   Name="Menu"
+                   Grid.Row="0"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Top"
+                   Visibility="{Binding Path=MenuVisibility, Converter={StaticResource BooleanToVisibility}}"
+                   >
             <Menu DockPanel.Dock="Left" Background="White">
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />

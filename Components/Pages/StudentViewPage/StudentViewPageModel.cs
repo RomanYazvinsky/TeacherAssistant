@@ -53,7 +53,7 @@ namespace TeacherAssistant.StudentViewPage {
                         return;
                     }
 
-                    host.AddPage(new RegistrationPageToken("Регистрация", selectedExternalLesson.Lesson));
+                    host.AddPageAsync(new RegistrationPageToken("Регистрация", selectedExternalLesson.Lesson));
                 })
             };
             this.WhenAnyValue(model => model.Student)
@@ -313,7 +313,7 @@ namespace TeacherAssistant.StudentViewPage {
                 GetRefreshButtonConfig(),
                 new ButtonConfig {
                     Command = new CommandHandler(() => {
-                        _host.AddPage(new StudentFormToken("Редактирование " + this.Student.LastName, this.Student));
+                        _host.AddPageAsync(new StudentFormToken("Редактирование " + this.Student.LastName, this.Student));
                     }),
                     Text = "Редактировать"
                 }

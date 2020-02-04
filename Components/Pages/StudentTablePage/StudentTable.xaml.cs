@@ -13,8 +13,8 @@ namespace TeacherAssistant.StudentTable {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StudentTableModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<StudentTable>(this.ModuleToken.Id)
+            block.ExportModuleScope<StudentTableModel>();
+            block.ExportModuleScope<StudentTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;

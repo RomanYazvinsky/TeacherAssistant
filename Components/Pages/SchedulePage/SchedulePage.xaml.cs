@@ -15,11 +15,11 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<SchedulePage>(this.ModuleToken.Id)
+            block.ExportModuleScope<SchedulePage>()
                 .ImportProperty(page => page.ModuleToken)
                 .ImportProperty(page => page.ViewModel)
                 ;
-            block.ExportModuleScope<SchedulePageModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<SchedulePageModel>();
         }
     }
 

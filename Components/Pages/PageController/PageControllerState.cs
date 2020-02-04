@@ -36,20 +36,22 @@ namespace TeacherAssistant.Pages {
     }
 
     public class PageControllerEffects : SimpleEffects<GlobalState> {
-        public PageControllerEffects(PageControllerReducer reducer, SimpleEffectsMiddleware<GlobalState> effects) :
-            base(effects) {
+        public PageControllerEffects(PageControllerReducer reducer, SimpleEffectsMiddleware<GlobalState> effects, Storage storage) :
+            base(effects, storage) {
             CreateEffect(actions =>
                 actions
                     .OfType<RegisterControlsAction>()
                     .WithLatestFrom(reducer.Select(state => state.Controls), AbstractModel.ToTuple)
                     .Select(tuple => {
                         var (action, currentConfig) = tuple;
-            
+
+                        var config = currentConfig;
+
                         void Handle(object _, object __) {
-                            currentConfig.Remove(action.Token.Id);
+                            config.Remove(action.Token.Id);
                             action.Token.Deactivated -= Handle;
                         }
-            
+
                         action.Token.Deactivated += Handle;
                         currentConfig = currentConfig.SetItem(action.Token.Id, action.Configs);
                         return reducer.SetActionId(new SetControlsAction(currentConfig));

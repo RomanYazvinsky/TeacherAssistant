@@ -1,13 +1,14 @@
-﻿using TeacherAssistant.Core.Module;
+﻿using System.Threading.Tasks;
+using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.Components {
 
     public interface IPageHost {
-        TModule AddPage<TModule, TActivation>(TActivation activation)
+        Task<TModule> AddPageAsync<TModule, TActivation>(TActivation activation)
             where TActivation : PageModuleToken<TModule>
             where TModule : SimpleModule;
 
-        SimpleModule AddPage<TActivation>(TActivation activation)
+        Task<SimpleModule> AddPageAsync<TActivation>(TActivation activation)
             where TActivation : IModuleToken;
 
         void ClosePage(string id);

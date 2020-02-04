@@ -107,7 +107,7 @@
     <Compile Include="Core\Effects\SimpleEffects.cs" />
     <Compile Include="Core\Effects\SimpleEffectsMiddleware.cs" />
     <Compile Include="Core\Module\IEntryPoint.cs" />
-    <Compile Include="Core\Module\ModuleLoader.cs" />
+    <Compile Include="Core\Module\ModuleActivator.cs" />
     <Compile Include="Core\Module\ModuleToken.cs" />
     <Compile Include="Core\Module\SimpleModule.cs" />
     <Compile Include="Core\Reducers\AbstractReducer.cs" />

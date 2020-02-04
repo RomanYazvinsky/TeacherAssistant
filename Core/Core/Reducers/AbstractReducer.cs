@@ -27,7 +27,6 @@ namespace TeacherAssistant.Core.Reducers {
             InitializeState();
         }
 
-
         protected GlobalState Set<TMember>(Expression<Func<TState, TMember>> expression,
             ImmutableDictionary<string, object> state,
             TMember value) {
@@ -72,7 +71,8 @@ namespace TeacherAssistant.Core.Reducers {
             var localState = new TState();
             var state = Storage.Store.GetState();
             state = localState.GetType().GetProperties().Aggregate(state,
-                (current, propertyInfo) => current.SetItem(propertyInfo.Name, propertyInfo.GetValue(localState)));
+                (current, propertyInfo)
+                    => current.SetItem(_id + propertyInfo.Name, propertyInfo.GetValue(localState)));
             Dispatch(new Storage.SetupStateAction(state));
         }
 

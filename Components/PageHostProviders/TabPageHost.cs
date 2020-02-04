@@ -9,7 +9,7 @@ namespace TeacherAssistant {
         private readonly Subject<TabItem> _tabRemoved = new Subject<TabItem>();
 
 
-        public TabPageHost(ModuleLoader loader) : base(loader) {
+        public TabPageHost(ModuleActivator activator) : base(activator) {
         }
 
         public override void ClosePage(string id) {

@@ -18,11 +18,11 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
         public override void Configure(IExportRegistrationBlock registrationBlock) {
-            registrationBlock.ExportModuleScope<GroupForm>(this.ModuleToken.Id)
+            registrationBlock.ExportModuleScope<GroupForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;
-            registrationBlock.ExportModuleScope<GroupFormModel>(this.ModuleToken.Id);
+            registrationBlock.ExportModuleScope<GroupFormModel>();
         }
     }
 

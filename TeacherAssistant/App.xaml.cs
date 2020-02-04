@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
+using System.Windows.Threading;
 using Grace.DependencyInjection;
 using Grace.DependencyInjection.Lifestyle;
 using Model;
@@ -17,68 +18,49 @@ using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Properties;
 using ToastNotifications;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant
+{
     using GlobalState = ImmutableDictionary<string, object>;
 
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application {
+    public partial class App : Application
+    {
         private IInjectionScope _container;
 
-        protected override void OnStartup(StartupEventArgs e) {
+        protected override void OnStartup(StartupEventArgs e)
+        {
             base.OnStartup(e);
             ConfigureContainer();
-            // ConfigureServices();
+            LoadDatabase();
         }
 
-        private void ConfigureContainer() {
-            var containerBuilder = new DependencyInjectionContainer();
-            _container = containerBuilder;
-            _container.Configure(block => {
-                block.Export<ModuleLoader>().Lifestyle.SingletonPerNamedScope("RootScope");
-                block.ExportModuleScope<Storage>("RootScope");
-                block.ExportModuleScope<SimpleEffectsMiddleware<GlobalState>>("RootScope");
+        private async void ConfigureContainer()
+        {
+            var containerBuilder = new DependencyInjectionContainer(configuration =>
+            {
+                configuration.AutoRegisterUnknown = false;
+                configuration.Behaviors.AllowInjectionScopeLocation = true;
+                configuration.SingletonPerScopeShareContext = true;
             });
-            var rootModuleLoader = _container.Locate<ModuleLoader>();
-            var mainModuleToken = new MainModuleToken("TeacherAssistant") {ExitOnClose = true};
-            var mainModule = rootModuleLoader.Activate(mainModuleToken);
+            _container = containerBuilder;
+            _container.Configure(block =>
+            {
+                block.ExportModuleScope<ModuleActivator>();
+            });
+            var rootModuleLoader = _container.Locate<ModuleActivator>();
+            var mainModuleToken = new MainModuleToken("TeacherAssistant");
+            var mainModule = await rootModuleLoader.ActivateAsync(mainModuleToken);
             mainModule.GetEntryComponent();
         }
 
-
-        private void ConfigureServices() {
+        private void LoadDatabase()
+        {
             var defaultDatabasePath = Settings.Default.DatabasePath;
-            if (File.Exists(defaultDatabasePath)) {
+            if (File.Exists(defaultDatabasePath))
+            {
                 LocalDbContext.Reconnect(defaultDatabasePath);
-            }
-
-            var generalDbContext = LocalDbContext.Instance;
-            generalDbContext.ChangeListener<AlarmEntity>().ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(_ => { StartTimer(); });
-            StartTimer();
-        }
-
-        private void StartTimer() {
-            var generalDbContext = LocalDbContext.Instance;
-            var lessonTimerService = _container.Locate<LessonTimerService>();
-            var alarms = generalDbContext.Alarms
-                .Where(model => model._Active > 0 && model.Timer.HasValue && model._Active == 1)
-                .ToList()
-                .GroupBy(entity => entity.Timer.Value) // if one or more in the same time - select only first
-                .Select(entities => entities.FirstOrDefault())
-                .ToDictionary(
-                    alarm => TimeSpan.FromMinutes(alarm.Timer.Value),
-                    model => new Action<LessonEntity>(lessonModel => SoundUtil.PlayAlarm(model))
-                );
-
-            lessonTimerService.Init(
-                generalDbContext.Lessons.Where(model => model._Date != null).ToList(),
-                alarms
-            );
-            var dateTime = lessonTimerService.Start();
-            if (dateTime != null) {
-                _container.Locate<Notifier>().ShowTimerNotification(dateTime.Value);
             }
         }
     }

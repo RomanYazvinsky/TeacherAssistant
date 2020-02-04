@@ -1,16 +1,21 @@
 ﻿using Grace.DependencyInjection;
 using Model.Models;
+using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormToken : PageModuleToken<LessonFormModule> {
-        public LessonFormToken(string title, LessonEntity lesson) :
-            base(title) {
+        public LessonFormToken(string title, LessonEntity lesson, IPageHost pageHost) :
+            base(title)
+        {
             this.Lesson = lesson;
+            PageHost = pageHost;
         }
 
         public LessonEntity Lesson { get; }
+
+        public IPageHost PageHost { get; }
     }
 
     public class LessonFormModule : SimpleModule {
@@ -18,10 +23,10 @@ namespace TeacherAssistant.Pages.LessonForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<LessonForm>(this.ModuleToken.Id)
+            block.ExportModuleScope<LessonForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
-            block.ExportModuleScope<LessonFormModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<LessonFormModel>();
         }
     }
 

@@ -88,11 +88,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 (
                     () => {
                         var lesson = this.SelectedLesson.Lesson;
-                        var lessonFormModuleToken = new LessonFormToken("Lesson", lesson);
-                        host.AddPage<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
-                        // var newId = this._pageService.OpenPage
-                        // ("Modal", new PageProperties<LessonForm>());
-                        // StoreManager.Publish(this.SelectedLesson.Lesson, newId, "LessonChange");
+                        var lessonFormModuleToken = new LessonFormToken("Lesson", lesson, _host);
+                        host.AddPageAsync<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
                     }
                 )
             };
@@ -228,7 +225,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
 
         public void OpenRegistration() {
-            _host.AddPage(new RegistrationPageToken("Регистрация", this.SelectedLesson.Lesson));
+            _host.AddPageAsync(new RegistrationPageToken("Регистрация", this.SelectedLesson.Lesson));
         }
     }
 }

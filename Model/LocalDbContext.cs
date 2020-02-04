@@ -40,7 +40,8 @@ namespace TeacherAssistant.Dao {
 
         public static readonly string FixDbScript = @"
         delete from STUDENT_LESSON where not exists (select id from STUDENT where id == STUDENT_LESSON.student_id);
-        delete from STUDENT_LESSON where not exists (select id from LESSON where id == STUDENT_LESSON.lesson_id);";
+        delete from STUDENT_LESSON where not exists (select id from LESSON where id == STUDENT_LESSON.lesson_id);
+        ";
 
         private LocalDbContext(string dataSource, DbConnection connection) : base
         (
@@ -126,9 +127,16 @@ namespace TeacherAssistant.Dao {
                     ForeignKeys = true
                 }
                 .ConnectionString;
-            _instance = new LocalDbContext(dataSource, dbConnection);
-            //    Init();
-            _instance.TrySetAudioDiscriminator();
+            try
+            {
+                _instance = new LocalDbContext(dataSource, dbConnection);
+                _instance.Database.Exists();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
             // TODO remove event from singleton
             DatabaseChanged?.Invoke(_instance, dataSource);
         }

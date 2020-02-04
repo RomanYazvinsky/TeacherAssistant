@@ -17,11 +17,11 @@ namespace TeacherAssistant.Forms.StreamForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StreamForm>(this.ModuleToken.Id)
+            block.ExportModuleScope<StreamForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;
-            block.ExportModuleScope<StreamFormModel>(this.ModuleToken.Id);
+            block.ExportModuleScope<StreamFormModel>();
         }
     }
 

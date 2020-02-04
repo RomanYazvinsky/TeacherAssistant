@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using Redux;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Reducers;
+using TeacherAssistant.State;
 
 namespace TeacherAssistant.Core.State {
     using GlobalState = ImmutableDictionary<string, object>;
@@ -25,11 +26,13 @@ namespace TeacherAssistant.Core.State {
                         return state.SetItem(setValueAction.PropertyName, setValueAction.Value);
                     }
 
-                    if (action is ModuleScopeAction moduleScopeAction && moduleScopeAction.Id != null) {
-                        return _reducers.Aggregate(state,
-                            (objects, pair) => moduleScopeAction.Id.Equals(pair.Key)
-                                ? pair.Value.Reduce(state, action)
-                                : state);
+                    if (action is ModuleScopeAction moduleScopeAction && moduleScopeAction.Id != null)
+                    {
+                        var immutableDictionary = _reducers.Aggregate(state,
+                            (tempState, pair) => moduleScopeAction.Id.Equals(pair.Key)
+                                ? pair.Value.Reduce(tempState, action)
+                                : tempState);
+                        return immutableDictionary;
                     }
 
                     if (action is SetupStateAction setupState) {
@@ -39,15 +42,14 @@ namespace TeacherAssistant.Core.State {
                     return _reducers.Aggregate(state, (objects, pair) => pair.Value.Reduce(state, action));
                 },
                 new Dictionary<string, object> {
-                    {"FullscreenMode", false},
                 }.ToImmutableDictionary(),
                 effectsMiddleware.RegisterMiddleware());
         }
 
         public Func<IObservable<TMember>> CreateSelector<TMember>(string key) {
             return () => this.Store
-                .DistinctUntilChanged(c => c[key])
-                .Select(c => c[key]).Cast<TMember>();
+                .DistinctUntilChanged(c => c.GetOrDefault(key))
+                .Select(c => c.GetOrDefault(key)).Cast<TMember>();
         }
 
 

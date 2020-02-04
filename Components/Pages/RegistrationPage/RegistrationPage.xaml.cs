@@ -24,8 +24,8 @@ namespace TeacherAssistant.RegistrationPage {
 
         public override void Configure(IExportRegistrationBlock block) {
             block.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
-            block.ExportModuleScope<RegistrationPageModel>(this.ModuleToken.Id);
-            block.ExportModuleScope<RegistrationPage>(this.ModuleToken.Id)
+            block.ExportModuleScope<RegistrationPageModel>();
+            block.ExportModuleScope<RegistrationPage>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

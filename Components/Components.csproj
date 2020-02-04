@@ -192,6 +192,9 @@
     </Compile>
     <Compile Include="BooleanToVisibilityConverter.cs" />
     <Compile Include="Components\DataGridAsyncTemplateColumn.cs" />
+    <Compile Include="Components\Notifications\TimerNotification.xaml.cs">
+      <DependentUpon>DynamicNotification.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Components\TableFilter\TableFilter.xaml.cs">
       <DependentUpon>TableFilter.xaml</DependentUpon>
     </Compile>
@@ -221,7 +224,7 @@
       <DependentUpon>StudentNameCell.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonMarkModel.cs" />
-    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonView.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonViewModel.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPage.xaml.cs">
       <DependentUpon>TableLessonViewPage.xaml</DependentUpon>
     </Compile>
@@ -299,6 +302,7 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AudioPlayerNotification.xaml" />
+    <Page Include="Components\Notifications\DynamicNotification.xaml" />
     <Page Include="Components\TableFilter\TableFilter.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -395,9 +399,6 @@
       <Project>{63c8d7d0-e63b-4424-bf20-3376048a6d0b}</Project>
       <Name>Services</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Pages\CommonStudentLessonViewPage\HeaderTemplates" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.6.0.0\build\Fody.targets" Condition="Exists('..\packages\Fody.6.0.0\build\Fody.targets')" />

@@ -5,6 +5,5 @@ namespace TeacherAssistant.Modules.MainModule {
         public MainModuleToken(string title) : base(title) {
         }
 
-        public bool ExitOnClose { get; set; } = false;
     }
 }
