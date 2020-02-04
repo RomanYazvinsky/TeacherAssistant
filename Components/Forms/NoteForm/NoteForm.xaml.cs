@@ -32,7 +32,7 @@ namespace TeacherAssistant.Forms.NoteForm {
     /// Interaction logic for LessonForm.xaml
     /// </summary>
     public partial class NoteForm : NoteFormBase {
-        public NoteForm(string id) {
+        public NoteForm() {
             InitializeComponent();
         }
     }

@@ -5,9 +5,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage"
-    xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
     xmlns:label="clr-namespace:TeacherAssistant.Label"
-    xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
+    xmlns:fa5="http://schemas.fontawesome.com/icons/"
     mc:Ignorable="d"
     d:DesignHeight="720" d:DesignWidth="1280"
     d:DataContext="{d:DesignInstance local:SchedulePageModel}"
@@ -26,6 +25,7 @@
                 </Style>
             </Style.Resources>
         </Style>
+        <BooleanToVisibilityConverter x:Key="b2v" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -34,6 +34,7 @@
         </Grid.RowDefinitions>
         <ListView Grid.Row="1" Name="LessonList" Margin="10" ItemsSource="{Binding Path=Lessons}"
                   SelectedItem="{Binding Path=SelectedLesson}"
+                  FontSize="14"
                   MouseDoubleClick="OnSelectItem">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -51,6 +52,7 @@
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.View>
@@ -61,20 +63,12 @@
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Дата" Tag="Lesson.Date" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="100">
+                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Date}">
                         <GridViewColumn.Header>
-                            <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Время"
+                            <GridViewColumnHeader HorizontalContentAlignment="Center"
+                                                  Content="Время"
                                                   Tag="Lesson.Schedule" />
                         </GridViewColumn.Header>
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate DataType="models:LessonEntity">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=hh\\:mm}" />
-                                    <TextBlock Text="-" />
-                                    <TextBlock Text="{Binding Path=Lesson.Schedule.End, StringFormat=hh\\:mm}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Lesson.Stream.Name}">
                         <GridViewColumn.Header>
@@ -88,12 +82,56 @@
                                                   Tag="GroupsNames" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="300"
-                                    DisplayMemberBinding="{Binding Path=LocalizedType}">
+                    <GridViewColumn Width="Auto">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Тип"
                                                   Tag="LessonType.name" />
                         </GridViewColumn.Header>
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="20" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding LocalizedType}" />
+                                    <fa5:FontAwesome
+                                        Grid.Column="1"
+                                        Icon="Solid_Info"
+                                        Foreground="{Binding IconColor}"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center">
+                                        <fa5:FontAwesome.ToolTip>
+                                            <ToolTip
+                                                Visibility="{Binding TooltipVisibility, Converter={StaticResource b2v}}">
+                                                <ItemsControl ItemsSource="{Binding Lesson.Notes}"
+                                                              Name="LessonNotesTooltip">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid HorizontalAlignment="Stretch">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    Grid.Row="1"
+                                                                    Text="{Binding Description}"
+                                                                    Margin="0, 0, 5, 0" />
+                                                                <TextBlock
+                                                                    Grid.Column="1"
+                                                                    Grid.Row="1"
+                                                                    Text="{Binding CreationDate, StringFormat=dd.MM.yyyy}" />
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </ToolTip>
+                                        </fa5:FontAwesome.ToolTip>
+                                    </fa5:FontAwesome>
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                 </GridView>
             </ListView.View>

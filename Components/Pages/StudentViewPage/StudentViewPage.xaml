@@ -152,7 +152,7 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn
-                                    DisplayMemberBinding="{Binding Path=Date, StringFormat=yyyy-MM-dd HH:mm}">
+                                    DisplayMemberBinding="{Binding Path=CreationDate, StringFormat=yyyy-MM-dd HH:mm}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader
                                             Content="{Binding Path=Localization[page.student.view.student.notes.date]}" />
@@ -176,7 +176,7 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn
-                                    DisplayMemberBinding="{Binding Path=Date, StringFormat=yyyy-MM-dd HH:mm}">
+                                    DisplayMemberBinding="{Binding Path=CreationDate, StringFormat=yyyy-MM-dd HH:mm}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader
                                             Content="{Binding Path=Localization[page.student.view.student.notes.date]}" />

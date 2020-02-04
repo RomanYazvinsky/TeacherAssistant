@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
+using TeacherAssistant.Annotations;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 
@@ -36,7 +37,7 @@ namespace Model.Models {
 
         [Column("SCHEDULE_ID")] public long? _ScheduleId { get; set; }
         public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
-        public virtual ICollection<LessonNote> Notes { get; set; } = new List<LessonNote>();
+        [CanBeNull] public virtual ICollection<LessonNote> Notes { get; set; }
 
         [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleEntity Schedule { get; set; }
         [Column("group_id")] public long? _GroupId { get; set; }
@@ -122,6 +123,7 @@ namespace Model.Models {
             this.Schedule = trackable.Schedule;
             this.Stream = trackable.Stream;
             this._Order = trackable._Order;
+            this.Notes = trackable.Notes;
         }
     }
 }

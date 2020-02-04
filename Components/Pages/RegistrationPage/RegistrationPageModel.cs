@@ -32,6 +32,7 @@ using TeacherAssistant.StudentViewPage;
 namespace TeacherAssistant.RegistrationPage {
     public class RegistrationPageModel : AbstractModel {
         private readonly TabPageHost _tabPageHost;
+        private readonly WindowPageHost _windowPageHost;
         private readonly LocalDbContext _db;
         private static readonly string LocalizationKey = "page.registration";
         private StudentCardService StudentCardService { get; }
@@ -53,6 +54,7 @@ namespace TeacherAssistant.RegistrationPage {
             PageControllerReducer reducer
         ) {
             _tabPageHost = tabPageHost;
+            _windowPageHost = windowPageHost;
             _db = db;
             this.StudentCardService = studentCardService;
             this.PhotoService = photoService;
@@ -330,6 +332,15 @@ namespace TeacherAssistant.RegistrationPage {
                     _tabPageHost.AddPageAsync<TableLessonViewModule, TableLessonViewToken>(token);
                 }),
                 Text = "Занятие 1"
+            });
+            buttonConfigs.Add(new ButtonConfig {
+                Command = new CommandHandler(() => {
+                    _windowPageHost.AddPageAsync(new NoteFormToken("Заметка", new LessonNote {
+                        Lesson = this.Lesson,
+                        EntityId = this.Lesson.Id
+                    }));
+                }),
+                Text = "Добавить заметку"
             });
             return buttonConfigs;
         }

@@ -29,7 +29,7 @@ namespace Model.Models
         [Column("create_date")] public string _CreationDate { get; set; }
 
         [NotMapped]
-        public DateTime Date
+        public DateTime CreationDate
         {
             get
             {

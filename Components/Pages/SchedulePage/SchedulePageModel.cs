@@ -7,12 +7,14 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using Containers;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.State;
@@ -20,12 +22,18 @@ using TeacherAssistant.State;
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     public class LessonScheduleView {
         public LessonEntity Lesson { get; }
+        
+        public string Date { get; }
 
         public string GroupNames => this.Lesson._GroupId == null
             ? string.Join(", ", this.Lesson.Stream.Groups.Select(model => model.Name))
             : this.Lesson.Group.Name;
 
         public string LocalizedType { get; }
+        
+        public Brush IconColor { get; }
+        
+        public bool TooltipVisibility { get; }
 
         public SchedulePageModel Model { get; }
 
@@ -33,6 +41,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             this.Lesson = entity;
             this.Model = sm;
             this.LocalizedType = AbstractModel.Localization[$"common.lesson.type.{entity.LessonType}"];
+            this.Date = $"{entity.Schedule?.Begin:hh\\:mm}-{entity.Schedule?.End:hh\\:mm}";
+            this.IconColor = this.Lesson.Checked ? Brushes.Black : Brushes.Red;
+            this.TooltipVisibility = entity.Notes?.Count > 0;
         }
     }
 
@@ -58,6 +69,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
 
     public class SchedulePageModel : AbstractModel {
         private readonly TabPageHost _host;
+        private readonly LocalDbContext _context;
         private const string LocalizationKey = "page.schedule";
 
         public static readonly string SelectedLessonKey = "SelectedLesson";
@@ -76,6 +88,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
 
         public SchedulePageModel(TabPageHost host, LocalDbContext context) {
             _host = host;
+            _context = context;
             this.DeleteMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler
                 (
@@ -98,7 +111,11 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             (
                 () => {
                     this.Lessons.Clear();
-                    this.Lessons.AddRange(BuildQuery().Select(model => new LessonScheduleView(this, model)).ToList());
+                    this.Lessons.AddRange(
+                        BuildQuery()
+                        .Select(model => new LessonScheduleView(this, model))
+                        .ToList()
+                    );
                 }
             );
             this.WhenAnyValue(model => model.SelectedStream)
@@ -189,10 +206,11 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         ///     SQLite EF6 provider does not support TruncateTime and other functions.
         /// </summary>
         private IEnumerable<LessonEntity> BuildQuery() {
-            var query = LocalDbContext.Instance.Lessons
+            var query = _context.Lessons
                 .Where(model => model._Date != null)
                 .Include(lesson => lesson.Schedule)
                 .Include(lesson => lesson.Group.Streams)
+                .Include(lesson => lesson.Notes)
                 .Include(lesson => lesson.Stream.Groups);
             if (this.SelectedStream != null && this.SelectedStream.Id != -1)
                 query = query.Where(model => model.Stream.Id == this.SelectedStream.Id);
