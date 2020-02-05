@@ -15,5 +15,7 @@ namespace TeacherAssistant.Dao {
         }
 
         public abstract void Apply(T trackable);
+
+        public abstract T Clone();
     }
 }

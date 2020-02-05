@@ -121,8 +121,6 @@
     <Compile Include="DropDownItem.cs" />
     <Compile Include="LocalizationContainer.cs" />
     <Compile Include="NumericPropertiesContainer.cs" />
-    <Compile Include="ObservableRangeCollection\ObservableRangeCollection.cs" />
-    <Compile Include="ObservableRangeCollection\WpfObservableRangeCollection.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SafeDictionary.cs" />

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Data;
 using Containers;
+using DynamicData;
 using Microsoft.Win32;
 using Model;
 using TeacherAssistant.ComponentsImpl;
@@ -20,8 +21,8 @@ namespace TeacherAssistant.Pages.SettingsPage {
             });
         }
 
-        public ObservableRangeCollection<AlarmSettingsViewModel> Alarms { get; set; } =
-            new WpfObservableRangeCollection<AlarmSettingsViewModel>();
+        public ObservableCollection<AlarmSettingsViewModel> Alarms { get; set; } =
+            new ObservableCollection<AlarmSettingsViewModel>();
 
         protected override string GetLocalizationKey() {
             return "settings";

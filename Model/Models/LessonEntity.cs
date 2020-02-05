@@ -110,7 +110,7 @@ namespace Model.Models {
             return this.Stream?.GetLessonCountByType(this.LessonType) ?? 0;
         }
 
-        public override void Apply(LessonEntity trackable) {
+        public sealed override void Apply(LessonEntity trackable) {
             this.Id = trackable.Id;
             this.Group = trackable.Group;
             this.Checked = trackable.Checked;
@@ -124,6 +124,11 @@ namespace Model.Models {
             this.Stream = trackable.Stream;
             this._Order = trackable._Order;
             this.Notes = trackable.Notes;
+        }
+
+        public override LessonEntity Clone()
+        {
+            return new LessonEntity(this);
         }
     }
 }

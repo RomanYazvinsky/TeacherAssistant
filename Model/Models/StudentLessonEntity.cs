@@ -12,7 +12,15 @@ namespace Model.Models
     [Table("STUDENT_LESSON")]
     public class StudentLessonEntity: Trackable<StudentLessonEntity>, IStudentViewModel
     {
+        public StudentLessonEntity()
+        {
 
+        }
+
+        public StudentLessonEntity(StudentLessonEntity entity)
+        {
+            Apply(entity);
+        }
         [Key] [Column("id")] public long Id { get; set; }
         [Column("student_id")]
         public long _StudentId { get; set; }
@@ -61,7 +69,12 @@ namespace Model.Models
         }
 
         [NotMapped] public bool IsLessonMissed => !this._Registered.HasValue || this._Registered.Value == 0;
-        public override void Apply(StudentLessonEntity trackable) {
+        public sealed override void Apply(StudentLessonEntity trackable) {
+        }
+
+        public override StudentLessonEntity Clone()
+        {
+            return new StudentLessonEntity(this);
         }
     }
 }

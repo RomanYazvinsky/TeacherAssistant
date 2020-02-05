@@ -118,7 +118,7 @@ namespace Model.Models {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public override void Apply(GroupEntity entity) {
+        public sealed override void Apply(GroupEntity entity) {
             this.Name = entity.Name;
             this.Chief = entity.Chief;
             this.Department = entity.Department;
@@ -129,6 +129,11 @@ namespace Model.Models {
             this.Students = entity.Students;
             this.Streams = entity.Streams;
             this.Id = entity.Id;
+        }
+
+        public override GroupEntity Clone()
+        {
+            return new GroupEntity(this);
         }
     }
 }

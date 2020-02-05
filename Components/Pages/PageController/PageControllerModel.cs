@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.Tabs;
@@ -143,8 +144,8 @@ namespace TeacherAssistant.Pages
         public CommandHandler OpenAddGroupForm { get; set; }
         [Reactive] public bool MenuVisibility { get; set; }
 
-        public ObservableRangeCollection<MenuItem> CurrentControls { get; set; } =
-            new WpfObservableRangeCollection<MenuItem>();
+        public ObservableCollection<MenuItem> CurrentControls { get; set; } =
+            new ObservableCollection<MenuItem>();
 
         private void SelectDatabase_Click()
         {

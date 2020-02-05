@@ -112,7 +112,7 @@ namespace Model.Models {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public override void Apply(StudentEntity entity) {
+        public sealed override void Apply(StudentEntity entity) {
             this.Id = entity.Id;
             this.CardUid = entity.CardUid;
             this.FirstName = entity.FirstName;
@@ -123,6 +123,11 @@ namespace Model.Models {
             this.Groups = entity.Groups;
             this.StudentLessons = entity.StudentLessons;
            // this.Notes = model.Notes;
+        }
+
+        public override StudentEntity Clone()
+        {
+            return new StudentEntity(this);
         }
 
 

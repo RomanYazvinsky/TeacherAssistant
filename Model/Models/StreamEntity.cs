@@ -154,7 +154,7 @@ namespace Model.Models {
             }
         }
 
-        public override void Apply(StreamEntity trackable) {
+        public sealed override void Apply(StreamEntity trackable) {
             this.Id = trackable.Id;
             this.Name = trackable.Name;
             this.LabCount = trackable.LabCount;
@@ -167,6 +167,11 @@ namespace Model.Models {
             this.Description = trackable.Description;
             this._CreationDate = trackable._CreationDate;
             this._ExpirationDate = trackable._ExpirationDate;
+        }
+
+        public override StreamEntity Clone()
+        {
+            return new StreamEntity(this);
         }
     }
 }

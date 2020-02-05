@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using Containers;
+using DynamicData;
 using TeacherAssistant.ComponentsImpl;
 
 namespace TeacherAssistant.Components.TableFilter {
@@ -27,10 +28,10 @@ namespace TeacherAssistant.Components.TableFilter {
 
     public class TableConfig {
         public DragConfig DragConfig { get; set; }
-        public ObservableRangeCollection<object> TableItems { get; set; } = new WpfObservableRangeCollection<object>();
+        public ObservableCollection<object> TableItems { get; set; } = new ObservableCollection<object>();
 
-        public ObservableRangeCollection<object> SelectedItems { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        public ObservableCollection<object> SelectedItems { get; set; } =
+            new ObservableCollection<object>();
 
         public BehaviorSubject<object> SelectedItem { get; set; } = new BehaviorSubject<object>(null);
         public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection>();

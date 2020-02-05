@@ -206,10 +206,10 @@
       <DependentUpon>GroupForm.xaml</DependentUpon>
     </Compile>
     <Compile Include="Forms\GroupForm\GroupFormModel.cs" />
-    <Compile Include="Forms\NoteForm\NoteForm.xaml.cs">
-      <DependentUpon>NoteForm.xaml</DependentUpon>
+    <Compile Include="Forms\NoteForm\NoteListForm.xaml.cs">
+      <DependentUpon>NoteListForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Forms\NoteForm\NoteFormModel.cs" />
+    <Compile Include="Forms\NoteForm\NoteListFormModel.cs" />
     <Compile Include="Forms\StreamForm\StreamForm.xaml.cs">
       <DependentUpon>StreamForm.xaml</DependentUpon>
     </Compile>
@@ -295,6 +295,7 @@
     <Compile Include="Converters\TypedBooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\TypedValueConverter.cs" />
     <Compile Include="View.cs" />
+    <Compile Include="ViewModelBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -315,7 +316,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Forms\NoteForm\NoteForm.xaml">
+    <Page Include="Forms\NoteForm\NoteListForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

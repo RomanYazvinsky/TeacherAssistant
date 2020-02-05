@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -22,7 +23,7 @@ using TeacherAssistant.State;
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     public class LessonScheduleView {
         public LessonEntity Lesson { get; }
-        
+
         public string Date { get; }
 
         public string GroupNames => this.Lesson._GroupId == null
@@ -30,9 +31,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             : this.Lesson.Group.Name;
 
         public string LocalizedType { get; }
-        
+
         public Brush IconColor { get; }
-        
+
         public bool TooltipVisibility { get; }
 
         public SchedulePageModel Model { get; }
@@ -162,17 +163,17 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         }
 
 
-        public ObservableRangeCollection<LessonScheduleView> Lessons { get; set; } =
-            new WpfObservableRangeCollection<LessonScheduleView>();
+        public ObservableCollection<LessonScheduleView> Lessons { get; set; } =
+            new ObservableCollection<LessonScheduleView>();
 
-        public ObservableRangeCollection<StreamEntity> Streams { get; set; } =
-            new WpfObservableRangeCollection<StreamEntity>();
+        public ObservableCollection<StreamEntity> Streams { get; set; } =
+            new ObservableCollection<StreamEntity>();
 
-        public ObservableRangeCollection<GroupEntity> Groups { get; set; } =
-            new WpfObservableRangeCollection<GroupEntity>();
+        public ObservableCollection<GroupEntity> Groups { get; set; } =
+            new ObservableCollection<GroupEntity>();
 
-        public ObservableRangeCollection<ScheduleEntity> Schedules { get; set; } =
-            new WpfObservableRangeCollection<ScheduleEntity>();
+        public ObservableCollection<ScheduleEntity> Schedules { get; set; } =
+            new ObservableCollection<ScheduleEntity>();
 
         [Reactive] public LessonScheduleView SelectedLesson { get; set; }
 

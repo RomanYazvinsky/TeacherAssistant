@@ -15,6 +15,15 @@ namespace Model
         private string _discriminator;
         private string _resourceName;
 
+        public AlarmEntity()
+        {
+        }
+
+        public AlarmEntity(AlarmEntity alarm)
+        {
+            Apply(alarm);
+        }
+
         [Key] [Column("id")] public long Id { get; set; }
         [Column("active")] public long? _Active { get; set; }
 
@@ -36,9 +45,11 @@ namespace Model
         [Column("sound")] public byte[] _Sound { get; set; } = new byte[0];
 
         [Column("discriminator")]
-        public string Discriminator {
+        public string Discriminator
+        {
             get => _discriminator;
-            set {
+            set
+            {
                 if (value == _discriminator) return;
                 _discriminator = value;
                 OnPropertyChanged();
@@ -46,9 +57,11 @@ namespace Model
         }
 
         [Column("resource_name")]
-        public string ResourceName {
+        public string ResourceName
+        {
             get => _resourceName;
-            set {
+            set
+            {
                 if (value == _resourceName) return;
                 _resourceName = value;
                 OnPropertyChanged();
@@ -77,8 +90,7 @@ namespace Model
             }
         }
 
-        [NotMapped]
-        public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this._Sound);
+        [NotMapped] public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this._Sound);
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -88,7 +100,14 @@ namespace Model
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public override void Apply(AlarmEntity trackable) {
+        public sealed override void Apply(AlarmEntity trackable)
+        {
+
+        }
+
+        public override AlarmEntity Clone()
+        {
+            return new AlarmEntity(this);
         }
     }
 }

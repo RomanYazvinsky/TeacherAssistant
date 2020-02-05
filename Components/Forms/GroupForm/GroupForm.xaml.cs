@@ -1,5 +1,6 @@
 ﻿using Grace.DependencyInjection;
 using Model.Models;
+using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.State;
@@ -11,6 +12,8 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
         public GroupEntity Group { get; }
+
+        public IPageHost PageHost { get; }
     }
 
     public class GroupFormModule : SimpleModule {

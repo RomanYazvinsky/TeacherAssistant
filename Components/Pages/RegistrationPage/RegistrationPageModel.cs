@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -29,8 +30,10 @@ using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.StudentViewPage;
 
-namespace TeacherAssistant.RegistrationPage {
-    public class RegistrationPageModel : AbstractModel {
+namespace TeacherAssistant.RegistrationPage
+{
+    public class RegistrationPageModel : AbstractModel
+    {
         private readonly TabPageHost _tabPageHost;
         private readonly WindowPageHost _windowPageHost;
         private readonly LocalDbContext _db;
@@ -52,42 +55,52 @@ namespace TeacherAssistant.RegistrationPage {
             RegistrationPageToken token,
             MainReducer mainReducer,
             PageControllerReducer reducer
-        ) {
+        )
+        {
             _tabPageHost = tabPageHost;
             _windowPageHost = windowPageHost;
             _db = db;
             this.StudentCardService = studentCardService;
             this.PhotoService = photoService;
-            this.DoRegister = new CommandHandler(() => {
-                if (this.AllStudentsMode) {
-                    foreach (IStudentViewModel selectedStudent in this.SelectedStudents.ToList()) {
+            this.DoRegister = new CommandHandler(() =>
+            {
+                if (this.AllStudentsMode)
+                {
+                    foreach (IStudentViewModel selectedStudent in this.SelectedStudents.ToList())
+                    {
                         RegisterExtStudent(selectedStudent.Student);
                     }
                 }
-                else {
+                else
+                {
                     Register();
                 }
             });
             this.DoUnRegister = new CommandHandler(UnRegister);
 
-            this.ShowStudent = new CommandHandler(() => {
+            this.ShowStudent = new CommandHandler(() =>
+            {
                 var selectedStudent = _selectedStudent;
                 var studentViewPageToken = new StudentViewPageToken("Student", selectedStudent);
                 tabPageHost.AddPageAsync<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
             });
-            this.AddStudentNote = new CommandHandler(() => {
+            this.AddStudentNote = new CommandHandler(() =>
+            {
                 var selectedStudent = _selectedStudent;
-                var note = new StudentNote {
-                    Student = selectedStudent
-                };
-                var noteFormToken = new NoteFormToken("Note", note);
-                windowPageHost.AddPageAsync<NoteFormModule, NoteFormToken>(noteFormToken);
+                var noteFormToken = new NoteListFormToken("Note", () => new StudentNote
+                {
+                    Student = selectedStudent,
+                    EntityId = selectedStudent.Id
+                }, selectedStudent.Notes);
+                windowPageHost.AddPageAsync<NoteListFormModule, NoteListFormToken>(noteFormToken);
             });
-            this.ToggleAllStudentTable = new ButtonConfig {
+            this.ToggleAllStudentTable = new ButtonConfig
+            {
                 Command = new CommandHandler(() => this.AllStudentsMode = !this.AllStudentsMode),
                 Text = Localization["Все студенты"]
             };
-            this.AllStudentsFilter = (o, s) => {
+            this.AllStudentsFilter = (o, s) =>
+            {
                 var student = ((IStudentViewModel) o).Student;
                 var alreadyAdded = _studentLessons.Any(studentLesson =>
                     studentLesson._StudentId == student.Id && studentLesson._LessonId == this.Lesson.Id);
@@ -103,14 +116,17 @@ namespace TeacherAssistant.RegistrationPage {
                        && student.SecondName.ToLowerInvariant()
                            .Contains(s);
             };
-            this.WhenAnyValue(model => model.TimerState).Where(NotNull).Subscribe(state => {
+            this.WhenAnyValue(model => model.TimerState).Where(NotNull).Subscribe(state =>
+            {
                 this.TimerString = $"{state.TimeLeft:hh\\:mm\\:ss}/{state.CurrentTime:HH:mm:ss}";
             });
-            this.WhenAnyValue(model => model.Lesson).Where(NotNull).Subscribe(entity => {
+            this.WhenAnyValue(model => model.Lesson).Where(NotNull).Subscribe(entity =>
+            {
                 var groupName = entity.Group?.Name ?? entity.Stream.Name;
                 var lessonInfo =
                     $"{Localization["common.lesson.type." + entity.LessonType]}: {entity.Order}/{entity.GetLessonsCount()}";
-                this.LessonInfoState = new LessonInfoState {
+                this.LessonInfoState = new LessonInfoState
+                {
                     GroupName = groupName,
                     LessonInfo = lessonInfo,
                     Date = entity.Date?.ToString("dd.MM.yyyy"),
@@ -119,7 +135,8 @@ namespace TeacherAssistant.RegistrationPage {
                 };
             });
             this.WhenAnyValue(model => model.AllStudentsMode).Throttle(TimeSpan.FromMilliseconds(100))
-                .ObserveOn(RxApp.MainThreadScheduler).Subscribe(b => {
+                .ObserveOn(RxApp.MainThreadScheduler).Subscribe(b =>
+                {
                     this.ToggleAllStudentTable.Text = b ? Localization["Занятие"] : Localization["Все студенты"];
                     if (!b || this.AllStudents.Count != 0) return;
                     var studentViewModels = db.Students
@@ -130,19 +147,23 @@ namespace TeacherAssistant.RegistrationPage {
                     this.AllStudents.AddRange(studentViewModels);
                 });
             this.StudentCardService.ReadStudentCard.Subscribe(ReadStudentData);
-            this.AllStudentsTableConfig = new TableConfig {
+            this.AllStudentsTableConfig = new TableConfig
+            {
                 Sorts = Sorts,
                 Filter = this.AllStudentsFilter,
-                DragConfig = new DragConfig {
+                DragConfig = new DragConfig
+                {
                     SourceId = token.Id + nameof(this.AllStudentsTableConfig),
                     SourceType = nameof(StudentEntity),
                     DragValuePath = "Student"
                 }
             };
-            this.RegisteredStudentsTableConfig = new TableConfig {
+            this.RegisteredStudentsTableConfig = new TableConfig
+            {
                 Sorts = RegisteredStudentsSorts,
                 Filter = this.Filter,
-                DragConfig = new DragConfig {
+                DragConfig = new DragConfig
+                {
                     SourceId = token.Id + nameof(this.RegisteredStudentsTableConfig),
                     SourceType = nameof(StudentLessonEntity),
                     DropAvailability = data => data.Data.Count > 0 &&
@@ -151,17 +172,21 @@ namespace TeacherAssistant.RegistrationPage {
                                                      .SourceId)
                                                 )
                                                 || data.SenderType.Equals(nameof(StudentEntity))),
-                    Drop = async () => {
+                    Drop = async () =>
+                    {
                         var dragData = await mainReducer.Select(state => state.DragData).FirstOrDefaultAsync();
                         if (dragData == null)
                         {
                             return;
                         }
-                        if (nameof(StudentLessonEntity).Equals(dragData.SenderType)) {
+
+                        if (nameof(StudentLessonEntity).Equals(dragData.SenderType))
+                        {
                             Register();
                         }
 
-                        if (nameof(StudentEntity).Equals(dragData.SenderType)) {
+                        if (nameof(StudentEntity).Equals(dragData.SenderType))
+                        {
                             AcceptDropFromStudentTable(dragData.Data);
                         }
 
@@ -170,16 +195,19 @@ namespace TeacherAssistant.RegistrationPage {
                     DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 }
             };
-            this.LessonStudentsTableConfig = new TableConfig {
+            this.LessonStudentsTableConfig = new TableConfig
+            {
                 Sorts = Sorts,
                 Filter = this.Filter,
-                DragConfig = new DragConfig {
+                DragConfig = new DragConfig
+                {
                     SourceId = token.Id + nameof(this.LessonStudentsTableConfig),
                     SourceType = nameof(StudentLessonEntity),
                     DropAvailability = data => data.Data.Count > 0
                                                && data.SenderId.Equals(this.RegisteredStudentsTableConfig.DragConfig
                                                    .SourceId),
-                    Drop = async () => {
+                    Drop = async () =>
+                    {
                         var dragData = await mainReducer.Select(state => state.DragData).FirstAsync();
                         UnRegister();
                         dragData.Accept();
@@ -187,8 +215,16 @@ namespace TeacherAssistant.RegistrationPage {
                     DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 }
             };
-
-            this.LessonStudentsTableConfig.SelectedItem.AsObservable()
+            this.WhenAnyValue(model => model.IsLessonChecked).Subscribe(b =>
+            {
+                if (this.Lesson == null)
+                {
+                    return;
+                }
+                this.Lesson.Checked = b;
+                this._db.ThrottleSave();
+            });
+            this.LessonStudentsTableConfig.SelectedItem
                 .Where(NotNull)
                 .Select(o => ((IStudentViewModel) o).Student)
                 .Merge(this.RegisteredStudentsTableConfig.SelectedItem.AsObservable().Where(NotNull)
@@ -197,7 +233,8 @@ namespace TeacherAssistant.RegistrationPage {
                 .Throttle(TimeSpan.FromMilliseconds(200))
                 .Subscribe
                 (
-                    o => {
+                    o =>
+                    {
                         var studentEntity = o as StudentEntity;
                         _selectedStudent = studentEntity;
                         UpdateDescription(studentEntity);
@@ -206,10 +243,11 @@ namespace TeacherAssistant.RegistrationPage {
             reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
         }
 
-        private void Init(LessonEntity lesson) {
+        private async void Init(LessonEntity lesson)
+        {
             if (lesson == null)
                 return;
-            this.Lesson = lesson;
+            this.Lesson = await _db.Lessons.FindAsync(lesson.Id);
             StopTimer();
             this.LessonStudents.Clear();
             this.RegisteredStudents.Clear();
@@ -224,19 +262,13 @@ namespace TeacherAssistant.RegistrationPage {
                 _studentLessons.Where(lessonModel => lessonModel.IsRegistered == true).ToList();
             this.RegisteredStudents.AddRange(registeredStudentLesson);
             _internalStudentLessons = FindInternalStudents(_studentLessons, lesson);
+            this.IsLessonChecked = lesson.Checked;
             UpdateRegistrationInfo();
             StartTimer(this.Lesson);
         }
 
-        private static bool IsDragFromStudentTable(List<object> list) {
-            return list[0] is StudentEntity;
-        }
-
-        private static bool IsDragFromRegistrationTable(List<object> list) {
-            return list[0] is StudentLessonEntity;
-        }
-
-        private void AcceptDropFromStudentTable(List<object> list) {
+        private void AcceptDropFromStudentTable(List<object> list)
+        {
             var studentModels = list.Cast<StudentEntity>().ToList();
             var studentIds = studentModels.Select(model => model.Id);
             var studentLessonsThatAlreadyProcessed
@@ -244,8 +276,10 @@ namespace TeacherAssistant.RegistrationPage {
                     .Where(model => model._LessonId == Lesson.Id
                                     && studentIds.Any(l => model._StudentId == l))
                     .ToList();
-            studentLessonsThatAlreadyProcessed.ForEach(model => {
-                if (model.IsLessonMissed) {
+            studentLessonsThatAlreadyProcessed.ForEach(model =>
+            {
+                if (model.IsLessonMissed)
+                {
                     Register(model);
                 }
             });
@@ -253,7 +287,8 @@ namespace TeacherAssistant.RegistrationPage {
                 .Where(model => studentLessonsThatAlreadyProcessed
                     .All(lessonModel => lessonModel._StudentId != model.Id)
                 );
-            foreach (var studentModel in externalStudentsToRegister) {
+            foreach (var studentModel in externalStudentsToRegister)
+            {
                 RegisterExtStudent(studentModel);
             }
 
@@ -264,30 +299,32 @@ namespace TeacherAssistant.RegistrationPage {
         public TableConfig LessonStudentsTableConfig { get; set; }
 
 
-        private ObservableRangeCollection<object> SelectedRegisteredStudents =>
+        private ObservableCollection<object> SelectedRegisteredStudents =>
             this.RegisteredStudentsTableConfig.SelectedItems;
 
-        private ObservableRangeCollection<object> SelectedLessonStudents =>
+        private ObservableCollection<object> SelectedLessonStudents =>
             this.LessonStudentsTableConfig.SelectedItems;
 
-        private ObservableRangeCollection<object> SelectedStudents => this.AllStudentsTableConfig.SelectedItems;
+        private ObservableCollection<object> SelectedStudents => this.AllStudentsTableConfig.SelectedItems;
 
-        private ObservableRangeCollection<object> RegisteredStudents => this.RegisteredStudentsTableConfig.TableItems;
+        private ObservableCollection<object> RegisteredStudents => this.RegisteredStudentsTableConfig.TableItems;
 
-        private ObservableRangeCollection<object> LessonStudents => this.LessonStudentsTableConfig.TableItems;
+        private ObservableCollection<object> LessonStudents => this.LessonStudentsTableConfig.TableItems;
 
 
-        private ObservableRangeCollection<object> AllStudents => this.AllStudentsTableConfig.TableItems;
+        private ObservableCollection<object> AllStudents => this.AllStudentsTableConfig.TableItems;
 
         private static Dictionary<string, ListSortDirection> RegisteredStudentsSorts { get; set; } =
-            new Dictionary<string, ListSortDirection> {
+            new Dictionary<string, ListSortDirection>
+            {
                 {nameof(StudentLessonEntity.RegistrationTime), ListSortDirection.Descending},
                 {"Student.LastName", ListSortDirection.Ascending},
                 {"Student.FirstName", ListSortDirection.Ascending}
             };
 
         private static Dictionary<string, ListSortDirection> Sorts { get; set; } =
-            new Dictionary<string, ListSortDirection> {
+            new Dictionary<string, ListSortDirection>
+            {
                 {"Student.LastName", ListSortDirection.Ascending},
                 {"Student.FirstName", ListSortDirection.Ascending}
             };
@@ -308,6 +345,7 @@ namespace TeacherAssistant.RegistrationPage {
         [Reactive] public ButtonConfig ToggleAllStudentTable { get; set; }
 
         [Reactive] public bool IsAutoRegistrationEnabled { get; set; }
+        [Reactive] public bool IsLessonChecked { get; set; }
         [Reactive] public bool AllStudentsMode { get; set; }
         [Reactive] public TableConfig AllStudentsTableConfig { get; set; }
 
@@ -317,12 +355,16 @@ namespace TeacherAssistant.RegistrationPage {
         [Reactive] public string TimerString { get; set; }
 
 
-        private List<ButtonConfig> GetControls() {
-            var buttonConfigs = new List<ButtonConfig> {
+        private List<ButtonConfig> GetControls()
+        {
+            var buttonConfigs = new List<ButtonConfig>
+            {
                 GetRefreshButtonConfig()
             };
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler(() => {
+            buttonConfigs.Add(new ButtonConfig
+            {
+                Command = new CommandHandler(() =>
+                {
                     var title = this.Lesson.Group == null
                         ? this.Lesson.Stream.Name
                         : this.Lesson.Group.Name + " " +
@@ -333,19 +375,26 @@ namespace TeacherAssistant.RegistrationPage {
                 }),
                 Text = "Занятие 1"
             });
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler(() => {
-                    _windowPageHost.AddPageAsync(new NoteFormToken("Заметка", new LessonNote {
-                        Lesson = this.Lesson,
-                        EntityId = this.Lesson.Id
-                    }));
-                }),
-                Text = "Добавить заметку"
+            buttonConfigs.Add(new ButtonConfig
+            {
+                Command = ReactiveCommand.Create(() =>
+                    _windowPageHost.AddPageAsync(new NoteListFormToken(
+                        "Заметки",
+                        () => new LessonNote
+                        {
+                            Lesson = Lesson,
+                            EntityId = Lesson.Id
+                        },
+                        Lesson.Notes
+                    ))
+                ),
+                Text = "Заметки"
             });
             return buttonConfigs;
         }
 
-        public Func<object, string, bool> Filter { get; set; } = (o, s) => {
+        public Func<object, string, bool> Filter { get; set; } = (o, s) =>
+        {
             s = s.ToLowerInvariant();
             var student = ((StudentLessonEntity) o).Student;
             return student.FirstName != null
@@ -367,18 +416,21 @@ namespace TeacherAssistant.RegistrationPage {
         /// </summary>
         /// <param name="studentLessonModels">already created list of student lesson entities</param>
         /// <param name="lessonEntity">lesson</param>
-        private void AddMissingStudents(List<StudentLessonEntity> studentLessonModels, LessonEntity lessonEntity) {
+        private void AddMissingStudents(List<StudentLessonEntity> studentLessonModels, LessonEntity lessonEntity)
+        {
             List<StudentEntity> students;
             if (lessonEntity.Group == null)
                 students = lessonEntity.Stream.Groups.Aggregate
                 (
                     new List<StudentEntity>(),
-                    (list, model) => {
+                    (list, model) =>
+                    {
                         list.AddRange(model.Students);
                         return list;
                     }
                 );
-            else {
+            else
+            {
                 students = lessonEntity.Group.Students.ToList();
             }
 
@@ -389,7 +441,8 @@ namespace TeacherAssistant.RegistrationPage {
                 )
                 .Select
                 (
-                    model => new StudentLessonEntity {
+                    model => new StudentLessonEntity
+                    {
                         Lesson = lessonEntity,
                         Student = model,
                         IsRegistered = false
@@ -403,10 +456,12 @@ namespace TeacherAssistant.RegistrationPage {
             studentLessonModels.AddRange(newStudentLessonModels);
         }
 
-        private void ReadStudentData(StudentCard readData) {
+        private void ReadStudentData(StudentCard readData)
+        {
             var student = this.LessonStudents.Cast<StudentLessonEntity>()
                 .FirstOrDefault(studentModel => studentModel.Student.CardUid.Equals(readData.CardUid));
-            if (student != null) {
+            if (student != null)
+            {
                 UpdateDescription(student.Student);
                 if (this.IsAutoRegistrationEnabled)
                     RunInUiThread(() => Register(student));
@@ -414,11 +469,13 @@ namespace TeacherAssistant.RegistrationPage {
             }
 
             var studentFromDatabase = _db.Students.FirstOrDefault(model => model.CardUid.Equals(readData.CardUid));
-            if (studentFromDatabase != null) {
+            if (studentFromDatabase != null)
+            {
                 var studentView = new StudentEntity();
                 UpdateDescription(studentView);
                 if (this.IsAutoRegistrationEnabled)
-                    RunInUiThread(() => {
+                    RunInUiThread(() =>
+                    {
                         RegisterExtStudent(studentView);
                         UpdateRegistrationInfo();
                     });
@@ -427,7 +484,8 @@ namespace TeacherAssistant.RegistrationPage {
             }
 
             var unknownStudent =
-                new StudentEntity {
+                new StudentEntity
+                {
                     CardUid = readData.CardUid,
                     FirstName = readData.FirstName,
                     LastName = readData.LastName,
@@ -437,11 +495,13 @@ namespace TeacherAssistant.RegistrationPage {
                 UpdateDescription(unknownStudent);
         }
 
-        private void Register() {
+        private void Register()
+        {
             var studentLessonModels = this.SelectedLessonStudents.ToList();
             this.SelectedLessonStudents.Clear();
             this.SelectedRegisteredStudents.Clear();
-            foreach (StudentLessonEntity studentLessonModel in studentLessonModels) {
+            foreach (StudentLessonEntity studentLessonModel in studentLessonModels)
+            {
                 studentLessonModel.IsRegistered = true;
                 studentLessonModel.RegistrationTime = DateTime.Now;
                 this.LessonStudents.Remove(studentLessonModel);
@@ -452,7 +512,8 @@ namespace TeacherAssistant.RegistrationPage {
             UpdateRegistrationInfo();
         }
 
-        private void Register(StudentLessonEntity model) {
+        private void Register(StudentLessonEntity model)
+        {
             model.IsRegistered = true;
             model.RegistrationTime = DateTime.Now;
             this.LessonStudents.Remove(model);
@@ -461,8 +522,10 @@ namespace TeacherAssistant.RegistrationPage {
             _db.ThrottleSave();
         }
 
-        private void RegisterExtStudent(StudentEntity studentEntity) {
-            var studentLessonModel = new StudentLessonEntity {
+        private void RegisterExtStudent(StudentEntity studentEntity)
+        {
+            var studentLessonModel = new StudentLessonEntity
+            {
                 Lesson = Lesson,
                 Student = studentEntity,
                 IsRegistered = true,
@@ -474,12 +537,15 @@ namespace TeacherAssistant.RegistrationPage {
             _db.ThrottleSave();
         }
 
-        private void UnRegister() {
+        private void UnRegister()
+        {
             var studentModels = this.SelectedRegisteredStudents.ToList();
             this.SelectedLessonStudents.Clear();
             this.SelectedRegisteredStudents.Clear();
-            foreach (StudentLessonEntity studentLessonModel in studentModels) {
-                if (!_internalStudentLessons.Contains(studentLessonModel)) {
+            foreach (StudentLessonEntity studentLessonModel in studentModels)
+            {
+                if (!_internalStudentLessons.Contains(studentLessonModel))
+                {
                     this.RegisteredStudents.Remove(studentLessonModel);
                     _studentLessons.Remove(studentLessonModel);
                     _db.StudentLessons.Remove(studentLessonModel);
@@ -496,23 +562,29 @@ namespace TeacherAssistant.RegistrationPage {
             UpdateRegistrationInfo();
         }
 
-        private async Task<BitmapImage> LoadStudentPhoto(StudentEntity entity) {
-            if (entity == null) {
+        private async Task<BitmapImage> LoadStudentPhoto(StudentEntity entity)
+        {
+            if (entity == null)
+            {
                 return null;
             }
 
-            try {
+            try
+            {
                 var photoPath = await this.PhotoService.DownloadPhoto(StudentEntity.CardUidToId(entity.CardUid));
                 return photoPath == null ? null : this.PhotoService.GetImage(photoPath);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Debug.WriteLine(e);
                 throw;
             }
         }
 
-        private void UpdateDescription(StudentEntity entity) {
-            if (entity == null) {
+        private void UpdateDescription(StudentEntity entity)
+        {
+            if (entity == null)
+            {
                 this.ActiveStudentInfoVisibility = Visibility.Collapsed;
                 return;
             }
@@ -533,9 +605,11 @@ namespace TeacherAssistant.RegistrationPage {
                 (
                     lessonModel => lessonModel.Lesson.LessonType == LessonType.Laboratory
                 );
-            RunInUiThread(async () => {
+            RunInUiThread(async () =>
+            {
                 this.ActiveStudentInfoVisibility = Visibility.Visible;
-                this.StudentDescription = new StudentDescription {
+                this.StudentDescription = new StudentDescription
+                {
                     Photo = await LoadStudentPhoto(entity),
                     LastName = entity.LastName,
                     FirstName = entity.FirstName,
@@ -550,15 +624,18 @@ namespace TeacherAssistant.RegistrationPage {
             });
         }
 
-        private void UpdateRegistrationInfo() {
-            this.RegistrationInfoState = new LessonRegistrationInfoState {
+        private void UpdateRegistrationInfo()
+        {
+            this.RegistrationInfoState = new LessonRegistrationInfoState
+            {
                 Registered = $"{Localization["Есть"]} {this.RegisteredStudents.Count}",
                 NotRegistered = $"{Localization["Нет"]} {this.LessonStudents.Count}",
                 Total = $"{Localization["Всего"]} {this.RegisteredStudents.Count + this.LessonStudents.Count}"
             };
         }
 
-        public void Remove(StudentLessonEntity model) {
+        public void Remove(StudentLessonEntity model)
+        {
             if (model == null)
                 return;
 
@@ -567,38 +644,47 @@ namespace TeacherAssistant.RegistrationPage {
             _db.SaveChanges();
         }
 
-        protected override string GetLocalizationKey() {
+        protected override string GetLocalizationKey()
+        {
             return LocalizationKey;
         }
 
-        private void StartTimer(LessonEntity entity) {
+        private void StartTimer(LessonEntity entity)
+        {
             TimeSpan timeLeft;
             var now = DateTime.Now;
-            if (entity.Date.HasValue && entity.Schedule.End.HasValue) {
+            if (entity.Date.HasValue && entity.Schedule.End.HasValue)
+            {
                 timeLeft = entity.Date.Value.Date + entity.Schedule.End.Value - now;
             }
-            else {
+            else
+            {
                 timeLeft = TimeSpan.Zero;
             }
 
-            this.TimerState = new TimerState {
+            this.TimerState = new TimerState
+            {
                 TimeLeft = timeLeft,
                 CurrentTime = now
             };
             var timerToEnd = new DispatcherTimer();
-            timerToEnd.Tick += (sender, args) => {
+            timerToEnd.Tick += (sender, args) =>
+            {
                 var now1 = DateTime.Now;
 
                 var timeLeft1 = this.TimerState.TimeLeft - TimeSpan.FromMilliseconds(1000);
-                if (timeLeft1.TotalMilliseconds <= 0) {
-                    this.TimerState = new TimerState {
+                if (timeLeft1.TotalMilliseconds <= 0)
+                {
+                    this.TimerState = new TimerState
+                    {
                         TimeLeft = TimeSpan.Zero,
                         CurrentTime = now1
                     };
                     return;
                 }
 
-                this.TimerState = new TimerState {
+                this.TimerState = new TimerState
+                {
                     TimeLeft = timeLeft1,
                     CurrentTime = now1
                 };
@@ -608,29 +694,34 @@ namespace TeacherAssistant.RegistrationPage {
             _timerToEnd = timerToEnd;
         }
 
-        private void StopTimer() {
+        private void StopTimer()
+        {
             _timerToEnd?.Stop();
         }
 
-        public override void Dispose() {
+        public override void Dispose()
+        {
             base.Dispose();
             StopTimer();
         }
 
         private List<StudentLessonEntity> FindInternalStudents(List<StudentLessonEntity> allStudentLessons,
-            LessonEntity lesson) {
+            LessonEntity lesson)
+        {
             var internalStudents = lesson.Group?.Students ?? lesson.Stream.Students;
 
             return allStudentLessons.Where(sl => internalStudents.Any(student => student.Id == sl._StudentId)).ToList();
         }
     }
 
-    public class TimerState {
+    public class TimerState
+    {
         public DateTime CurrentTime { get; set; }
         public TimeSpan TimeLeft { get; set; }
     }
 
-    public class StudentDescription {
+    public class StudentDescription
+    {
         public BitmapImage Photo { get; set; }
         public string FirstName { get; set; } = "";
         public string LastName { get; set; } = "";
@@ -639,14 +730,16 @@ namespace TeacherAssistant.RegistrationPage {
         public string LessonStat { get; set; } = "";
     }
 
-    public class LessonInfoState {
+    public class LessonInfoState
+    {
         public string GroupName { get; set; }
         public string LessonInfo { get; set; }
         public string Date { get; set; }
         public string Time { get; set; }
     }
 
-    public class LessonRegistrationInfoState {
+    public class LessonRegistrationInfoState
+    {
         public string Total { get; set; }
         public string Registered { get; set; }
         public string NotRegistered { get; set; }

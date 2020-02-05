@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Data;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -30,7 +31,7 @@ namespace TeacherAssistant.GroupTable {
             WhenAdded<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(models => this.Groups.AddRange(models));
             WhenRemoved<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(models => this.Groups.RemoveRange(models));
+                .Subscribe(models => this.Groups.RemoveMany(models));
             this.Groups.Clear();
             this.Groups.AddRange(db.Groups.ToList());
         }
@@ -54,8 +55,8 @@ namespace TeacherAssistant.GroupTable {
             this.Groups.Remove(this.SelectedGroupEntity);
         }
 
-        public ObservableRangeCollection<GroupEntity> Groups { get; set; } =
-            new WpfObservableRangeCollection<GroupEntity>();
+        public ObservableCollection<GroupEntity> Groups { get; set; } =
+            new ObservableCollection<GroupEntity>();
 
         [Reactive] public GroupEntity SelectedGroupEntity { get; set; }
 

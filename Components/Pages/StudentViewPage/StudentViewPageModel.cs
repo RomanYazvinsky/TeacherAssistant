@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -141,7 +142,7 @@ namespace TeacherAssistant.StudentViewPage {
                 this.StudentGroups.Clear();
                 return;
             }
-            
+
             var groupLessons = await _context.GetGroupLessons(selectedGroup).ToListAsync();
             this.SelectedStream = _context.Streams
                 .Include(model => model.Discipline)
@@ -197,25 +198,25 @@ namespace TeacherAssistant.StudentViewPage {
         [Reactive] public StudentEntity Student { get; set; }
         [Reactive] public StudentLessonEntity SelectedExternalLesson { get; set; }
 
-        public ObservableRangeCollection<StudentLessonEntity> ExternalLessons { get; set; } =
-            new WpfObservableRangeCollection<StudentLessonEntity>();
+        public ObservableCollection<StudentLessonEntity> ExternalLessons { get; set; } =
+            new ObservableCollection<StudentLessonEntity>();
 
         [Reactive] public bool ExternalLessonsVisibility { get; set; }
 
-        public ObservableRangeCollection<StudentNote> StudentNotes { get; set; } =
-            new WpfObservableRangeCollection<StudentNote>();
+        public ObservableCollection<StudentNote> StudentNotes { get; set; } =
+            new ObservableCollection<StudentNote>();
 
-        public ObservableRangeCollection<StudentLessonNote> StudentLessonNotes { get; set; } =
-            new WpfObservableRangeCollection<StudentLessonNote>();
+        public ObservableCollection<StudentLessonNote> StudentLessonNotes { get; set; } =
+            new ObservableCollection<StudentLessonNote>();
 
-        public ObservableRangeCollection<StudentLessonViewBox> StudentLessons { get; set; } =
-            new WpfObservableRangeCollection<StudentLessonViewBox>();
+        public ObservableCollection<StudentLessonViewBox> StudentLessons { get; set; } =
+            new ObservableCollection<StudentLessonViewBox>();
 
-        public ObservableRangeCollection<StudentAttestationExamView> StudentAttestations { get; set; } =
-            new WpfObservableRangeCollection<StudentAttestationExamView>();
+        public ObservableCollection<StudentAttestationExamView> StudentAttestations { get; set; } =
+            new ObservableCollection<StudentAttestationExamView>();
 
-        public ObservableRangeCollection<StudentAttestationExamView> StudentExams { get; set; } =
-            new WpfObservableRangeCollection<StudentAttestationExamView>();
+        public ObservableCollection<StudentAttestationExamView> StudentExams { get; set; } =
+            new ObservableCollection<StudentAttestationExamView>();
 
         [Reactive] public bool IsStudentNotesEnabled { get; set; }
 
@@ -228,18 +229,18 @@ namespace TeacherAssistant.StudentViewPage {
 
         [Reactive] public StreamEntity SelectedStream { get; set; }
 
-        public ObservableRangeCollection<GroupEntity> StudentGroups { get; set; } =
-            new WpfObservableRangeCollection<GroupEntity>();
+        public ObservableCollection<GroupEntity> StudentGroups { get; set; } =
+            new ObservableCollection<GroupEntity>();
 
         [Reactive] public string StudentMissedLessons { get; set; } = "";
 
         [Reactive] public double AverageMark { get; set; }
 
-        public ObservableRangeCollection<MarkStatistics> NumberMarkStatistics { get; set; } =
-            new WpfObservableRangeCollection<MarkStatistics>();
+        public ObservableCollection<MarkStatistics> NumberMarkStatistics { get; set; } =
+            new ObservableCollection<MarkStatistics>();
 
-        public ObservableRangeCollection<MarkStatistics> StringMarkStatistics { get; set; } =
-            new WpfObservableRangeCollection<MarkStatistics>();
+        public ObservableCollection<MarkStatistics> StringMarkStatistics { get; set; } =
+            new ObservableCollection<MarkStatistics>();
 
         [Reactive] public string ResultAttestationMark { get; set; }
         [Reactive] public string ResultMark { get; set; }
@@ -467,7 +468,7 @@ namespace TeacherAssistant.StudentViewPage {
             var indexOf = this.StudentLessons.IndexOf(box);
             LocalDbContext.Instance.SaveChangesAsync();
             var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
-            this.StudentLessons.ReplaceRange(indexOf, 1, new[] {studentLessonViewBox});
+            this.StudentLessons.Replace(box, studentLessonViewBox);
             return studentLessonViewBox;
         }
     }

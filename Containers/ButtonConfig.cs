@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Containers.Annotations;
 using TeacherAssistant.ComponentsImpl;
@@ -10,7 +11,7 @@ namespace Containers
 {
     public class ButtonConfig : INotifyPropertyChanged
     {
-        private CommandHandler _command;
+        private ICommand _command;
         private Visibility _visibility = Visibility.Visible;
         private bool _isEnabled = true;
         private string _text;
@@ -38,7 +39,7 @@ namespace Containers
             }
         }
 
-        public CommandHandler Command
+        public ICommand Command
         {
             get => _command;
             set

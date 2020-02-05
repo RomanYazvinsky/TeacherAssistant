@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
+using TeacherAssistant.Dao;
 
 namespace Model.Models
 {
@@ -14,9 +15,8 @@ namespace Model.Models
     }
 
     [Table("NOTE")]
-    public class NoteEntity
+    public class NoteEntity: Trackable<NoteEntity>
     {
-
         [Key] [Column("id")] public long Id { get; set; }
         // [Column("type")] public string _Type { get; set; }
 
@@ -48,6 +48,21 @@ namespace Model.Models
             {
                 this._CreationDate = value.ToString("yyyy-MM-dd HH:mm:ss.fff").Replace(" ", "T");
             }
+        }
+
+        public override void Apply(NoteEntity trackable)
+        {
+            this.Id = trackable.Id;
+            this.EntityId = trackable.EntityId;
+            this.Description = trackable.Description;
+            this._CreationDate = trackable._CreationDate;
+        }
+
+        public override NoteEntity Clone()
+        {
+            var noteEntity = new NoteEntity();
+            noteEntity.Apply(this);
+            return noteEntity;
         }
     }
 }

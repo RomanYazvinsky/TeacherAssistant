@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using Containers;
+using DynamicData;
+using DynamicData.Binding;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -140,7 +142,7 @@ namespace TeacherAssistant.StudentForm {
                     }
                 );
 
-            ManageObservable(studentCardService.ReadStudentCards.Changes())
+            ManageObservable(studentCardService.ReadStudentCards.ToObservableChangeSet())
                 .Subscribe(onNext: _ => this.ReadStudents = new List<StudentCard>(studentCardService.ReadStudentCards));
             // Select<StudentEntity>(this.Id, "Student").Subscribe(Initialize);
         }
@@ -168,13 +170,13 @@ namespace TeacherAssistant.StudentForm {
             this.AvailableGroups.AddRange(groupModels);
             this.IsShowPhoto = entity.Id != 0;
         }
-        
+
         public TableConfig ChosenGroupTableConfig { get; set; }
         public TableConfig AvailableGroupTableConfig { get; set; }
 
-        private ObservableRangeCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
+        private ObservableCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
 
-        private ObservableRangeCollection<object> ChoseGroups => this.ChosenGroupTableConfig.TableItems;
+        private ObservableCollection<object> ChoseGroups => this.ChosenGroupTableConfig.TableItems;
 
         private IEnumerable<object> SelectedAvailableGroups => this.AvailableGroupTableConfig.SelectedItems;
 

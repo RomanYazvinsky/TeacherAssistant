@@ -17,15 +17,16 @@ using ReactiveUI;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
-    
-    public abstract class AbstractModel : ReactiveObject, IDisposable {
-        
+
+    public abstract class AbstractModel : ReactiveObject, IDisposable, IActivatableViewModel {
+
         public static bool NotNull<T>(T t) => t != null;
         public static bool NotNull<T, TV>((T, TV) t) => t.Item1 != null && t.Item2 != null;
         public static Tuple<T1, T2> ToTuple<T1, T2>(T1 t1, T2 t2) => new Tuple<T1, T2>(t1, t2);
 
         public static LocalizationContainer Localization { get; } = new LocalizationContainer();
         protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
+
         public ViewModelActivator Activator { get; }
         private readonly string _uniqueKey = IdGenerator.GenerateId();
 
@@ -64,7 +65,7 @@ namespace TeacherAssistant.ComponentsImpl {
                 Command = new CommandHandler(Refresh)
             };
         }
-        
+
         protected IObservable<IEnumerable<T>> WhenAdded<T>() where T : class {
             return DbObservable.FromInserted<T>()
                 .TakeUntil(this.Activator.Deactivated)
@@ -90,7 +91,7 @@ namespace TeacherAssistant.ComponentsImpl {
             return localization.Where(pair => pair.Key.StartsWith(pageName) || pair.Key.StartsWith("common."))
                 .ToDictionary(pair => pair.Key, pair => pair.Value);
         }
-        
+
         protected IObservable<T> ManageObservable<T>(IObservable<T> source) {
             return source.TakeUntil(this.Activator.Deactivated)
                 .CombineLatest(RefreshSubject, (arg1, i) => arg1);
@@ -132,17 +133,6 @@ namespace TeacherAssistant.ComponentsImpl {
             }
 
             return null;
-        }
-    }
-
-    public static class ObservableCollectionExtensions {
-        public static IObservable<NotifyCollectionChangedEventArgs>
-            Changes<T>(this ObservableCollection<T> collection) {
-            return Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>
-            (
-                (handler) => collection.CollectionChanged += handler,
-                handler => collection.CollectionChanged -= handler
-            ).Select(pattern => pattern.EventArgs);
         }
     }
 }

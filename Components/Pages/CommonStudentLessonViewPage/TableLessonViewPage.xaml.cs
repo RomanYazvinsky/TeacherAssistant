@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using DynamicData;
+using DynamicData.Binding;
 using Grace.DependencyInjection;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
@@ -45,22 +46,22 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
 
         public void Initialize() {
-            var observableRangeCollection = this.ViewModel.Columns;
-            var dynamicColumns = new List<DataGridColumn>(observableRangeCollection);
+            var ObservableCollection = this.ViewModel.Columns;
+            var dynamicColumns = new List<DataGridColumn>(ObservableCollection);
             Table.Columns.AddRange(dynamicColumns);
-            var fromEventPattern = observableRangeCollection.Changes();
+            var fromEventPattern = ObservableCollection.ToObservableChangeSet();
 
             var observable = fromEventPattern.Throttle(TimeSpan.FromMilliseconds(500));
             fromEventPattern
                 .Buffer(observable)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe((h) => {
+                .Subscribe(_ => {
                     foreach (var item in dynamicColumns) {
                         Table.Columns.Remove(item);
                     }
 
                     dynamicColumns.Clear();
-                    foreach (var dataGridColumn in observableRangeCollection) {
+                    foreach (var dataGridColumn in ObservableCollection) {
                         dynamicColumns.Add(dataGridColumn);
                         Table.Columns.Add(dataGridColumn);
                     }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;

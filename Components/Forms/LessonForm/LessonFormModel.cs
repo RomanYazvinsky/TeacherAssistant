@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Windows.Data;
 using System.Windows.Threading;
 using Containers;
+using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -50,7 +51,7 @@ namespace TeacherAssistant.Pages.LessonForm
                     this.Streams.AddRange(models.ToList()));
             WhenRemoved<StreamEntity>()
                 .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(models => this.Streams.RemoveRange(models.ToList()));
+                .Subscribe(models => this.Streams.RemoveMany(models.ToList()));
             this.Streams.AddRange(_db.Streams.ToList());
             this.ScheduleList.AddRange(_db.Schedules.ToList());
             this.SaveButtonConfig = new ButtonConfig
@@ -155,16 +156,16 @@ namespace TeacherAssistant.Pages.LessonForm
 
         [Reactive] public StreamEntity SelectedStream { get; set; }
 
-        public ObservableRangeCollection<StreamEntity> Streams { get; set; } =
-            new WpfObservableRangeCollection<StreamEntity>();
+        public ObservableCollection<StreamEntity> Streams { get; set; } =
+            new ObservableCollection<StreamEntity>();
 
-        public ObservableRangeCollection<GroupEntity> Groups { get; set; } =
-            new WpfObservableRangeCollection<GroupEntity>();
+        public ObservableCollection<GroupEntity> Groups { get; set; } =
+            new ObservableCollection<GroupEntity>();
 
         [Reactive] public List<LessonTypeView> LessonTypes { get; set; }
 
-        public ObservableRangeCollection<ScheduleEntity> ScheduleList { get; set; } =
-            new WpfObservableRangeCollection<ScheduleEntity>();
+        public ObservableCollection<ScheduleEntity> ScheduleList { get; set; } =
+            new ObservableCollection<ScheduleEntity>();
 
         [Reactive] public LessonTypeView SelectedLessonType { get; set; }
         [Reactive] public ScheduleEntity SelectedSchedule { get; set; }

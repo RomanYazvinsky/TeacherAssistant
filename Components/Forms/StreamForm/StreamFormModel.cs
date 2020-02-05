@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using Containers;
+using DynamicData;
 using Model;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
@@ -77,26 +78,26 @@ namespace TeacherAssistant.Forms.StreamForm {
 
         public TableConfig AvailableGroupTableConfig { get; set; }
         public TableConfig ChosenGroupTableConfig { get; set; }
-        
+
         public CommandHandler SaveHandler { get; set; }
         public CommandHandler AddGroupsHandler { get; set; }
         public CommandHandler RemoveGroupsHandler { get; set; }
 
-        public ObservableRangeCollection<DisciplineEntity> Disciplines { get; set; } =
-            new WpfObservableRangeCollection<DisciplineEntity>();
+        public ObservableCollection<DisciplineEntity> Disciplines { get; set; } =
+            new ObservableCollection<DisciplineEntity>();
 
-        public ObservableRangeCollection<DepartmentEntity> Departments { get; set; } =
-            new WpfObservableRangeCollection<DepartmentEntity>();
+        public ObservableCollection<DepartmentEntity> Departments { get; set; } =
+            new ObservableCollection<DepartmentEntity>();
 
-        public ObservableRangeCollection<DropDownItem<int>> AvailableCourses { get; set; } =
-            new WpfObservableRangeCollection<DropDownItem<int>>();
+        public ObservableCollection<DropDownItem<int>> AvailableCourses { get; set; } =
+            new ObservableCollection<DropDownItem<int>>();
 
-        public ObservableRangeCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
-        public ObservableRangeCollection<object> ChosenGroups => this.ChosenGroupTableConfig.TableItems;
+        public ObservableCollection<object> AvailableGroups => this.AvailableGroupTableConfig.TableItems;
+        public ObservableCollection<object> ChosenGroups => this.ChosenGroupTableConfig.TableItems;
 
-        public ObservableRangeCollection<object> SelectedAvailableGroups => this.AvailableGroupTableConfig.SelectedItems;
+        public ObservableCollection<object> SelectedAvailableGroups => this.AvailableGroupTableConfig.SelectedItems;
 
-        public ObservableRangeCollection<object> SelectedChosenGroups => this.ChosenGroupTableConfig.SelectedItems;
+        public ObservableCollection<object> SelectedChosenGroups => this.ChosenGroupTableConfig.SelectedItems;
 
         private static Dictionary<string, ListSortDirection> GroupSorts { get; set; } =
             new Dictionary<string, ListSortDirection> {
@@ -134,13 +135,13 @@ namespace TeacherAssistant.Forms.StreamForm {
         private void SelectGroups() {
             var selected = this.SelectedAvailableGroups.ToList();
             this.ChosenGroups.AddRange(selected);
-            this.AvailableGroups.RemoveRange(selected);
+            this.AvailableGroups.RemoveMany(selected);
         }
 
         private void DeselectGroups() {
             var selected = this.SelectedChosenGroups.ToList();
             this.AvailableGroups.AddRange(selected);
-            this.ChosenGroups.RemoveRange(selected);
+            this.ChosenGroups.RemoveMany(selected);
         }
 
         public Func<object, string, bool> GroupFilter { get; set; } = (item, searchValue) =>

@@ -5,12 +5,16 @@ using System.Windows.Input;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Modules.MainModule;
 
-namespace TeacherAssistant {
-    public class WindowPageHost : AbstractPageHost<Window> {
+namespace TeacherAssistant
+{
+    public class WindowPageHost : AbstractPageHost<Window>
+    {
         private readonly MainReducer _reducer;
 
-        public override Window BuildContainer<TActivation>(TActivation activation, Control page) {
-            var window = new Window {
+        public override Window BuildContainer<TActivation>(TActivation activation, Control page)
+        {
+            var window = new Window
+            {
                 Uid = activation.Id,
                 Content = page,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
@@ -23,12 +27,20 @@ namespace TeacherAssistant {
                 }
             };
 
+            var subscription = _reducer.Select(state => state.FullscreenMode)
+                .Subscribe(isFullscreen =>
+            {
+                window.WindowStyle = isFullscreen ? WindowStyle.None : WindowStyle.SingleBorderWindow;
+            });
+
             void OuterDeactivationHandler(object sender, EventArgs args)
             {
                 window.Close();
             }
+
             void DeactivationHandler(object sender, EventArgs args)
             {
+                subscription.Dispose();
                 window.Closed -= DeactivationHandler;
                 activation.Deactivated -= OuterDeactivationHandler;
                 this.Pages.Remove(((Window) sender).Uid);
@@ -41,12 +53,13 @@ namespace TeacherAssistant {
             return window;
         }
 
-        public override void ClosePage(string id) {
+        public override void ClosePage(string id)
+        {
             this.Pages[id].Container.Close();
             this.Pages.Remove(id);
         }
 
-        public WindowPageHost( ModuleActivator activator, MainReducer reducer) : base(activator)
+        public WindowPageHost(ModuleActivator activator, MainReducer reducer) : base(activator)
         {
             _reducer = reducer;
         }

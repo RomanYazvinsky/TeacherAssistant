@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
+using DynamicData;
 using Grace.DependencyInjection;
 using Model.Models;
 using ReactiveUI;
@@ -24,8 +25,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
 
-        private readonly ObservableRangeCollection<StudentLessonViewModel> _items =
-            new WpfObservableRangeCollection<StudentLessonViewModel>();
+        private readonly ObservableCollection<StudentLessonViewModel> _items =
+            new ObservableCollection<StudentLessonViewModel>();
 
         public TableLessonViewPageModel(TableLessonViewToken token, LocalDbContext db, IExportLocatorScope scope)
         {
@@ -95,15 +96,15 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
 
         private Dictionary<string, LessonEntity> LessonModels { get; set; } = new Dictionary<string, LessonEntity>();
 
-        public ObservableRangeCollection<StudentLessonEntity> StudentLessons =
-            new WpfObservableRangeCollection<StudentLessonEntity>();
+        public ObservableCollection<StudentLessonEntity> StudentLessons =
+            new ObservableCollection<StudentLessonEntity>();
 
         [Reactive] public string FilterText { get; set; }
 
         public CollectionViewSource Items { get; set; }
 
-        public ObservableRangeCollection<DataGridColumn> Columns { get; set; } =
-            new WpfObservableRangeCollection<DataGridColumn>();
+        public ObservableCollection<DataGridColumn> Columns { get; set; } =
+            new ObservableCollection<DataGridColumn>();
 
         private DataGridColumn BuildMissedLessonsColumn()
         {

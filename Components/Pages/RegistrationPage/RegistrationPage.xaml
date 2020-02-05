@@ -171,7 +171,9 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" x:Name="AutoRegBox" Content="Авторегистрация"
+            <CheckBox Grid.Row="0" Grid.Column="0" x:Name="AutoRegBox" Content="Авторегистрация"
+                      HorizontalAlignment="Left" />
+            <CheckBox Grid.Row="0" Grid.Column="1" x:Name="CheckLesson" Content="Журнал проверен"
                       HorizontalAlignment="Left" />
             <TextBox Text="{Binding Path=RegistrationInfoState.Total, Mode=OneWay}" Grid.Row="1" Grid.Column="0"
                      Style="{StaticResource MainInfo}" />

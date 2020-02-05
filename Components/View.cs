@@ -41,6 +41,7 @@ namespace TeacherAssistant.ComponentsImpl {
             get => _viewModel;
             set {
                 _viewModel = value;
+                value?.Activator.Activate();
                 this.DataContext = value;
             }
         }

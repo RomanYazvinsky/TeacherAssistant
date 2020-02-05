@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using Containers;
+using DynamicData;
 using Model;
 using Model.Models;
 using ReactiveUI;
@@ -30,9 +31,9 @@ namespace TeacherAssistant.Forms.GroupForm {
             {"Name", ListSortDirection.Ascending}
         };
 
-        public GroupFormModel(TabPageHost pageHost, MainReducer reducer, GroupFormToken token, LocalDbContext db) {
+        public GroupFormModel(MainReducer reducer, GroupFormToken token, LocalDbContext db) {
             _db = db;
-            _pageHost = pageHost;
+            _pageHost = token.PageHost;
             _token = token;
             this.Reducer = reducer;
             this.StudentsTableConfig = new TableConfig {
@@ -81,7 +82,7 @@ namespace TeacherAssistant.Forms.GroupForm {
             Init(token.Group);
         }
 
-        
+
         private async void Init(GroupEntity group) {
             this.Group = group.Id == 0 ? group : new GroupEntity(group); // todo fill in parallel
             var departments = await _db.Departments.ToListAsync();
@@ -122,25 +123,25 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
         public MainReducer Reducer { get; }
-        
+
         public TableConfig StudentsTableConfig { get; set; }
         public TableConfig GroupStudentsTableConfig { get; set; }
 
-        public ObservableRangeCollection<DepartmentEntity> Departments { get; set; } =
-            new WpfObservableRangeCollection<DepartmentEntity>();
+        public ObservableCollection<DepartmentEntity> Departments { get; set; } =
+            new ObservableCollection<DepartmentEntity>();
 
-        public ObservableRangeCollection<object> Students { get; set; }
+        public ObservableCollection<object> Students { get; set; }
 
-        public ObservableRangeCollection<object> GroupStudents { get; set; }
+        public ObservableCollection<object> GroupStudents { get; set; }
         [Reactive] public DepartmentEntity SelectedDepartment { get; set; }
         [Reactive] public GroupEntity Group { get; set; }
 
-        public ObservableRangeCollection<object> ChiefStudents { get; set; } =
-            new WpfObservableRangeCollection<object>();
+        public ObservableCollection<object> ChiefStudents { get; set; } =
+            new ObservableCollection<object>();
 
-        public ObservableRangeCollection<object> SelectedStudents { get; set; }
+        public ObservableCollection<object> SelectedStudents { get; set; }
 
-        public ObservableRangeCollection<object> SelectedGroupStudents { get; set; }
+        public ObservableCollection<object> SelectedGroupStudents { get; set; }
 
         public ButtonConfig AddStudentsToGroupConfig { get; set; }
         public ButtonConfig RemoveStudentsFromGroupConfig { get; set; }

@@ -1,4 +1,5 @@
 using System;
+using Containers.Annotations;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.Core.Module {
@@ -9,10 +10,10 @@ namespace TeacherAssistant.Core.Module {
         string Title { get; }
         Type ModuleType { get; }
     }
-    
+
     public abstract class PageModuleToken<TModule> : IModuleToken where TModule : SimpleModule {
         public string Title { get; }
-        public string Id { get; }
+        [NotNull] public string Id { get; }
         public Type ModuleType => typeof(TModule);
 
         protected PageModuleToken(string title){

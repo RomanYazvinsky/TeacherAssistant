@@ -121,8 +121,8 @@ namespace TeacherAssistant {
 
         [Reactive] public bool IsHeaderVisible { get; set; } = true;
 
-        public ObservableRangeCollection<TabItem> Tabs { get; set; } =
-            new WpfObservableRangeCollection<TabItem>();
+        public ObservableCollection<TabItem> Tabs { get; set; } =
+            new ObservableCollection<TabItem>();
 
         [Reactive] public TabItem ActiveTab { get; set; }
 

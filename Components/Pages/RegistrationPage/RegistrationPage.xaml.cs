@@ -49,6 +49,9 @@ namespace TeacherAssistant.RegistrationPage {
                 this.Bind(this.ViewModel, model => model.IsAutoRegistrationEnabled,
                         page => page.AutoRegBox.IsChecked)
                     .DisposeWith(action);
+                this.Bind(this.ViewModel, model => model.IsLessonChecked,
+                        page => page.CheckLesson.IsChecked)
+                    .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.StudentDescription.Photo,
                         page => page.StudentPhoto.Source)
                     .DisposeWith(action);
