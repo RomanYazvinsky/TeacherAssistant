@@ -51,7 +51,7 @@
         <DockPanel Grid.ColumnSpan="2" LastChildFill="False">
             <Button DockPanel.Dock="Right" Width="80" Margin="5"
                     Content="{Binding Localization[student.form.save.button]}"
-                    Command="{Binding SaveButtonConfig.Command}" />
+                    Command="{Binding SaveHandler}" />
         </DockPanel>
         <Grid Grid.Row="1" Grid.Column="0">
             <Grid.ColumnDefinitions>
@@ -86,7 +86,7 @@
                 </ListView.View>
             </ListView>
             <Button Grid.Column="1" Height="40" Content="{Binding Localization[student.form.switch.view]}"
-                    Command="{Binding SwitchViewButtonConfig.Command}" />
+                    Command="{Binding SwitchViewHandler}" />
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -132,8 +132,8 @@
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
-            <Button Grid.Column="1" Height="40" Content="{Binding Path=SelectGroups.Text}"
-                    Command="{Binding Path=SelectGroups.Command}" />
+            <Button Grid.Column="1" Height="40" Content="&lt;"
+                    Command="{Binding Path=SelectGroupsHandler}" />
         </Grid>
 
         <Grid Grid.Row="2" Grid.Column="1">
@@ -160,8 +160,8 @@
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
-            <Button Grid.Column="0" Grid.Row="1" Height="40" Content="{Binding Path=DeselectGroups.Text}"
-                    Command="{Binding Path=DeselectGroups.Command}" />
+            <Button Grid.Column="0" Height="40" Content="&gt;"
+                    Command="{Binding Path=DeselectGroupsHandler}" />
         </Grid>
     </Grid>
 </studentForm:StudentFormBase>

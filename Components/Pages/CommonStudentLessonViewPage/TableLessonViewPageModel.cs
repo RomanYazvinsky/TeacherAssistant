@@ -20,7 +20,7 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
 {
-    public class TableLessonViewPageModel : AbstractModel
+    public class TableLessonViewPageModel : AbstractModel<TableLessonViewPageModel>
     {
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;

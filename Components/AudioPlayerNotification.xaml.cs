@@ -32,13 +32,13 @@ namespace TeacherAssistant {
         public AudioPlayerNotificationModel(IWavePlayer audio) : base("", new MessageOptions()) {
             this.DisplayPart = (_displayPart = new AudioPlayerNotification(this));
             audio.PlaybackStopped += (sender, args) => Close();
-            this.Title = AbstractModel.Localization["Аудиофайл"];
+            this.Title = LocalizationContainer.Localization["Аудиофайл"];
             this.DoStop = new ButtonConfig {
                 Command = new CommandHandler(() => {
                     audio.Stop();
                     Close();
                 }),
-                Text = AbstractModel.Localization["Стоп"]
+                Text = LocalizationContainer.Localization["Стоп"]
             };
         }
 

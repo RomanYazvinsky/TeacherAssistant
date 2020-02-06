@@ -10,6 +10,7 @@ using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.Reducers;
 using TeacherAssistant.Core.State;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Pages {
     using GlobalState = ImmutableDictionary<string, object>;
@@ -41,7 +42,7 @@ namespace TeacherAssistant.Pages {
             CreateEffect(actions =>
                 actions
                     .OfType<RegisterControlsAction>()
-                    .WithLatestFrom(reducer.Select(state => state.Controls), AbstractModel.ToTuple)
+                    .WithLatestFrom(reducer.Select(state => state.Controls), LambdaHelper.ToTuple)
                     .Select(tuple => {
                         var (action, currentConfig) = tuple;
 

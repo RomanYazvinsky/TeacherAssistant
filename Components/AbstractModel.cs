@@ -12,19 +12,17 @@ using Containers;
 using EntityFramework.Rx;
 using FontAwesome5;
 using ReactiveUI;
+using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.Dao;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
 
-    public abstract class AbstractModel : ReactiveObject, IDisposable, IActivatableViewModel
+    public abstract class AbstractModel<T> : ReactiveValidationObject<T>, IDisposable, IActivatableViewModel
     {
         private const int BufferizationTime = 300;
-        public static bool NotNull<T>(T t) => t != null;
-        public static bool NotNull<T, TV>((T, TV) t) => t.Item1 != null && t.Item2 != null;
-        public static Tuple<T1, T2> ToTuple<T1, T2>(T1 t1, T2 t2) => new Tuple<T1, T2>(t1, t2);
 
-        public static LocalizationContainer Localization { get; } = new LocalizationContainer();
+        public static LocalizationContainer Localization { get; } = LocalizationContainer.Localization;
         protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
 
         public ViewModelActivator Activator { get; }
@@ -38,12 +36,9 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         public void InterpolateLocalization(string key, params object[] values) {
-            this[key] = Interpolate(key, values);
+            this[key] = LocalizationContainer.Interpolate(key, values);
         }
 
-        public static string Interpolate(string key, params object[] values) {
-            return string.Format(Localization[key], values);
-        }
 
         [IndexerName("Item")]
         public string this[string key] {

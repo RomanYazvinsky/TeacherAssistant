@@ -37,7 +37,7 @@ namespace TeacherAssistant {
 
         public TimerNotificationModel(DateTime time) : base("", new MessageOptions()) {
             _displayPart = new DynamicNotification(this);
-            this.Title = AbstractModel.Localization["До следующего звонка:"];
+            this.Title = LocalizationContainer.Localization["До следующего звонка:"];
             this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss");
             var timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(1000);

@@ -17,9 +17,10 @@ using TeacherAssistant.Components.Tabs;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Pages;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant {
-    public class TabControllerModel : AbstractModel {
+    public class TabControllerModel : AbstractModel<TabControllerModel> {
         private static readonly string LocalizationKey = "tabs";
 
         static TabControllerModel() {
@@ -98,7 +99,7 @@ namespace TeacherAssistant {
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(RemoveTab);
             this.WhenAnyValue(model => model.ActiveTab)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(tab => {
                     tab.IsSelected = true;

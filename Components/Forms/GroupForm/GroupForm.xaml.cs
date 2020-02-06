@@ -1,5 +1,8 @@
-﻿using Grace.DependencyInjection;
+﻿using System.Reactive.Disposables;
+using Grace.DependencyInjection;
 using Model.Models;
+using ReactiveUI;
+using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
@@ -12,8 +15,6 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
         public GroupEntity Group { get; }
-
-        public IPageHost PageHost { get; }
     }
 
     public class GroupFormModule : SimpleModule {
@@ -21,10 +22,10 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
         public override void Configure(IExportRegistrationBlock registrationBlock) {
+            registrationBlock.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
             registrationBlock.ExportModuleScope<GroupForm>()
                 .ImportProperty(v => v.ModuleToken)
-                .ImportProperty(v => v.ViewModel)
-                ;
+                .ImportProperty(v => v.ViewModel);
             registrationBlock.ExportModuleScope<GroupFormModel>();
         }
     }
@@ -35,9 +36,16 @@ namespace TeacherAssistant.Forms.GroupForm {
     /// <summary>
     /// Interaction logic for GroupForm.xaml
     /// </summary>
-    public partial class GroupForm : GroupFormBase {
+    public partial class GroupForm : GroupFormBase, IInitializable {
         public GroupForm() {
             InitializeComponent();
+        }
+
+        public void Initialize() {
+            // this.WhenActivated(c => {
+            //     this.BindValidation(this.ViewModel, model => model.GroupName, form => form.NameBox.Text).DisposeWith(c);
+            //     
+            // });
         }
     }
 }

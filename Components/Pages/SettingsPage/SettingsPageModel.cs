@@ -12,7 +12,7 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.SettingsPage {
-    public class SettingsPageModel : AbstractModel {
+    public class SettingsPageModel : AbstractModel<SettingsPageModel> {
         public SettingsPageModel() {
             this.RefreshSubject.AsObservable().Subscribe(_ => {
                 this.Alarms.Clear();
@@ -58,7 +58,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
                     await SoundUtil.PlayAlarm(alarm);
                     this.DoPlay.IsEnabled = true;
                 }),
-                Text = AbstractModel.Localization["Play"]
+                Text = LocalizationContainer.Localization["Play"]
             };
             this.DoSelectSound = new ButtonConfig {
                 Command = new CommandHandler(() => {
@@ -81,7 +81,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
 
                     LocalDbContext.Instance.SaveChangesAsync();
                 }),
-                Text = AbstractModel.Localization["Выбрать файл"]
+                Text = LocalizationContainer.Localization["Выбрать файл"]
             };
         }
     }

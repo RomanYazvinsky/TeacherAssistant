@@ -82,7 +82,7 @@ namespace TeacherAssistant.Forms.NoteForm
         }
     }
 
-    public class NoteFormModel : AbstractModel, IValidatableViewModel
+    public class NoteFormModel : AbstractModel<NoteFormModel>
     {
         private readonly NoteListFormToken _token;
         private readonly LocalDbContext _context;
@@ -175,7 +175,7 @@ namespace TeacherAssistant.Forms.NoteForm
         {
             var index = Notes.IndexOf(this.SelectedNote);
             Notes.Remove(this.SelectedNote);
-            this.SelectedNote.Dispose();
+            this.SelectedNote?.Dispose();
             if (index == 0)
             {
                 return;
@@ -213,7 +213,6 @@ namespace TeacherAssistant.Forms.NoteForm
         }
 
 
-        public ValidationContext ValidationContext { get; } = new ValidationContext();
         public override void Dispose()
         {
             base.Dispose();

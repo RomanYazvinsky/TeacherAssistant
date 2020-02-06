@@ -1,122 +1,123 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO.Ports;
-using System.Reactive.Linq;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
-using System.Threading;
+using JetBrains.Annotations;
 using SerialPortLib;
 
 namespace TeacherAssistant.ReaderPlugin {
-    public class SerialUtil {
-        private SerialPortInput _serialPort;
-        public event EventHandler<string> Connected;
-        public event EventHandler Disconnected;
-        public event EventHandler<string> ConnectionFailed;
-        private volatile bool _isReadingAllowed = false;
-        private volatile bool _connected = false;
-        private IObservable<string> _fromEvent;
+    public class SerialUtil : IDisposable {
+        private readonly SerialPortInput _serialPort;
+        private readonly IObservable<string> _serialDataStream;
+        [CanBeNull] private string _currentPort;
+        private readonly Subject<ConnectionStatus> _whenConnectionStatusChanges;
 
 
         public SerialUtil() {
-            _isReadingAllowed = false;
-            Connected += (sender, s) => {
-                Observable.Interval(TimeSpan.FromMilliseconds(5000))
-                          .TakeWhile(l => _connected)
-                          .Subscribe
-                           (
-                               l => {
-                                   if (SerialPort.GetPortNames().Contains(s))
-                                       return;
-                                   ConnectionFailed?.Invoke(this, "Connection aborted");
-                                   Close();
-                               }
-                           );
-            };
-
             _serialPort = new SerialPortInput();
-            _fromEvent = Observable
-                        .FromEventPattern<SerialPortInput.MessageReceivedEventHandler, MessageReceivedEventArgs>
-                         (
-                             handler =>
-                                 _serialPort.MessageReceived += handler,
-                             handler => _serialPort.MessageReceived -= handler
-                         )
-                        .Select(eventPattern => { return Encoding.ASCII.GetString(eventPattern.EventArgs.Data); });
-            OnRead().Subscribe(card => { Debug.WriteLine(card); });
+            _whenConnectionStatusChanges = new Subject<ConnectionStatus>();
+            _serialDataStream = Observable
+                .FromEventPattern<SerialPortInput.MessageReceivedEventHandler, MessageReceivedEventArgs>
+                (
+                    handler => _serialPort.MessageReceived += handler,
+                    handler => _serialPort.MessageReceived -= handler
+                )
+                .Select(eventPattern => Encoding.ASCII.GetString(eventPattern.EventArgs.Data));
+            ConfigureConnectionChecking();
         }
 
+        private void ConfigureConnectionChecking() {
+            this.WhenConnectionStatusChanges
+                .Where(status => status.IsConnected)
+                .Subscribe(status => {
+                    Observable.Interval(TimeSpan.FromMilliseconds(5000))
+                        .TakeUntil(this.WhenConnectionStatusChanges)
+                        .Subscribe(l => CheckConnection(status.SerialPortName));
+                });
+        }
 
-        private void TryConnect(string portName) {
+        private void CheckConnection([NotNull] string portName) {
+            if (SerialPort.GetPortNames().Contains(portName)) {
+                return;
+            }
+            Close(ConnectionStatusChangeReason.DeviceDisconnected);
+        }
+
+        private void TryConnect([NotNull] string portName) {
             _serialPort.SetPort(portName, 57600);
-            Timer timer = null;
-            timer = new Timer
-            (
-                obj => {
-                    // Dispose() is not immediate
-                    if (_connected)
-                        return;
-                    Close();
-                    timer.Dispose();
-                    ConnectionFailed?.Invoke(this, $"Connection to port \"{portName}\" failed");
-                },
-                null,
-                5000,
-                Timeout.Infinite
-            );
-            _fromEvent.Take(1)
-                      .Subscribe
-                       (
-                           result => {
-                               // prevent timer to be executed
-                               _connected = true;
-                               timer.Dispose();
-                               Connected?.Invoke(this, portName);
-                           }
-                       );
-
+            Observable.Timer(TimeSpan.FromMilliseconds(500))
+                .TakeUntil(_serialDataStream)
+                .Subscribe(_ => Close());
+            _currentPort = portName;
             _serialPort.Connect();
             _serialPort.SendMessage(Encoding.ASCII.GetBytes("get info"));
         }
 
-        private IObservable<string> AsObservable() {
-            return _fromEvent
-               .Where(s => !s.StartsWith("RFID"));
-        }
-
         public void Start() {
-            if (_isReadingAllowed)
-                return;
             foreach (var portName in SerialPort.GetPortNames()) {
-                Debug.WriteLine($"Trying to access '{portName}' port - ");
                 TryConnect(portName);
             }
         }
 
+        public void Close() => Close(ConnectionStatusChangeReason.DisconnectRequested);
 
-        public void Close() {
-            _isReadingAllowed = false;
-            _connected = false;
-            if (_serialPort.IsConnected) {
-                _serialPort.Disconnect();
+        private void Close(ConnectionStatusChangeReason? reason) {
+            if (!_serialPort.IsConnected) {
+                return;
             }
 
-            Disconnected?.Invoke(this, null);
+            if (reason != null) {
+                var connectionStatus = new ConnectionStatus(reason.Value, _currentPort);
+                _whenConnectionStatusChanges.OnNext(connectionStatus);
+            }
+            _serialPort.Disconnect();
+            _currentPort = null;
         }
 
+
+        public IObservable<ConnectionStatus> WhenConnectionStatusChanges => _whenConnectionStatusChanges;
 
         public IObservable<string[]> OnRead() {
-            var observable = AsObservable()
-                            .Select
-                             (
-                                 s => s
-                                     .Replace("\r", "")
-                                     .Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries)
-                             )
-                            .Where(strings => strings.Length > 0);
+            var observable = _serialDataStream
+                .Where(s => !s.StartsWith("RFID"))
+                .Select
+                (
+                    s => s
+                        .Replace("\r", "")
+                        .Split(new[] {"\n"}, StringSplitOptions.RemoveEmptyEntries)
+                )
+                .Where(strings => strings.Length > 0);
             var throttle = observable.Throttle(TimeSpan.FromMilliseconds(500));
             return observable.Buffer(throttle)
-                             .Select(s => s.Aggregate((strings, strings1) => strings.Concat(strings1).ToArray()));
+                .Select(s => s.Aggregate((strings, strings1) => strings.Concat(strings1).ToArray()));
         }
+
+        public void Dispose() {
+            _whenConnectionStatusChanges?.Dispose();
+            Close(null);
+        }
+    }
+
+    public class ConnectionStatus {
+        public ConnectionStatus(ConnectionStatusChangeReason changeReason, [NotNull] string serialPortName) {
+            this.ChangeReason = changeReason;
+            this.SerialPortName = serialPortName;
+            this.IsConnected = changeReason == ConnectionStatusChangeReason.ConnectionRequested
+                               || changeReason == ConnectionStatusChangeReason.AutoRestoreConnection;
+        }
+
+        public bool IsConnected { get; }
+        public ConnectionStatusChangeReason ChangeReason { get; }
+
+        [NotNull] public string SerialPortName { get; }
+    }
+
+    public enum ConnectionStatusChangeReason {
+        ConnectionRequested,
+        AutoRestoreConnection,
+        DeviceDisconnected,
+        DisconnectRequested
     }
 }

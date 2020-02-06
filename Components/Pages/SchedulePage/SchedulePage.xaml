@@ -36,7 +36,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="100" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -76,8 +75,6 @@
                     Command="{Binding Path=Show}" />
 
         </Grid>
-        <teacherAssistant:Webcam
-                                      Grid.Row="2"></teacherAssistant:Webcam>
         <ListView Grid.Row="1" Name="LessonList" Margin="10" ItemsSource="{Binding Path=Lessons}"
                   SelectedItem="{Binding Path=SelectedLesson}"
                   FontSize="14">

@@ -17,9 +17,10 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.StudentViewPage;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.StudentTable {
-    public class StudentTableModel : AbstractModel {
+    public class StudentTableModel : AbstractModel<StudentTableModel> {
         private static readonly string LocalizationKey = "page.student.table";
 
         public StudentTableModel(StudentTableToken token,
@@ -37,7 +38,7 @@ namespace TeacherAssistant.StudentTable {
             };
             this.StudentTableConfig.SelectedItem
                 .AsObservable()
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Subscribe(model => UpdatePhoto(((StudentViewModel) model).Student));
             this.ShowStudent = new CommandHandler
             (

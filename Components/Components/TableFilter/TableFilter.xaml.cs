@@ -42,7 +42,7 @@ namespace TeacherAssistant.Components.TableFilter {
     /// Interaction logic for TableFilter.xaml
     /// </summary>
     [ContentProperty("View")]
-    public partial class TableFilter : UserControl {
+    public partial class TableFilter : ContentControl {
         public static readonly DependencyProperty FilterTextProperty =
             DependencyProperty.Register
             (

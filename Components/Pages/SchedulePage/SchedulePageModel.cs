@@ -45,7 +45,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
         {
             this.Lesson = entity;
             this.Model = sm;
-            this.LocalizedType = AbstractModel.Localization[$"common.lesson.type.{entity.LessonType}"];
+            this.LocalizedType = LocalizationContainer.Localization[$"common.lesson.type.{entity.LessonType}"];
             this.Date = $"{entity.Schedule?.Begin:hh\\:mm}-{entity.Schedule?.End:hh\\:mm}";
             this.IconColor = this.Lesson.Checked ? Brushes.Black : Brushes.Red;
             this.TooltipVisibility = entity.Notes?.Count > 0;
@@ -57,7 +57,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
     {
         public override string ToString()
         {
-            return AbstractModel.Localization["common.empty.dropdown"];
+            return LocalizationContainer.Localization["common.empty.dropdown"];
         }
     }
 
@@ -72,12 +72,12 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
 
         public override string ToString()
         {
-            return AbstractModel.Localization[
+            return LocalizationContainer.Localization[
                 this.Type == LessonType.Unknown ? "common.empty.dropdown" : $"common.lesson.type.{this.Type}"];
         }
     }
 
-    public class SchedulePageModel : AbstractModel
+    public class SchedulePageModel : AbstractModel<SchedulePageModel>
     {
         private readonly WindowPageHost _windowPageHost;
         private readonly IPageHost _currentHost;

@@ -29,10 +29,11 @@ using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.StudentViewPage;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.RegistrationPage
 {
-    public class RegistrationPageModel : AbstractModel
+    public class RegistrationPageModel : AbstractModel<RegistrationPageModel>
     {
         private readonly TabPageHost _tabPageHost;
         private readonly WindowPageHost _windowPageHost;
@@ -116,11 +117,11 @@ namespace TeacherAssistant.RegistrationPage
                        && student.SecondName.ToLowerInvariant()
                            .Contains(s);
             };
-            this.WhenAnyValue(model => model.TimerState).Where(NotNull).Subscribe(state =>
+            this.WhenAnyValue(model => model.TimerState).Where(LambdaHelper.NotNull).Subscribe(state =>
             {
                 this.TimerString = $"{state.TimeLeft:hh\\:mm\\:ss}/{state.CurrentTime:HH:mm:ss}";
             });
-            this.WhenAnyValue(model => model.Lesson).Where(NotNull).Subscribe(entity =>
+            this.WhenAnyValue(model => model.Lesson).Where(LambdaHelper.NotNull).Subscribe(entity =>
             {
                 var groupName = entity.Group?.Name ?? entity.Stream.Name;
                 var lessonInfo =
@@ -225,11 +226,11 @@ namespace TeacherAssistant.RegistrationPage
                 this._db.ThrottleSave();
             });
             this.LessonStudentsTableConfig.SelectedItem
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Select(o => ((IStudentViewModel) o).Student)
-                .Merge(this.RegisteredStudentsTableConfig.SelectedItem.AsObservable().Where(NotNull)
+                .Merge(this.RegisteredStudentsTableConfig.SelectedItem.AsObservable().Where(LambdaHelper.NotNull)
                     .Select(o => ((IStudentViewModel) o).Student))
-                .Merge(this.AllStudentsTableConfig.SelectedItem.AsObservable().Where(NotNull))
+                .Merge(this.AllStudentsTableConfig.SelectedItem.AsObservable().Where(LambdaHelper.NotNull))
                 .Throttle(TimeSpan.FromMilliseconds(200))
                 .Subscribe
                 (

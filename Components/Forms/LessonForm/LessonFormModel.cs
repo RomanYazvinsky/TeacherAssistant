@@ -15,10 +15,11 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Dao;
 using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Pages.LessonForm
 {
-    public class LessonFormModel : AbstractModel
+    public class LessonFormModel : AbstractModel<LessonFormModel>
     {
         private readonly LessonFormToken _token;
         private readonly LocalDbContext _db;
@@ -83,7 +84,7 @@ namespace TeacherAssistant.Pages.LessonForm
                 .Select(type => new LessonTypeView(type))
                 .ToList();
             this.WhenAnyValue(model => model.SelectedStream)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Subscribe
                 (
                     stream =>
@@ -94,7 +95,7 @@ namespace TeacherAssistant.Pages.LessonForm
                     }
                 );
             this.WhenAnyValue(model => model.Lesson)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Subscribe
                 (
                     lesson =>
@@ -108,7 +109,7 @@ namespace TeacherAssistant.Pages.LessonForm
                     }
                 );
             this.WhenAnyValue(model => model.SelectedLessonType)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Subscribe
                 (
                     type =>
@@ -118,7 +119,7 @@ namespace TeacherAssistant.Pages.LessonForm
                     }
                 );
             this.WhenAnyValue(model => model.SelectedSchedule)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .Subscribe
                 (
                     schedule => { this.Lesson.Schedule = schedule; }

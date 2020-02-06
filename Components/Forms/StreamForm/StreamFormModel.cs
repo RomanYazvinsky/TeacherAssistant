@@ -16,7 +16,7 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Forms.StreamForm {
-    public class StreamFormModel : AbstractModel {
+    public class StreamFormModel : AbstractModel<StreamFormModel> {
         private readonly LocalDbContext _context;
 
         private static DropDownItem<int> DefaultCourse =

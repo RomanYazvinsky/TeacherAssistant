@@ -22,9 +22,10 @@ using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Pages;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.StudentForm;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.StudentViewPage {
-    public class StudentViewPageModel : AbstractModel {
+    public class StudentViewPageModel : AbstractModel<StudentViewPageModel> {
         private const string LocalizationKey = "page.student.view";
         private readonly TabPageHost _host;
         private readonly PhotoService _photoService;
@@ -58,7 +59,7 @@ namespace TeacherAssistant.StudentViewPage {
                 })
             };
             this.WhenAnyValue(model => model.Student)
-                .Where(NotNull)
+                .Where(LambdaHelper.NotNull)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe
                 (
@@ -127,7 +128,7 @@ namespace TeacherAssistant.StudentViewPage {
             var total = missedLectures + missedPractices + missedLabs;
             this.StudentMissedLessons = total == 0
                 ? Localization["Нет пропущенных занятий"]
-                : Interpolate
+                : LocalizationContainer.Interpolate
                 (
                     "page.student.view.missed.lessons",
                     total,

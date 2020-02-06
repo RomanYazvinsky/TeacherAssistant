@@ -28,6 +28,7 @@ using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.State;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.StudentTable;
+using TeacherAssistant.Utils;
 using App = System.Windows.Application;
 using Control = System.Windows.Controls.Control;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
@@ -36,7 +37,7 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace TeacherAssistant.Pages
 {
-    public class PageControllerModel : AbstractModel
+    public class PageControllerModel : AbstractModel<PageControllerModel>
     {
         private readonly WindowPageHost _windowPageHost;
         private SerialUtil SerialUtil { get; }
@@ -66,8 +67,8 @@ namespace TeacherAssistant.Pages
             mainReducer.Select(state => state.FullscreenMode)
                 .Subscribe(isFullScreen => { this.MenuVisibility = !isFullScreen; });
             reducer.Select(state => state.SelectedPage)
-                .Where(NotNull)
-                .WithLatestFrom(reducer.Select(state => state.Controls), ToTuple)
+                .Where(LambdaHelper.NotNull)
+                .WithLatestFrom(reducer.Select(state => state.Controls), LambdaHelper.ToTuple)
                 .Subscribe(tuple =>
                 {
                     var (selectedPage, controlsDict) = tuple;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Windows;
 
 namespace TeacherAssistant.ComponentsImpl
 {
@@ -8,6 +9,12 @@ namespace TeacherAssistant.ComponentsImpl
         private readonly Dictionary<string, Dictionary<string, string>> _languageResources =
             new Dictionary<string, Dictionary<string, string>>();
 
+        private static LocalizationContainer _instance;
+        public static LocalizationContainer Localization => _instance ?? (_instance = new LocalizationContainer());
+
+        public static string Interpolate(string key, params object[] values) {
+            return string.Format(Localization[key], values);
+        }
         private CultureInfo _currentLanguage;
 
         public CultureInfo CurrentLanguage

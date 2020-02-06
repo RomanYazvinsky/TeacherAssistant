@@ -1,16 +1,17 @@
-﻿using Grace.DependencyInjection;
+﻿using Containers.Annotations;
+using Grace.DependencyInjection;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.StudentForm {
     public class StudentFormToken : PageModuleToken<StudentFormModule> {
-        public StudentFormToken(string title, StudentEntity student) :
+        public StudentFormToken(string title, [NotNull] StudentEntity student) :
             base(title) {
             this.Student = student;
         }
 
-        public StudentEntity Student { get; }
+        [NotNull] public StudentEntity Student { get; }
     }
 
     public class StudentFormModule : SimpleModule {

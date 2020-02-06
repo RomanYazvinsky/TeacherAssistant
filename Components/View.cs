@@ -9,7 +9,7 @@ namespace TeacherAssistant.ComponentsImpl {
     }
 
     public abstract class View<TToken, TModel> : UserControl, IViewFor<TModel>
-        where TModel : AbstractModel
+        where TModel : AbstractModel<TModel>
         where TToken : class, IModuleToken {
         private TToken _moduleToken;
         private TModel _viewModel;

@@ -10,7 +10,7 @@ namespace TeacherAssistant.StudentViewPage {
         public StudentLessonViewBox(StudentLessonEntity studentLesson, StudentViewPageModel model) {
             _model = model;
             this.StudentLesson = studentLesson;
-            this.LessonTypeName = AbstractModel.Localization[$"common.lesson.type.{studentLesson.Lesson.LessonType}"];
+            this.LessonTypeName = LocalizationContainer.Localization[$"common.lesson.type.{studentLesson.Lesson.LessonType}"];
 
             this.ToggleRegistrationHandler =
                 new CommandHandler<object>(box => model.ToggleRegistration(this));

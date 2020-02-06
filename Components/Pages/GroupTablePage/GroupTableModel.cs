@@ -14,7 +14,7 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.Forms.GroupForm;
 
 namespace TeacherAssistant.GroupTable {
-    public class GroupTableModel : AbstractModel {
+    public class GroupTableModel : AbstractModel<GroupTableModel> {
         private readonly LocalDbContext _db;
         private readonly IPageHost _host;
         private static readonly string LocalizationKey = "page.group.table";

@@ -8,7 +8,7 @@ namespace TeacherAssistant.StudentViewPage {
         public StudentAttestationExamView(StudentLessonEntity studentLesson, StudentViewPageModel model, int order) {
             _model = model;
             this.StudentLesson = studentLesson;
-            this.Header = AbstractModel.Interpolate("page.student.view.attestation.header.label", order);
+            this.Header = LocalizationContainer.Interpolate("page.student.view.attestation.header.label", order);
         }
 
         public StudentLessonEntity StudentLesson { get; }

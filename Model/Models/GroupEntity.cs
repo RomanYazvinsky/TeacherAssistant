@@ -10,7 +10,7 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("GROUP")]
-    public class GroupEntity : Trackable<GroupEntity>, INotifyPropertyChanged {
+    public class GroupEntity : Trackable<GroupEntity> {
         private DepartmentEntity _department;
         private string _name;
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
@@ -30,7 +30,7 @@ namespace Model.Models {
         [ForeignKey("_GroupTypeId")] public virtual GroupTypeModel _GroupType { get; set; }
         [ForeignKey("_PraepostorId")] public virtual StudentEntity _Praepostor { get; set; }
         [Column("praepostor_id")] public long? _PraepostorId { get; set; }
-        public virtual ICollection<StudentEntity> Students { get; set; } = new List<StudentEntity>();
+        [JetBrains.Annotations.CanBeNull] public virtual ICollection<StudentEntity> Students { get; set; } = new List<StudentEntity>();
         public virtual ICollection<StreamEntity> Streams { get; set; } = new List<StreamEntity>();
         [Column("active")] public long? _IsActive { get; set; } = 0;
         [Column("expiration_date")] public string _ExpirationDate { get; set; }
@@ -39,16 +39,16 @@ namespace Model.Models {
         public string Name {
             get => _name;
             set {
-                if (value == _name)
+                if (string.Equals(value, _name, StringComparison.Ordinal))
                     return;
                 _name = value;
-                OnPropertyChanged();
             }
         }
 
         [Column("department_id")] public long? _DepartmentId { get; set; }
 
         [ForeignKey("_DepartmentId")]
+        [JetBrains.Annotations.CanBeNull]
         public virtual DepartmentEntity Department {
             get => _department;
             set {
@@ -56,7 +56,6 @@ namespace Model.Models {
                     return;
                 _department = value;
                 this._DepartmentId = value?.Id;
-                OnPropertyChanged();
             }
         }
 
@@ -68,17 +67,13 @@ namespace Model.Models {
                     return;
                 this._Praepostor = value;
                 this._PraepostorId = value?.Id;
-                OnPropertyChanged();
             }
         }
 
         [NotMapped]
         public bool IsActive {
             get => this._IsActive.HasValue && this._IsActive > 0;
-            set {
-                this._IsActive = value ? 1 : 0;
-                OnPropertyChanged();
-            }
+            set => this._IsActive = value ? 1 : 0;
         }
 
         [NotMapped]
@@ -107,15 +102,7 @@ namespace Model.Models {
                     this._ExpirationDate = value.Value.ToString(ExpirationDateTemplate) + ExpirationDateTime;
                 }
 
-                OnPropertyChanged();
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public sealed override void Apply(GroupEntity entity) {

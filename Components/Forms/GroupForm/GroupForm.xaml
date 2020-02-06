@@ -21,41 +21,36 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
-        <label:Label Text="{Binding Localization[department.name.label]}" LabelWidth="2*" ContentWidth="3*"
+        <label:Label Text="{Binding Localization[Факультет]}" LabelWidth="2*" ContentWidth="3*"
                      Grid.Row="0">
-            <ComboBox VerticalContentAlignment="Center" ItemsSource="{Binding Path=Departments}"
-                      SelectedItem="{Binding Path=SelectedDepartment}" DisplayMemberPath="Name" />
+            <ComboBox VerticalContentAlignment="Center"
+                      ItemsSource="{Binding Path=Departments}"
+                      IsEnabled="{Binding DepartmentSelectionAvailable}"
+                      SelectedItem="{Binding Path=SelectedDepartment}"
+                      DisplayMemberPath="Name" />
         </label:Label>
-        <label:Label Text="{Binding Localization[group.name.label]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="1">
-            <TextBox VerticalContentAlignment="Center">
-                <TextBox.Text>
-                    <Binding Path="Group.Name">
-                        <Binding.ValidationRules>
-                            <DataErrorValidationRule />
-                        </Binding.ValidationRules>
-                    </Binding>
-                </TextBox.Text>
-            </TextBox>
+        <label:Label Text="{Binding Localization[Имя группы]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="1">
+            <TextBox VerticalContentAlignment="Center" Text="{Binding GroupName, ValidatesOnNotifyDataErrors=True}" />
         </label:Label>
-        <label:Label Text="{Binding Localization[group.is.closed.label]}" LabelWidth="2*" ContentWidth="3*"
+        <label:Label Text="{Binding Localization[Активная]}" LabelWidth="2*" ContentWidth="3*"
                      Grid.Row="2">
-            <CheckBox VerticalAlignment="Center" IsChecked="{Binding Group.IsActive}" />
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsGroupActive}" />
         </label:Label>
-        <label:Label Text="{Binding Localization[group.expiration.label]}" LabelWidth="2*" ContentWidth="3*"
+        <label:Label Text="{Binding Localization[Время закрытия]}" LabelWidth="2*" ContentWidth="3*"
                      Grid.Row="3">
-            <DatePicker SelectedDate="{Binding Group.ExpirationDate}" />
+            <DatePicker SelectedDate="{Binding ExpirationDate}" />
         </label:Label>
-        <label:Label Text="{Binding Localization[group.chief.label]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="4">
+        <label:Label Text="{Binding Localization[Староста]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="4">
             <ComboBox IsTextSearchEnabled="True" IsEditable="True" VerticalContentAlignment="Center"
                       ItemsSource="{Binding ChiefStudents}"
-                      DisplayMemberPath="Name" SelectedValuePath="Student"
-                      SelectedValue="{Binding Group.Chief}" />
+                      DisplayMemberPath="Name"
+                      SelectedValue="{Binding SelectedChiefStudent}" />
         </label:Label>
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <tableFilter:TableFilter FilterHeight="30"
                                      TableConfig="{Binding Path=StudentsTableConfig}">
@@ -63,14 +58,14 @@
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[fullname]}" Tag="Name" />
+                                                  Content="{Binding Localization[Полное имя]}" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
 
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Groups}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[groups]}" Tag="Groups" />
+                                                  Content="{Binding Localization[Группы]}" Tag="Groups" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
@@ -83,32 +78,34 @@
                     <RowDefinition Height="40" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <Button Grid.Row="1" Width="100" Content="{Binding Localization[->]}"
-                        Command="{Binding Path=AddStudentsToGroupConfig.Command}" />
-                <Button Grid.Row="3" Width="100" Content="{Binding Localization[back]}"
-                        Command="{Binding Path=RemoveStudentsFromGroupConfig.Command}" />
+                <Button Grid.Row="1" Width="100" Content="&lt;"
+                        Command="{Binding Path=AddStudentsToGroupHandler}" />
+                <Button Grid.Row="3" Width="100" Content="&gt;"
+                        Command="{Binding Path=RemoveStudentsFromGroupHandler}" />
             </Grid>
-            <tableFilter:TableFilter Grid.Column="2" FilterHeight="30"  TableConfig="{Binding GroupStudentsTableConfig}">
+            <tableFilter:TableFilter Grid.Column="2" FilterHeight="30" TableConfig="{Binding GroupStudentsTableConfig}">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[fullname]}" Tag="Name" />
+                                                  Content="{Binding Localization[Полное имя]}" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
 
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Groups}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[groups]}" Tag="Groups" />
+                                                  Content="{Binding Localization[Группы]}" Tag="Groups" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
         </Grid>
         <DockPanel LastChildFill="False" Grid.Row="6" HorizontalAlignment="Stretch">
-            <Button DockPanel.Dock="Left" Content="{Binding Localization[save]}"
-                    Command="{Binding Path=SaveGroupConfig.Command}" Margin="4" Width="100" />
+            <Button DockPanel.Dock="Left"
+                    Content="{Binding Localization[Сохранить]}"
+                    IsEnabled="{Binding IsValid}"
+                    Command="{Binding Path=SaveGroupHandler}" Margin="4" Width="100" />
         </DockPanel>
     </Grid>
 </local:GroupFormBase>
