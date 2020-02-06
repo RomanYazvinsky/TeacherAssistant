@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,12 +15,21 @@ namespace TeacherAssistant
 
         public override Window BuildContainer<TActivation>(TActivation activation, Control page)
         {
+            var owner = this.Pages.Count == 0
+                ? (KeyValuePair<string, PageInfo<Window>>?) null
+                : Pages.First();
             var window = new Window
             {
+                Title = activation.Title,
                 Uid = activation.Id,
                 Content = page,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
+            if (owner != null)
+            {
+                window.Owner = owner.Value.Value.Container;
+            }
+
             window.KeyDown += (sender, args) =>
             {
                 if (args.Key == Key.F11)
@@ -29,9 +40,9 @@ namespace TeacherAssistant
 
             var subscription = _reducer.Select(state => state.FullscreenMode)
                 .Subscribe(isFullscreen =>
-            {
-                window.WindowStyle = isFullscreen ? WindowStyle.None : WindowStyle.SingleBorderWindow;
-            });
+                {
+                    window.WindowStyle = isFullscreen ? WindowStyle.None : WindowStyle.SingleBorderWindow;
+                });
 
             void OuterDeactivationHandler(object sender, EventArgs args)
             {
@@ -43,7 +54,7 @@ namespace TeacherAssistant
                 subscription.Dispose();
                 window.Closed -= DeactivationHandler;
                 activation.Deactivated -= OuterDeactivationHandler;
-                this.Pages.Remove(((Window) sender).Uid);
+                this.Pages.Remove(window.Uid);
                 activation.Deactivate();
             }
 

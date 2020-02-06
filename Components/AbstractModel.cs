@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
@@ -14,12 +12,14 @@ using Containers;
 using EntityFramework.Rx;
 using FontAwesome5;
 using ReactiveUI;
+using TeacherAssistant.Dao;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
 
-    public abstract class AbstractModel : ReactiveObject, IDisposable, IActivatableViewModel {
-
+    public abstract class AbstractModel : ReactiveObject, IDisposable, IActivatableViewModel
+    {
+        private const int BufferizationTime = 300;
         public static bool NotNull<T>(T t) => t != null;
         public static bool NotNull<T, TV>((T, TV) t) => t.Item1 != null && t.Item2 != null;
         public static Tuple<T1, T2> ToTuple<T1, T2>(T1 t1, T2 t2) => new Tuple<T1, T2>(t1, t2);
@@ -66,25 +66,29 @@ namespace TeacherAssistant.ComponentsImpl {
             };
         }
 
-        protected IObservable<IEnumerable<T>> WhenAdded<T>() where T : class {
-            return DbObservable.FromInserted<T>()
+        protected IObservable<IEnumerable<T>> WhenAdded<T>() where T : class
+        {
+            var observable = DbObservable<LocalDbContext>.FromInserted<T>()
                 .TakeUntil(this.Activator.Deactivated)
-                .Select(entry => entry.Entity)
-                .Buffer(TimeSpan.FromMilliseconds(500));
+                .Select(entry => entry.Entity);
+            var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
+            return observable.Buffer(throttle);
         }
 
         protected IObservable<IEnumerable<T>> WhenRemoved<T>() where T : class {
-            return DbObservable.FromDeleted<T>()
+            var observable = DbObservable<LocalDbContext>.FromDeleted<T>()
                 .TakeUntil(this.Activator.Deactivated)
-                .Select(entry => entry.Entity)
-                .Buffer(TimeSpan.FromMilliseconds(500));
+                .Select(entry => entry.Entity);
+            var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
+            return observable.Buffer(throttle);
         }
 
         protected IObservable<IEnumerable<T>> WhenUpdated<T>() where T : class {
-            return DbObservable.FromUpdated<T>()
+            var observable = DbObservable<LocalDbContext>.FromUpdated<T>()
                 .TakeUntil(this.Activator.Deactivated)
-                .Select(entry => entry.Entity)
-                .Buffer(TimeSpan.FromMilliseconds(500));
+                .Select(entry => entry.Entity);
+            var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
+            return observable.Buffer(throttle);
         }
 
         private Dictionary<string, string> BuildPageLocalization(LocalizationContainer localization, string pageName) {

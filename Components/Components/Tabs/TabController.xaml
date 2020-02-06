@@ -23,7 +23,6 @@
                              SelectedItem="{Binding Path=ActiveTab}"
                              ShowDefaultCloseButton="True"
                              ItemContainerStyle="{StaticResource DragStyle}"
-                             ClosingItemCallback="{Binding Path=CloseCallback}"
                              IsHeaderPanelVisible="{Binding Path=IsHeaderVisible}"
                              x:Name="TabablzControl">
         <!-- <dragablz:TabablzControl.InterTabController> -->

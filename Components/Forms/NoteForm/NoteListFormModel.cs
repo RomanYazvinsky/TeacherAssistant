@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows.Data;
 using System.Windows.Input;
 using Containers;
@@ -24,10 +25,12 @@ using ValidationContext = ReactiveUI.Validation.Contexts.ValidationContext;
 
 namespace TeacherAssistant.Forms.NoteForm
 {
-    public class NoteViewModel : ViewModelBase
+    public class NoteViewModel : ViewModelBase, IDisposable
     {
         private string _description;
-
+        private bool _isSelected;
+        private bool _isNotEditable = true;
+        private readonly BehaviorSubject<bool> _isValid = new BehaviorSubject<bool>(false);
         public NoteEntity Note { get; }
 
         public string Description
@@ -37,14 +40,45 @@ namespace TeacherAssistant.Forms.NoteForm
             {
                 if (value == _description) return;
                 _description = value;
+                this._isValid.OnNext(!string.IsNullOrWhiteSpace(value));
                 OnPropertyChanged();
             }
         }
 
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (value == _isSelected) return;
+                _isSelected = value;
+                this.IsNotEditable = !value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsNotEditable
+        {
+            get => _isNotEditable;
+            set
+            {
+                if (value == _isNotEditable) return;
+                _isNotEditable = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public IObservable<bool> IsValid => _isValid;
+
         public NoteViewModel(NoteEntity note)
         {
             Note = note;
-            _description = note.Description ?? "";
+            Description = note.Description ?? "";
+        }
+
+        public void Dispose()
+        {
+            _isValid?.Dispose();
         }
     }
 
@@ -58,14 +92,9 @@ namespace TeacherAssistant.Forms.NoteForm
         {
             _token = token;
             _context = context;
-            this.ValidationRule(
-                model => model.Text,
-                s => !string.IsNullOrWhiteSpace(s),
-                Localization["Невалидное значение"]
-            );
             this.SaveButtonConfig = new ButtonConfig
             {
-                Command = ReactiveCommand.Create(Save, this.IsValid()),
+                Command = ReactiveCommand.Create(Save, this.WhenAnyValue(model => model.IsValid)),
                 Text = Localization["Сохранить"]
             };
             this.AddNoteButtonConfig = new ButtonConfig
@@ -76,7 +105,7 @@ namespace TeacherAssistant.Forms.NoteForm
             this.RemoveNoteButtonConfig = new ButtonConfig
             {
                 Command = ReactiveCommand.Create(RemoveNote,
-                        this.WhenAnyValue(model => model.SelectedNote).Select(model => model != null)
+                    this.WhenAnyValue(model => model.SelectedNote).Select(model => model != null)
                 ),
                 Text = Localization["Удалить"]
             };
@@ -87,27 +116,30 @@ namespace TeacherAssistant.Forms.NoteForm
                 : Notes.FirstOrDefault(noteModel => noteModel.Note.Id.Equals(token.SelectedNote.Id));
             this.WhenActivated(disp =>
             {
-                this.IsValid()
-                    .Subscribe(b => this.IsNoteListSelectable = b)
-                    .DisposeWith(disp);
-                Notes.ToObservableChangeSet()
-                    .ToCollection()
-                    .Subscribe(models => this.IsEditorAvailable = models.Count > 0)
-                    .DisposeWith(disp);
+                IDisposable subscription = null;
+                NoteViewModel prevSelectedVm = null;
                 this.WhenAnyValue(model => model.SelectedNote)
-                    .Where(NotNull)
-                    .Subscribe(model => this.Text = model.Description)
-                    .DisposeWith(disp);
-                this.WhenAnyValue(model => model.Text)
-                    .Subscribe(s =>
+                    .Subscribe(noteVm =>
                     {
-                        if (this.SelectedNote == null)
+                        subscription?.Dispose();
+                        if (prevSelectedVm != null)
+                        {
+                            prevSelectedVm.IsSelected = false;
+                        }
+                        prevSelectedVm = noteVm;
+                        if (noteVm == null)
                         {
                             return;
                         }
-
-                        this.SelectedNote.Description = s;
-                    })
+                        noteVm.IsSelected = true;
+                        subscription = noteVm.IsValid.Subscribe(b =>
+                        {
+                            this.IsValid = b;
+                        });
+                    }).DisposeWith(disp);
+                Notes.ToObservableChangeSet()
+                    .ToCollection()
+                    .Subscribe(models => this.IsEditorAvailable = models.Count > 0)
                     .DisposeWith(disp);
             });
         }
@@ -122,13 +154,12 @@ namespace TeacherAssistant.Forms.NoteForm
         public ButtonConfig RemoveNoteButtonConfig { get; set; }
 
         [Reactive] public bool IsEditorAvailable { get; set; }
-        [Reactive] public bool IsNoteListSelectable { get; set; }
+        [Reactive] public bool IsValid { get; set; }
 
         public ObservableCollection<NoteViewModel> Notes { get; } = new ObservableCollection<NoteViewModel>();
 
         [Reactive] [CanBeNull] public NoteViewModel SelectedNote { get; set; }
 
-        [Reactive] public string Text { get; set; }
 
 
         private void AddNote()
@@ -144,6 +175,7 @@ namespace TeacherAssistant.Forms.NoteForm
         {
             var index = Notes.IndexOf(this.SelectedNote);
             Notes.Remove(this.SelectedNote);
+            this.SelectedNote.Dispose();
             if (index == 0)
             {
                 return;
@@ -181,14 +213,14 @@ namespace TeacherAssistant.Forms.NoteForm
         }
 
 
-        private void UpdateDescription(IEnumerable<NoteViewModel> models)
+        public ValidationContext ValidationContext { get; } = new ValidationContext();
+        public override void Dispose()
         {
-            foreach (var noteViewModel in models)
+            base.Dispose();
+            foreach (var noteViewModel in this.Notes)
             {
-                noteViewModel.Note.Description = noteViewModel.Description;
+                noteViewModel.Dispose();
             }
         }
-
-        public ValidationContext ValidationContext { get; } = new ValidationContext();
     }
 }

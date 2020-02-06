@@ -365,7 +365,7 @@ namespace TeacherAssistant.Dao {
             var lessons = this.Lessons.Where(lessonEntity =>
                     lessonEntity._StreamId == entity._StreamId
                     && lessonEntity._GroupId == entity._GroupId
-                    && lessonEntity.Date.HasValue
+                    && lessonEntity._Date != null
                     && lessonEntity._ScheduleId.HasValue)
                 .OrderBy(lessonEntity => lessonEntity._Order)
                 .ToList();

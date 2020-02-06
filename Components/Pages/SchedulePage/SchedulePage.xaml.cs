@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Windows.Input;
 using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
 
@@ -38,14 +37,6 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                 {"Lesson.Schedule.Begin", ListSortDirection.Descending},
                 {"Lesson.CreationDate", ListSortDirection.Descending},
             });
-        }
-
-        private void OnSelectItem(object sender, MouseButtonEventArgs mouseButtonEventArgs) {
-            if (LessonList.SelectedItem == null) {
-                return;
-            }
-
-            this.ViewModel.OpenRegistration();
         }
     }
 }

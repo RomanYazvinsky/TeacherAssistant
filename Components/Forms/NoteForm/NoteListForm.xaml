@@ -22,17 +22,17 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
         <ListBox ItemsSource="{Binding Source= {StaticResource SortedList}}"
                  SelectedItem="{Binding SelectedNote}"
                  Visibility="{Binding IsEditorAvailable, Converter={StaticResource B2V}}"
+                 FontSize="16"
                  SelectionMode="Single">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Focusable"
-                            Value="{Binding Path=DataContext.IsNoteListSelectable,
+                            Value="{Binding Path=DataContext.IsValid,
                      RelativeSource={RelativeSource FindAncestor, AncestorType=local:NoteListFormBase}}" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 </Style>
@@ -44,21 +44,36 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding Description}" />
-                        <TextBlock Grid.Column="1" Text="{Binding Note.CreationDate, StringFormat=dd.MM.yyyy}" />
+                        <Border Grid.Column="0"
+                                Margin="5"
+                                x:Name="Border"
+                                Visibility="{Binding Path=IsSelected, Converter={StaticResource B2V}}"
+                                />
+                        <TextBox Grid.Column="0"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding Path=Description, ValidatesOnDataErrors=True,
+                                            ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
+                                 MaxWidth="{Binding ElementName=Border, Path=ActualWidth}"
+                                 Visibility="{Binding Path=IsSelected, Converter={StaticResource B2V}}"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Margin="5" />
+                        <TextBlock Grid.Column="0"
+                                   Margin="5"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding Path=IsNotEditable, Converter={StaticResource B2V}}"
+                                   Text="{Binding Description}" />
+                        <TextBlock Grid.Column="1"
+                                   Margin="5"
+                                   VerticalAlignment="Center"
+                                   Text="{Binding Note.CreationDate, StringFormat=dd.MM.yyyy}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <xctk:RichTextBox Grid.Row="1"
-                          Visibility="{Binding IsEditorAvailable, Converter={StaticResource B2V}}"
-                          Text="{Binding Path=Text, ValidatesOnDataErrors=True, ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}"
-                          Margin="0, 0, 0, 5" FontSize="14">
-            <xctk:RichTextBox.TextFormatter>
-                <xctk:PlainTextFormatter />
-            </xctk:RichTextBox.TextFormatter>
-        </xctk:RichTextBox>
-        <Grid Grid.Row="2">
+
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="80" />
                 <ColumnDefinition Width="*" />

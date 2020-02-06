@@ -2,7 +2,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -32,7 +31,7 @@ namespace TeacherAssistant.Modules.MainModule {
 
         public override Control GetEntryComponent()
         {
-          //  Injector.Locate<MainReducer>();
+            //  Injector.Locate<MainReducer>();
             var windowPageHost = this.Injector?.Locate<WindowPageHost>();
             if (windowPageHost == null) {
                 return null;
@@ -57,7 +56,7 @@ namespace TeacherAssistant.Modules.MainModule {
             block.ExportModuleScope<StudentCardService>();
             block.ExportModuleScope<PhotoService>();
             block.ExportModuleScope<ModuleActivator>();
-            block.ExportModuleScope<WindowPageHost>();
+            block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
             block.ExportModuleScope<LessonTimerService>();
             block.ExportFactory(() => LocalDbContext.Instance).As<LocalDbContext>().ExternallyOwned();
             var notifier = new Notifier(configuration => {

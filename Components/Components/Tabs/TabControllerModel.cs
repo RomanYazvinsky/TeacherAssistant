@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Containers.Annotations;
 using Dragablz;
 using Model.Models;
 using ReactiveUI;
@@ -86,12 +87,16 @@ namespace TeacherAssistant {
             });
             reducer.Select(state => state.FullscreenMode)
                 .Subscribe(isFullscreen => this.IsHeaderVisible = !isFullscreen);
-            host.WhenTabAdded.Subscribe(tab => {
+            host.WhenTabAdded
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(tab => {
                 this.Tabs.Add(tab);
                 this.ActiveTab = tab;
                 this.ActiveTab.AllowDrop = true;
             });
-            host.WhenTabClosed.Subscribe(RemoveTab);
+            host.WhenTabClosed
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(RemoveTab);
             this.WhenAnyValue(model => model.ActiveTab)
                 .Where(NotNull)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
@@ -121,12 +126,12 @@ namespace TeacherAssistant {
 
         [Reactive] public bool IsHeaderVisible { get; set; } = true;
 
+        [NotNull]
         public ObservableCollection<TabItem> Tabs { get; set; } =
             new ObservableCollection<TabItem>();
 
-        [Reactive] public TabItem ActiveTab { get; set; }
+        [Reactive] [CanBeNull] public TabItem ActiveTab { get; set; }
 
-        public ItemActionCallback CloseCallback => args => { };
 
         /*
         public INewTabHost<Window> GetNewHost(IInterTabClient interTabClient, object partition, TabablzControl source) {

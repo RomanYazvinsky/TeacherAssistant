@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -53,7 +53,8 @@ namespace TeacherAssistant.Pages
             this.SerialUtil = serialUtil;
             InitHandlers();
             var tabControllerToken = new TabControllerToken();
-            Observable.FromAsync(() => activator.ActivateAsync(tabControllerToken))
+            activator.ActivateAsync(tabControllerToken)
+                .ToObservable()
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(module =>
                 {

@@ -241,6 +241,13 @@ namespace TeacherAssistant.RegistrationPage
                     });
             Init(token.Lesson);
             reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
+
+            this.WhenRemoved<LessonEntity>()
+                .Where(entities => entities.Any(entity => entity.Id == this.Lesson?.Id))
+                .Subscribe(_ =>
+                {
+                    token.Deactivate();
+                });
         }
 
         private async void Init(LessonEntity lesson)

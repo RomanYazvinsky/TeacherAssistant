@@ -7,6 +7,8 @@
     xmlns:local="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage"
     xmlns:label="clr-namespace:TeacherAssistant.Label"
     xmlns:fa5="http://schemas.fontawesome.com/icons/"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
     mc:Ignorable="d"
     d:DesignHeight="720" d:DesignWidth="1280"
     d:DataContext="{d:DesignInstance local:SchedulePageModel}"
@@ -26,35 +28,98 @@
             </Style.Resources>
         </Style>
         <BooleanToVisibilityConverter x:Key="b2v" />
+        <Style TargetType="{x:Type GridViewColumnHeader}" >
+            <Setter Property="MinWidth" Value="100" />
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="100" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <label:Label Grid.Column="0" Grid.Row="0" Text="От" ContentWidth="2*">
+                <DatePicker SelectedDate="{Binding Path=DateFrom}" />
+            </label:Label>
+            <label:Label Grid.Column="0" Grid.Row="1" Text="До" ContentWidth="2*">
+                <DatePicker SelectedDate="{Binding Path=DateTo}" />
+            </label:Label>
+            <label:Label Grid.Column="1" Grid.Row="0" Text="Поток">
+                <ComboBox ItemsSource="{Binding Path=Streams}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding Path=SelectedStream}" />
+            </label:Label>
+            <label:Label Grid.Column="1" Grid.Row="1" Text="Группа">
+                <ComboBox ItemsSource="{Binding Groups}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedGroup}" />
+            </label:Label>
+            <label:Label Grid.Column="2" Grid.Row="0" Text="Время">
+                <ComboBox ItemsSource="{Binding Path=Schedules}" SelectedValuePath="Id"
+                          SelectedItem="{Binding Path=SelectedSchedule}" />
+            </label:Label>
+            <label:Label Grid.Column="2" Grid.Row="1" Text="Тип занятия">
+                <ComboBox ItemsSource="{Binding Path=LessonTypes}"
+                          SelectedItem="{Binding Path=SelectedLessonType}" />
+            </label:Label>
+            <Button Grid.Column="3" Grid.Row="1" Height="30" Width="100" Content="Показать"
+                    Command="{Binding Path=Show}" />
+
+        </Grid>
+        <teacherAssistant:Webcam
+                                      Grid.Row="2"></teacherAssistant:Webcam>
         <ListView Grid.Row="1" Name="LessonList" Margin="10" ItemsSource="{Binding Path=Lessons}"
                   SelectedItem="{Binding Path=SelectedLesson}"
-                  FontSize="14"
-                  MouseDoubleClick="OnSelectItem">
+                  FontSize="14">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu x:Name="Menu">
-                                <ContextMenu.Items>
-                                    <MenuItem
-                                        Header="{Binding Model.Localization[Редактировать]}"
-                                        Command="{Binding Path=Model.EditMenuButtonConfig.Command}" />
-                                    <MenuItem
-                                        Header="{Binding Model.Localization[Удалить]}"
-                                        Command="{Binding Path=Model.DeleteMenuButtonConfig.Command}" />
-                                </ContextMenu.Items>
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Style.Setters>
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu x:Name="Menu">
+                                    <ContextMenu.Items>
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Регистрация]}"
+                                            Command="{Binding Path=Model.OpenRegistrationHandler}" />
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Занятие 1]}"
+                                            Command="{Binding Path=Model.OpenStudentLessonTableHandler}" />
+                                        <Separator />
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Редактировать]}"
+                                            Command="{Binding Path=Model.EditMenuHandler}" />
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Удалить]}"
+                                            Command="{Binding Path=Model.DeleteMenuHandler}" />
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Заметки]}"
+                                            Command="{Binding Path=Model.OpenLessonNotesHandler}" />
+                                        <MenuItem
+                                            Header="{Binding Model.Localization[Журнал проверен]}"
+                                            Command="{Binding Path=Model.ToggleLessonCheckedHandler}" />
+                                    </ContextMenu.Items>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style.Setters>
                 </Style>
             </ListView.ItemContainerStyle>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction Command="{Binding OpenRegistrationHandler}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="100"
@@ -136,44 +201,6 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250" />
-                <ColumnDefinition Width="250" />
-                <ColumnDefinition Width="250" />
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <label:Label Grid.Column="0" Grid.Row="0" Text="От" ContentWidth="2*">
-                <DatePicker SelectedDate="{Binding Path=DateFrom}" />
-            </label:Label>
-            <label:Label Grid.Column="0" Grid.Row="1" Text="До" ContentWidth="2*">
-                <DatePicker SelectedDate="{Binding Path=DateTo}" />
-            </label:Label>
-            <label:Label Grid.Column="1" Grid.Row="0" Text="Поток">
-                <ComboBox ItemsSource="{Binding Path=Streams}" DisplayMemberPath="Name"
-                          SelectedItem="{Binding Path=SelectedStream}" />
-            </label:Label>
-            <label:Label Grid.Column="1" Grid.Row="1" Text="Группа">
-                <ComboBox ItemsSource="{Binding Groups}" DisplayMemberPath="Name"
-                          SelectedItem="{Binding SelectedGroup}" />
-            </label:Label>
-            <label:Label Grid.Column="2" Grid.Row="0" Text="Время">
-                <ComboBox ItemsSource="{Binding Path=Schedules}" SelectedValuePath="Id"
-                          SelectedItem="{Binding Path=SelectedSchedule}" />
-            </label:Label>
-            <label:Label Grid.Column="2" Grid.Row="1" Text="Тип занятия">
-                <ComboBox ItemsSource="{Binding Path=LessonTypes}"
-                          SelectedItem="{Binding Path=SelectedLessonType}" />
-            </label:Label>
-            <Button Grid.Column="3" Grid.Row="1" Height="30" Width="100" Content="Показать"
-                    Command="{Binding Path=Show}" />
-
-        </Grid>
 
     </Grid>
 </local:SchedulePageBase>

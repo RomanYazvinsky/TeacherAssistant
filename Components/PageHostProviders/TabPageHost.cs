@@ -22,6 +22,14 @@ namespace TeacherAssistant {
             var tabItem = new TabItem {
                 Header = textBlock, Content = control, Uid = activation.Id
             };
+
+            void DeactivationHandler(object sender, EventArgs args)
+            {
+                activation.Deactivated -= DeactivationHandler;
+                ClosePage(activation.Id);
+            }
+
+            activation.Deactivated += DeactivationHandler;
             _tabAdded.OnNext(tabItem);
             return tabItem;        }
 

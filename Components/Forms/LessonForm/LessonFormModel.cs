@@ -40,19 +40,11 @@ namespace TeacherAssistant.Pages.LessonForm
             }
         }
 
-        public LessonFormModel(LessonFormToken token,
-            LocalDbContext db)
+        public LessonFormModel(LessonFormToken token, LocalDbContext db)
         {
             _token = token;
             _db = db;
-            WhenAdded<StreamEntity>()
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(models =>
-                    this.Streams.AddRange(models.ToList()));
-            WhenRemoved<StreamEntity>()
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(models => this.Streams.RemoveMany(models.ToList()));
-            this.Streams.AddRange(_db.Streams.ToList());
+            this.Streams.AddRange(_db.Streams.Where(entity => entity._Active > 0).ToList());
             this.ScheduleList.AddRange(_db.Schedules.ToList());
             this.SaveButtonConfig = new ButtonConfig
             {
@@ -138,6 +130,13 @@ namespace TeacherAssistant.Pages.LessonForm
                     isAvailable => { this.Lesson.Group = isAvailable ? this.Groups.FirstOrDefault() : null; }
                 );
 
+            WhenAdded<StreamEntity>().Merge(WhenRemoved<StreamEntity>())
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(models =>
+                {
+                    this.Streams.Clear();
+                    this.Streams.AddRange(_db.Streams.Where(entity => entity._Active > 0).ToList());
+                });
             Init(token.Lesson);
         }
 

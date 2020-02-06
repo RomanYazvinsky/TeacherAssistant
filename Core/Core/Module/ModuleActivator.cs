@@ -72,13 +72,13 @@ namespace TeacherAssistant.Core.Module
         public static IFluentExportStrategyConfiguration<T> ExportModuleScope<T>(
             this IExportRegistrationBlock block)
         {
-            return block.Export<T>().Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
+            return block.Export<T>().As<T>().Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
         }
 
         public static IFluentExportStrategyConfiguration ExportModuleScope(
             this IExportRegistrationBlock block, Type type)
         {
-            return block.Export(type).Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
+            return block.Export(type).As(type).Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
         }
     }
 }

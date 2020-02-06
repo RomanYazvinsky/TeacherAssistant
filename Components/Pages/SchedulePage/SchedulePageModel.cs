@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
-using System.Windows.Data;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Containers;
+using System.Windows.Threading;
+using Containers.Annotations;
 using DynamicData;
 using Model.Models;
 using ReactiveUI;
@@ -16,12 +16,15 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Forms.NoteForm;
+using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.RegistrationPage;
-using TeacherAssistant.State;
 
-namespace TeacherAssistant.ComponentsImpl.SchedulePage {
-    public class LessonScheduleView {
+namespace TeacherAssistant.ComponentsImpl.SchedulePage
+{
+    public class LessonScheduleView
+    {
         public LessonEntity Lesson { get; }
 
         public string Date { get; }
@@ -38,7 +41,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
 
         public SchedulePageModel Model { get; }
 
-        public LessonScheduleView(SchedulePageModel sm, LessonEntity entity) {
+        public LessonScheduleView(SchedulePageModel sm, LessonEntity entity)
+        {
             this.Lesson = entity;
             this.Model = sm;
             this.LocalizedType = AbstractModel.Localization[$"common.lesson.type.{entity.LessonType}"];
@@ -49,85 +53,77 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     }
 
 
-    public class ScheduleComboboxItem : ScheduleEntity {
-        public override string ToString() {
+    public class ScheduleComboboxItem : ScheduleEntity
+    {
+        public override string ToString()
+        {
             return AbstractModel.Localization["common.empty.dropdown"];
         }
     }
 
-    public class LessonTypeComboboxItem {
+    public class LessonTypeComboboxItem
+    {
         public LessonType Type { get; }
 
-        public LessonTypeComboboxItem(LessonType type) {
+        public LessonTypeComboboxItem(LessonType type)
+        {
             this.Type = type;
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return AbstractModel.Localization[
                 this.Type == LessonType.Unknown ? "common.empty.dropdown" : $"common.lesson.type.{this.Type}"];
         }
     }
 
-    public class SchedulePageModel : AbstractModel {
-        private readonly TabPageHost _host;
+    public class SchedulePageModel : AbstractModel
+    {
+        private readonly WindowPageHost _windowPageHost;
+        private readonly IPageHost _currentHost;
         private readonly LocalDbContext _context;
         private const string LocalizationKey = "page.schedule";
 
         public static readonly string SelectedLessonKey = "SelectedLesson";
 
-        private static readonly StreamEntity EmptyStream = new StreamEntity {
+        private static readonly StreamEntity EmptyStream = new StreamEntity
+        {
             Id = -1,
             Name = Localization["common.empty.dropdown"]
         };
 
-        private static readonly GroupEntity EmptyGroup = new GroupEntity {
+        private static readonly GroupEntity EmptyGroup = new GroupEntity
+        {
             Id = -1,
             Name = Localization["common.empty.dropdown"]
         };
 
         private static readonly ScheduleComboboxItem EmptyScheduleComboboxItem = new ScheduleComboboxItem {Id = -1};
 
-        public SchedulePageModel(TabPageHost host, LocalDbContext context) {
-            _host = host;
+        public SchedulePageModel(WindowPageHost windowPageHost, IPageHost currentHost, LocalDbContext context)
+        {
+            _windowPageHost = windowPageHost;
+            _currentHost = currentHost;
             _context = context;
-            this.DeleteMenuButtonConfig = new ButtonConfig {
-                Command = new CommandHandler
-                (
-                    () => { }
-                )
-            };
-
-            this.EditMenuButtonConfig = new ButtonConfig {
-                Command = new CommandHandler
-                (
-                    () => {
-                        var lesson = this.SelectedLesson.Lesson;
-                        var lessonFormModuleToken = new LessonFormToken("Lesson", lesson, _host);
-                        host.AddPageAsync<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
-                    }
-                )
-            };
-
-            this.Show = new CommandHandler
-            (
-                () => {
-                    this.Lessons.Clear();
-                    this.Lessons.AddRange(
-                        BuildQuery()
-                        .Select(model => new LessonScheduleView(this, model))
-                        .ToList()
-                    );
-                }
-            );
+            this.OpenRegistrationHandler = ReactiveCommand.Create(OpenRegistration);
+            this.DeleteMenuHandler = ReactiveCommand.Create(DeleteSelectedLesson);
+            this.EditMenuHandler = ReactiveCommand.Create(OpenLessonEditForm);
+            this.OpenStudentLessonTableHandler = ReactiveCommand.Create(OpenStudentLessonTable);
+            this.OpenLessonNotesHandler = ReactiveCommand.Create(OpenLessonNotes);
+            this.ToggleLessonCheckedHandler = ReactiveCommand.Create(ToggleLessonChecked);
+            this.Show = ReactiveCommand.Create(ShowLessons);
             this.WhenAnyValue(model => model.SelectedStream)
                 .Subscribe
                 (
-                    stream => {
+                    stream =>
+                    {
                         List<GroupEntity> groups;
-                        if (stream == null || stream.Id == -1) {
+                        if (stream == null || stream.Id == -1)
+                        {
                             groups = context.Groups.ToList();
                         }
-                        else {
+                        else
+                        {
                             groups = stream.Groups.ToList();
                         }
 
@@ -135,7 +131,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                         this.Groups.Clear();
                         this.Groups.AddRange(groups);
                         if (this.SelectedGroup == null
-                            || this.Groups.FirstOrDefault(model => this.SelectedGroup.Id == model.Id) != null) {
+                            || this.Groups.FirstOrDefault(model => this.SelectedGroup.Id == model.Id) != null)
+                        {
                             this.SelectedGroup = EmptyGroup;
                         }
                     }
@@ -143,7 +140,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             this.RefreshSubject.AsObservable()
                 .Subscribe
                 (
-                    async _ => {
+                    async _ =>
+                    {
                         this.Streams.Clear();
                         this.Groups.Clear();
                         var streamModels = await context.Streams.ToListAsync();
@@ -158,8 +156,15 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
                         this.SelectedLessonType = this.LessonTypes[0];
                         this.SelectedSchedule = EmptyScheduleComboboxItem;
                         this.SelectedStream = EmptyStream;
+                        ShowLessons();
                     }
                 );
+            Observable.Merge(
+                    this.WhenAdded<LessonEntity>(),
+                    this.WhenRemoved<LessonEntity>(),
+                    this.WhenUpdated<LessonEntity>()
+                ).ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(_ => ShowLessons());
         }
 
 
@@ -175,7 +180,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         public ObservableCollection<ScheduleEntity> Schedules { get; set; } =
             new ObservableCollection<ScheduleEntity>();
 
-        [Reactive] public LessonScheduleView SelectedLesson { get; set; }
+        [Reactive] [CanBeNull] public LessonScheduleView SelectedLesson { get; set; }
 
         [Reactive] public ICommand Show { get; set; }
 
@@ -185,6 +190,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         [Reactive] public StreamEntity SelectedStream { get; set; }
 
         [Reactive] public ScheduleEntity SelectedSchedule { get; set; }
+
 
         public List<LessonTypeComboboxItem> LessonTypes { get; set; } =
             new List<LessonTypeComboboxItem>
@@ -200,13 +206,29 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
         [Reactive] public DateTime DateFrom { get; set; } = DateTime.Today;
 
         [Reactive] public DateTime DateTo { get; set; } = DateTime.Today;
-        [Reactive] public ButtonConfig DeleteMenuButtonConfig { get; set; }
-        [Reactive] public ButtonConfig EditMenuButtonConfig { get; set; }
+        public ICommand DeleteMenuHandler { get; set; }
+        public ICommand EditMenuHandler { get; set; }
+        public ICommand OpenRegistrationHandler { get; }
+        public ICommand OpenStudentLessonTableHandler { get; }
+        public ICommand OpenLessonNotesHandler { get; }
+        public ICommand ToggleLessonCheckedHandler { get; }
+
+
+        private void ShowLessons()
+        {
+            this.Lessons.Clear();
+            this.Lessons.AddRange(
+                BuildQuery()
+                    .Select(model => new LessonScheduleView(this, model))
+                    .ToList()
+            );
+        }
 
         /// <summary>
         ///     SQLite EF6 provider does not support TruncateTime and other functions.
         /// </summary>
-        private IEnumerable<LessonEntity> BuildQuery() {
+        private IEnumerable<LessonEntity> BuildQuery()
+        {
             var query = _context.Lessons
                 .Where(model => model._Date != null)
                 .Include(lesson => lesson.Schedule)
@@ -219,7 +241,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             if (this.SelectedSchedule != null && this.SelectedSchedule.Id != -1)
                 query = query.Where(model => model.Schedule.Id == this.SelectedSchedule.Id);
 
-            if (this.SelectedLessonType != null && this.SelectedLessonType.Type != LessonType.Unknown) {
+            if (this.SelectedLessonType != null && this.SelectedLessonType.Type != LessonType.Unknown)
+            {
                 query = query.Where(model => model._TypeId == (long) this.SelectedLessonType.Type);
             }
 
@@ -239,12 +262,98 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
             return query.AsEnumerable().Where(model => model.Date >= this.DateFrom && model.Date <= this.DateTo);
         }
 
-        protected override string GetLocalizationKey() {
+        protected override string GetLocalizationKey()
+        {
             return LocalizationKey;
         }
 
-        public void OpenRegistration() {
-            _host.AddPageAsync(new RegistrationPageToken("Регистрация", this.SelectedLesson.Lesson));
+        private void OpenLessonEditForm()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            var lesson = this.SelectedLesson.Lesson;
+            var lessonFormModuleToken = new LessonFormToken("Lesson", lesson, _currentHost);
+            _windowPageHost.AddPageAsync<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
+        }
+
+        private void OpenRegistration()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            _currentHost.AddPageAsync(new RegistrationPageToken("Регистрация", this.SelectedLesson.Lesson));
+        }
+
+        private void OpenStudentLessonTable()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            _currentHost.AddPageAsync(new TableLessonViewToken("Занятие 1", this.SelectedLesson.Lesson));
+        }
+
+        private async void DeleteSelectedLesson()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            var messageBoxResult = MessageBox.Show(Localization["Вы уверены, что хотите удалить занятие?"],
+                Localization["Подтверждение удаления"], MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (messageBoxResult != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            var lessonEntity = await _context.Lessons.FindAsync(this.SelectedLesson.Lesson.Id);
+            if (lessonEntity == null)
+            {
+                ShowLessons();
+                return;
+            }
+
+            _context.Lessons.Remove(lessonEntity);
+            await _context.SaveChangesAsync();
+        }
+
+        private async void ToggleLessonChecked()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            var lessonEntity = await _context.Lessons.FindAsync(this.SelectedLesson.Lesson.Id);
+            if (lessonEntity == null)
+            {
+                ShowLessons();
+                return;
+            }
+
+            lessonEntity.Checked = !lessonEntity.Checked;
+            await _context.SaveChangesAsync();
+        }
+
+        private void OpenLessonNotes()
+        {
+            if (this.SelectedLesson == null)
+            {
+                return;
+            }
+
+            var selectedLesson = this.SelectedLesson.Lesson;
+            _windowPageHost.AddPageAsync(new NoteListFormToken("Заметки", () => new LessonNote
+            {
+                Lesson = selectedLesson,
+                EntityId = selectedLesson.Id
+            }, selectedLesson.Notes));
         }
     }
 }
