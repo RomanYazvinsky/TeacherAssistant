@@ -30,7 +30,8 @@
                       DisplayMemberPath="Name" />
         </label:Label>
         <label:Label Text="{Binding Localization[Имя группы]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="1">
-            <TextBox VerticalContentAlignment="Center" Text="{Binding GroupName, ValidatesOnNotifyDataErrors=True}" />
+            <TextBox Text="{Binding Path=GroupName, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalContentAlignment="Center" />
         </label:Label>
         <label:Label Text="{Binding Localization[Активная]}" LabelWidth="2*" ContentWidth="3*"
                      Grid.Row="2">
@@ -78,9 +79,9 @@
                     <RowDefinition Height="40" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <Button Grid.Row="1" Width="100" Content="&lt;"
+                <Button Grid.Row="1" Width="100" Content="&gt;"
                         Command="{Binding Path=AddStudentsToGroupHandler}" />
-                <Button Grid.Row="3" Width="100" Content="&gt;"
+                <Button Grid.Row="3" Width="100" Content="&lt;"
                         Command="{Binding Path=RemoveStudentsFromGroupHandler}" />
             </Grid>
             <tableFilter:TableFilter Grid.Column="2" FilterHeight="30" TableConfig="{Binding GroupStudentsTableConfig}">

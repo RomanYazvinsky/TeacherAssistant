@@ -115,7 +115,7 @@ namespace TeacherAssistant.Forms.StreamForm {
         [Reactive] public int PracticeCount { get; set; } = 0;
         [Reactive] public int LaboratoryCount { get; set; } = 0;
 
-        private void Save() {
+        private async Task Save() {
             _entity.Name = this.StreamName;
             _entity.Groups = this.ChosenGroups.Cast<GroupEntity>().ToList();
             _entity.Discipline = this.SelectedDiscipline;
@@ -129,7 +129,7 @@ namespace TeacherAssistant.Forms.StreamForm {
             if (_entity.Id == 0) {
                 _context.Streams.Add(_entity);
             }
-            _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
         private void SelectGroups() {

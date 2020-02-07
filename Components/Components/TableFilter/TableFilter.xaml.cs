@@ -107,9 +107,7 @@ namespace TeacherAssistant.Components.TableFilter {
                 new FrameworkPropertyMetadata(defaultValue: new TableConfig())
             );
 
-        private IDisposable _dragSubscription;
         private static Point? _dragStartPoint;
-        private bool _isMouseDown;
         private readonly List<object> _selectedItems = new List<object>();
         private DragConfig DragConfig => this.TableConfig.DragConfig;
 

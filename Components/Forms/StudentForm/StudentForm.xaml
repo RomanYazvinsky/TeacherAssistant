@@ -16,7 +16,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../../Styles.xaml" />
                 <ResourceDictionary>
-                    <Style TargetType="label:Label">
+                    <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
                         <Setter Property="Margin" Value="5" />
                         <Setter Property="DockPanel.Dock" Value="Top" />
                         <Setter Property="Height" Value="30" />

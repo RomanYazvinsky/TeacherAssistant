@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Threading;
 using Containers;
@@ -179,7 +180,7 @@ namespace TeacherAssistant.Pages.LessonForm
         public ButtonConfig RegisterButtonConfig { get; set; }
         public ButtonConfig NewOneButtonConfig { get; set; }
 
-        private void Save()
+        private async Task Save()
         {
             this.Lesson.Date = this.LessonDate;
             this.Lesson.Description = this.Description;
@@ -198,13 +199,13 @@ namespace TeacherAssistant.Pages.LessonForm
                 _db.Lessons.Add(_originalEntity);
             }
 
-            _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
         }
 
-        private void SaveAndOpenRegistration()
+        private async Task SaveAndOpenRegistration()
         {
-            Save();
-            _token.PageHost.AddPageAsync(new RegistrationPageToken("Registration", this.Lesson));
+            await Save();
+            await _token.PageHost.AddPageAsync(new RegistrationPageToken("Registration", this.Lesson));
             _token.Deactivate();
         }
     }

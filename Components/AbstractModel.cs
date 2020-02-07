@@ -18,7 +18,7 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {
 
-    public abstract class AbstractModel<T> : ReactiveValidationObject<T>, IDisposable, IActivatableViewModel
+    public abstract class AbstractModel<TSelf> : ReactiveValidationObject<TSelf>, IDisposable, IActivatableViewModel
     {
         private const int BufferizationTime = 300;
 
@@ -86,24 +86,12 @@ namespace TeacherAssistant.ComponentsImpl {
             return observable.Buffer(throttle);
         }
 
-        private Dictionary<string, string> BuildPageLocalization(LocalizationContainer localization, string pageName) {
-            return localization.Where(pair => pair.Key.StartsWith(pageName) || pair.Key.StartsWith("common."))
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
-        }
-
-        protected IObservable<T> ManageObservable<T>(IObservable<T> source) {
-            return source.TakeUntil(this.Activator.Deactivated)
-                .CombineLatest(RefreshSubject, (arg1, i) => arg1);
-        }
-
 
         protected abstract string GetLocalizationKey();
 
         protected void RunInUiThread(Action updateAction) {
             Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Background, updateAction);
         }
-
-        public bool Blocked { get; set; } = false;
 
         public virtual void Dispose() {
             RefreshSubject.OnCompleted();

@@ -9,9 +9,8 @@ using TeacherAssistant.Dao;
 namespace Model
 {
     [Table("ALARM")]
-    public class AlarmEntity : Trackable<AlarmEntity>, INotifyPropertyChanged
+    public class AlarmEntity : Trackable<AlarmEntity>
     {
-        private long? _timer;
         private string _discriminator;
         private string _resourceName;
 
@@ -28,17 +27,7 @@ namespace Model
         [Column("active")] public long? _Active { get; set; }
 
         [Column("time")]
-        public long? Timer
-        {
-            get => _timer;
-            set
-            {
-                if (value == _timer)
-                    return;
-                _timer = value;
-                OnPropertyChanged();
-            }
-        }
+        public long? _Timer { get; set; }
 
         [Column("volume")] public decimal? _Volume { get; set; }
 
@@ -50,9 +39,8 @@ namespace Model
             get => _discriminator;
             set
             {
-                if (value == _discriminator) return;
+                if (string.Equals(value, _discriminator)) return;
                 _discriminator = value;
-                OnPropertyChanged();
             }
         }
 
@@ -62,9 +50,8 @@ namespace Model
             get => _resourceName;
             set
             {
-                if (value == _resourceName) return;
+                if (string.Equals(value, _resourceName)) return;
                 _resourceName = value;
-                OnPropertyChanged();
             }
         }
 
@@ -72,37 +59,21 @@ namespace Model
         public bool IsActive
         {
             get => this._Active > 0;
-            set
-            {
-                this._Active = value ? 1 : 0;
-                OnPropertyChanged();
-            }
-        }
-
-        [NotMapped]
-        public decimal Volume
-        {
-            get => this._Volume ?? default;
-            set
-            {
-                this._Volume = value;
-                OnPropertyChanged();
-            }
+            set => this._Active = value ? 1 : 0;
         }
 
         [NotMapped] public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this._Sound);
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        [NotMapped]
+        public TimeSpan? SinceLessonStart
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            get => _Timer == null ? (TimeSpan?) null : TimeSpan.FromMinutes(_Timer.Value);
+            set => _Timer = value == null ? null : (long?) (long) value.Value.TotalMinutes;
         }
+
 
         public sealed override void Apply(AlarmEntity trackable)
         {
-
         }
 
         public override AlarmEntity Clone()

@@ -43,7 +43,7 @@ namespace TeacherAssistant.RegistrationPage
         private PhotoService PhotoService { get; }
         private List<StudentLessonEntity> _studentLessons = new List<StudentLessonEntity>();
         private List<StudentLessonEntity> _internalStudentLessons = new List<StudentLessonEntity>();
-        private DispatcherTimer _timerToEnd;
+        private IDisposable _timerToEnd;
         private StudentEntity _selectedStudent;
 
 
@@ -222,6 +222,7 @@ namespace TeacherAssistant.RegistrationPage
                 {
                     return;
                 }
+
                 this.Lesson.Checked = b;
                 this._db.ThrottleSave();
             });
@@ -245,17 +246,14 @@ namespace TeacherAssistant.RegistrationPage
 
             this.WhenRemoved<LessonEntity>()
                 .Where(entities => entities.Any(entity => entity.Id == this.Lesson?.Id))
-                .Subscribe(_ =>
-                {
-                    token.Deactivate();
-                });
+                .Subscribe(_ => { token.Deactivate(); });
         }
 
         private async void Init(LessonEntity lesson)
         {
             if (lesson == null)
                 return;
-            this.Lesson = await _db.Lessons.FindAsync(lesson.Id);
+            this.Lesson = await _db.Lessons.FindAsync(lesson.Id) ?? lesson.Clone();
             StopTimer();
             this.LessonStudents.Clear();
             this.RegisteredStudents.Clear();
@@ -675,36 +673,37 @@ namespace TeacherAssistant.RegistrationPage
                 TimeLeft = timeLeft,
                 CurrentTime = now
             };
-            var timerToEnd = new DispatcherTimer();
-            timerToEnd.Tick += (sender, args) =>
+            _timerToEnd = Observable
+                .Interval(TimeSpan.FromMilliseconds(1000))
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(UpdateTimer);
+        }
+
+        private void UpdateTimer(long timeSinceTimerStart)
+        {
+            var now = DateTime.Now;
+
+            var timeLeft = this.TimerState.TimeLeft - TimeSpan.FromMilliseconds(1000);
+            if (timeLeft.TotalMilliseconds <= 0)
             {
-                var now1 = DateTime.Now;
-
-                var timeLeft1 = this.TimerState.TimeLeft - TimeSpan.FromMilliseconds(1000);
-                if (timeLeft1.TotalMilliseconds <= 0)
-                {
-                    this.TimerState = new TimerState
-                    {
-                        TimeLeft = TimeSpan.Zero,
-                        CurrentTime = now1
-                    };
-                    return;
-                }
-
                 this.TimerState = new TimerState
                 {
-                    TimeLeft = timeLeft1,
-                    CurrentTime = now1
+                    TimeLeft = TimeSpan.Zero,
+                    CurrentTime = now
                 };
+                return;
+            }
+
+            this.TimerState = new TimerState
+            {
+                TimeLeft = timeLeft,
+                CurrentTime = now
             };
-            timerToEnd.Interval = TimeSpan.FromMilliseconds(1000);
-            timerToEnd.Start();
-            _timerToEnd = timerToEnd;
         }
 
         private void StopTimer()
         {
-            _timerToEnd?.Stop();
+            _timerToEnd?.Dispose();
         }
 
         public override void Dispose()

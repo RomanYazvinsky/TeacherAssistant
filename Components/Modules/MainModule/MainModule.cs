@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
@@ -19,13 +21,15 @@ using ToastNotifications;
 using ToastNotifications.Lifetime;
 using ToastNotifications.Position;
 
-namespace TeacherAssistant.Modules.MainModule {
+namespace TeacherAssistant.Modules.MainModule
+{
     using GlobalState = ImmutableDictionary<string, object>;
 
-    public class MainModule : SimpleModule {
-
+    public class MainModule : SimpleModule, IDisposable
+    {
         public MainModule()
-            : base(typeof(WindowPageHost)) {
+            : base(typeof(WindowPageHost))
+        {
         }
 
 
@@ -33,14 +37,17 @@ namespace TeacherAssistant.Modules.MainModule {
         {
             //  Injector.Locate<MainReducer>();
             var windowPageHost = this.Injector?.Locate<WindowPageHost>();
-            if (windowPageHost == null) {
+            if (windowPageHost == null)
+            {
                 return null;
             }
 
             var pages = windowPageHost.CurrentPages.ToList();
-            if (pages.Any()) {
+            if (pages.Any())
+            {
                 return pages.First();
             }
+
             ConfigureServices();
             windowPageHost
                 .AddPageAsync<PageControllerModule, PageControllerToken>(
@@ -48,7 +55,8 @@ namespace TeacherAssistant.Modules.MainModule {
             return null;
         }
 
-        public override void Configure(IExportRegistrationBlock block) {
+        public override void Configure(IExportRegistrationBlock block)
+        {
             block.ExportModuleScope<SimpleEffectsMiddleware<GlobalState>>();
             block.ExportModuleScope<Storage>();
             block.ExportModuleScope<MainReducer>();
@@ -57,9 +65,10 @@ namespace TeacherAssistant.Modules.MainModule {
             block.ExportModuleScope<PhotoService>();
             block.ExportModuleScope<ModuleActivator>();
             block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
-            block.ExportModuleScope<LessonTimerService>();
+            block.ExportModuleScope<TimerService<LessonInterval, AlarmData>>();
             block.ExportFactory(() => LocalDbContext.Instance).As<LocalDbContext>().ExternallyOwned();
-            var notifier = new Notifier(configuration => {
+            var notifier = new Notifier(configuration =>
+            {
                 configuration.PositionProvider = new PrimaryScreenPositionProvider(Corner.BottomRight, 10, 10);
                 configuration.LifetimeSupervisor =
                     new TimeAndCountBasedLifetimeSupervisor(
@@ -82,34 +91,67 @@ namespace TeacherAssistant.Modules.MainModule {
 
         private void StartTimer()
         {
-            var generalDbContext = Injector.Locate<LocalDbContext>();
-            var lessonTimerService = Injector.Locate<LessonTimerService>();
-            var alarms = generalDbContext.Alarms
-                .Where(model => model._Active > 0 && model.Timer.HasValue && model._Active == 1)
+            var _db = Injector.Locate<LocalDbContext>();
+            var lessonTimerService = Injector.Locate<TimerService<LessonInterval, AlarmData>>();
+            var alarms = _db.Alarms
+                .Where(model => model._Active > 0 && model._Timer.HasValue && model._Active == 1)
                 .ToList()
-                .GroupBy(entity => entity.Timer.Value) // if one or more in the same time - select only first
-                .Select(entities => entities.FirstOrDefault())
-                .ToDictionary(
-                    alarm => TimeSpan.FromMinutes(alarm.Timer.Value),
-                    model => new Action<LessonEntity>(lessonModel => SoundUtil.PlayAlarm(model))
-                );
+                .Select(alarm => new AlarmData(alarm));
 
-            lessonTimerService.Init(
-                generalDbContext.Lessons.Where(model => model._Date != null).ToList(),
-                alarms
-            );
-            var dateTime = lessonTimerService.Start();
-            if (dateTime != null)
+            var lessons = _db.Lessons
+                .Where(model => model._Date != null
+                                && model.Schedule != null
+                                && model.Schedule._Begin != null
+                                && model.Schedule._End != null)
+                .ToList().Select(entity => new LessonInterval(entity));
+            lessonTimerService.CreateSchedule(lessons, alarms);
+            lessonTimerService.Start();
+            var valueTuples = lessonTimerService.NextEvent;
+            if (valueTuples != null)
             {
-                Injector.Locate<Notifier>().ShowTimerNotification(dateTime.Value);
+                Injector.Locate<Notifier>().ShowTimerNotification(valueTuples.Value.Item1);
             }
+        }
+
+        public void Dispose()
+        {
+            Application.Current.Shutdown();
         }
     }
 
-    public class SetFullscreenModeAction : ModuleScopeAction {
+    public class LessonInterval : IInterval
+    {
+        public LessonInterval(LessonEntity lesson)
+        {
+            Lesson = lesson;
+            this.StartDateTime = lesson.Date.Value + lesson.Schedule.Begin.Value;
+            this.EndDateTime = lesson.Date.Value + lesson.Schedule.End.Value;
+        }
+
+        public LessonEntity Lesson { get; }
+        public DateTime StartDateTime { get; }
+        public DateTime EndDateTime { get; }
+    }
+
+    public class AlarmData : IIntervalTimePoint
+    {
+        public AlarmData(AlarmEntity alarm)
+        {
+            this.Alarm = alarm;
+            this.TimeDiff = alarm.SinceLessonStart.Value;
+        }
+
+        public AlarmEntity Alarm { get; }
+        public StartPoint RelativelyTo { get; } = StartPoint.Start;
+        public TimeSpan TimeDiff { get; }
+    }
+
+    public class SetFullscreenModeAction : ModuleScopeAction
+    {
         public bool? Fullscreen { get; }
 
-        public SetFullscreenModeAction(bool? fullscreen = null) {
+        public SetFullscreenModeAction(bool? fullscreen = null)
+        {
             this.Fullscreen = fullscreen;
         }
     }

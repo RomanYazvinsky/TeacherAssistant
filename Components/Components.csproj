@@ -219,11 +219,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractModel.cs" />
-    <Compile Include="AudioPlayerNotification.xaml.cs">
-      <DependentUpon>AudioPlayerNotification.xaml</DependentUpon>
-    </Compile>
     <Compile Include="BooleanToVisibilityConverter.cs" />
     <Compile Include="Components\DataGridAsyncTemplateColumn.cs" />
+    <Compile Include="Components\Label\Label.cs">
+      <DependentUpon>Label.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Components\Notifications\AudioPlayerNotification.xaml.cs">
+      <DependentUpon>AudioPlayerNotification.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Components\Notifications\TimerNotification.xaml.cs">
       <DependentUpon>DynamicNotification.xaml</DependentUpon>
     </Compile>
@@ -272,9 +275,6 @@
       <DependentUpon>GroupTable.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\GroupTablePage\GroupTableModel.cs" />
-    <Compile Include="Components\Label\Label.xaml.cs">
-      <DependentUpon>Label.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Forms\LessonForm\LessonForm.xaml.cs">
       <DependentUpon>LessonForm.xaml</DependentUpon>
     </Compile>
@@ -339,7 +339,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AudioPlayerNotification.xaml" />
+    <Page Include="Components\Label\LabelTemplate.xaml" />
+    <Page Include="Components\Notifications\AudioPlayerNotification.xaml" />
     <Page Include="Components\Notifications\DynamicNotification.xaml" />
     <Page Include="Components\TableFilter\TableFilter.xaml">
       <SubType>Designer</SubType>
@@ -370,10 +371,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\GroupTablePage\GroupTable.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\Label\Label.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

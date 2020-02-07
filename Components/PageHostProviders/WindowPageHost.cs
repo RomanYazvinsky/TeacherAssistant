@@ -11,6 +11,7 @@ namespace TeacherAssistant
 {
     public class WindowPageHost : AbstractPageHost<Window>
     {
+        private readonly IModuleToken _token;
         private readonly MainReducer _reducer;
 
         public override Window BuildContainer<TActivation>(TActivation activation, Control page)
@@ -56,6 +57,10 @@ namespace TeacherAssistant
                 activation.Deactivated -= OuterDeactivationHandler;
                 this.Pages.Remove(window.Uid);
                 activation.Deactivate();
+                if (this.Pages.Count == 0)
+                {
+                    _token.Deactivate();
+                }
             }
 
             activation.Deactivated += OuterDeactivationHandler;
@@ -70,8 +75,9 @@ namespace TeacherAssistant
             this.Pages.Remove(id);
         }
 
-        public WindowPageHost(ModuleActivator activator, MainReducer reducer) : base(activator)
+        public WindowPageHost(IModuleToken token, ModuleActivator activator, MainReducer reducer) : base(activator)
         {
+            _token = token;
             _reducer = reducer;
         }
     }

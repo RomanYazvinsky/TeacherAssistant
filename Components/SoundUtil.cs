@@ -56,7 +56,7 @@ namespace TeacherAssistant {
                     // notifier.ShowAudioNotification(wo);
                 }
 
-                wo.Volume = (float) alarm.Volume;
+                wo.Volume = (float) alarm._Volume;
                 wo.Play();
                 await observable.FirstAsync();
             }

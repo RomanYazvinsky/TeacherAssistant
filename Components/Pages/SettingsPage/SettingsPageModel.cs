@@ -35,17 +35,17 @@ namespace TeacherAssistant.Pages.SettingsPage {
         public AlarmEntity Alarm { get; set; }
 
         public double Volume {
-            get => (double) this.Alarm.Volume;
+            get => (double) this.Alarm._Volume;
             set {
-                this.Alarm.Volume = (decimal) value;
+                this.Alarm._Volume = (decimal) value;
                 LocalDbContext.Instance.ThrottleSave();
             }
         }
 
         public int Minutes {
-            get => (int) (this.Alarm.Timer ?? 0);
+            get => (int) (this.Alarm._Timer ?? 0);
             set {
-                this.Alarm.Timer = value;
+                this.Alarm._Timer = value;
                 LocalDbContext.Instance.ThrottleSave();
             }
         }

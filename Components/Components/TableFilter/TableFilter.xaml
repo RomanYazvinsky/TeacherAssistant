@@ -11,21 +11,21 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition
-                Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=FilterHeight}" />
+                Height="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=FilterHeight}" />
             <RowDefinition
-                Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=ContentHeight}" />
+                Height="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=ContentHeight}" />
         </Grid.RowDefinitions>
         <TextBox
             Grid.Row="0" TextWrapping="Wrap"
             Margin="4px"
-            Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
-            FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}}"
+            Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
+            FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}}"
             VerticalContentAlignment="Center"
-            FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=FontWeight}" />
+            FontWeight="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=FontWeight}" />
         <ListView Name="LView" Margin="4px" Grid.Row="1"
                   SelectionChanged="LView_OnSelectionChanged"
                   Drop="LView_OnDrop"
-                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl, AncestorLevel=1}, Path=TableConfig.TableItems}" >
+                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=TableConfig.TableItems}" >
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <EventSetter Event="MouseMove" Handler="ListViewItemDragStart" />

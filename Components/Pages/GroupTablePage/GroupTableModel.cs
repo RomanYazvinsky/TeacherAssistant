@@ -2,11 +2,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows.Data;
+using System.Windows.Threading;
 using Containers;
 using DynamicData;
 using Model.Models;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
@@ -28,10 +27,13 @@ namespace TeacherAssistant.GroupTable {
             this.ShowMenuButtonConfig = new ButtonConfig {
                 Command = new CommandHandler(ShowGroup)
             };
-            WhenAdded<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(models => this.Groups.AddRange(models));
-            WhenRemoved<GroupEntity>().ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(models => this.Groups.RemoveMany(models));
+            Observable.Merge(WhenAdded<GroupEntity>(), WhenRemoved<GroupEntity>(), WhenUpdated<GroupEntity>())
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(_ =>
+                {
+                    this.Groups.Clear();
+                    this.Groups.AddRange(db.Groups.ToList());
+                });
             this.Groups.Clear();
             this.Groups.AddRange(db.Groups.ToList());
         }

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using Containers.Annotations;
@@ -26,7 +27,7 @@ namespace TeacherAssistant {
 
     public class TimerNotificationModel : NotificationBase, INotifyPropertyChanged, IDisposable {
         private string _text;
-        private DispatcherTimer _timer;
+        private IDisposable _timer;
         private NotificationDisplayPart _displayPart;
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -39,15 +40,15 @@ namespace TeacherAssistant {
             _displayPart = new DynamicNotification(this);
             this.Title = LocalizationContainer.Localization["До следующего звонка:"];
             this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss");
-            var timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(1000);
-            timer.Tick += (sender, args) => { this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss"); };
-            timer.Start();
+            var timer = Observable
+                .Interval(TimeSpan.FromMilliseconds(1000))
+                .ObserveOnDispatcher(DispatcherPriority.Background)
+                .Subscribe(l =>  this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss"));
             _timer = timer;
         }
 
         public string Title { get; set; }
-        
+
         public string Text {
             get => _text;
             set {
@@ -60,7 +61,7 @@ namespace TeacherAssistant {
         public override NotificationDisplayPart DisplayPart => _displayPart;
 
         public void Dispose() {
-            _timer.Stop();
+            _timer.Dispose();
         }
     }
 }

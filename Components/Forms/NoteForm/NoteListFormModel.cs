@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using Containers;
@@ -18,6 +19,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
@@ -25,60 +27,23 @@ using ValidationContext = ReactiveUI.Validation.Contexts.ValidationContext;
 
 namespace TeacherAssistant.Forms.NoteForm
 {
-    public class NoteViewModel : ViewModelBase, IDisposable
+    public class NoteViewModel : ReactiveValidationObject<NoteViewModel>
     {
-        private string _description;
-        private bool _isSelected;
-        private bool _isNotEditable = true;
-        private readonly BehaviorSubject<bool> _isValid = new BehaviorSubject<bool>(false);
         public NoteEntity Note { get; }
 
-        public string Description
-        {
-            get => _description;
-            set
-            {
-                if (value == _description) return;
-                _description = value;
-                this._isValid.OnNext(!string.IsNullOrWhiteSpace(value));
-                OnPropertyChanged();
-            }
-        }
+        [Reactive] public string Description { get; set; }
 
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set
-            {
-                if (value == _isSelected) return;
-                _isSelected = value;
-                this.IsNotEditable = !value;
-                OnPropertyChanged();
-            }
-        }
-
-        public bool IsNotEditable
-        {
-            get => _isNotEditable;
-            set
-            {
-                if (value == _isNotEditable) return;
-                _isNotEditable = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public IObservable<bool> IsValid => _isValid;
+        [Reactive] public bool IsSelected { get; set; }
 
         public NoteViewModel(NoteEntity note)
         {
             Note = note;
             Description = note.Description ?? "";
-        }
-
-        public void Dispose()
-        {
-            _isValid?.Dispose();
+            this.ValidationRule(
+                model => model.Description,
+                s => !string.IsNullOrWhiteSpace(s),
+                LocalizationContainer.Localization["Невалидное значение"]
+            );
         }
     }
 
@@ -126,16 +91,15 @@ namespace TeacherAssistant.Forms.NoteForm
                         {
                             prevSelectedVm.IsSelected = false;
                         }
+
                         prevSelectedVm = noteVm;
                         if (noteVm == null)
                         {
                             return;
                         }
+
                         noteVm.IsSelected = true;
-                        subscription = noteVm.IsValid.Subscribe(b =>
-                        {
-                            this.IsValid = b;
-                        });
+                        subscription = noteVm.IsValid().Subscribe(b => this.IsValid = b);
                     }).DisposeWith(disp);
                 Notes.ToObservableChangeSet()
                     .ToCollection()
@@ -161,7 +125,6 @@ namespace TeacherAssistant.Forms.NoteForm
         [Reactive] [CanBeNull] public NoteViewModel SelectedNote { get; set; }
 
 
-
         private void AddNote()
         {
             var note = _token.NoteFactory();
@@ -175,7 +138,6 @@ namespace TeacherAssistant.Forms.NoteForm
         {
             var index = Notes.IndexOf(this.SelectedNote);
             Notes.Remove(this.SelectedNote);
-            this.SelectedNote?.Dispose();
             if (index == 0)
             {
                 return;
@@ -184,7 +146,7 @@ namespace TeacherAssistant.Forms.NoteForm
             this.SelectedNote = Notes.Count > index ? Notes[index] : Notes[index - 1];
         }
 
-        private void Save()
+        private async Task Save()
         {
             foreach (var noteViewModel in this.Notes)
             {
@@ -208,18 +170,8 @@ namespace TeacherAssistant.Forms.NoteForm
             var changedIds = changed.Keys.ToList();
             var noteEntities = _context.Set<NoteEntity>().Where(entity => changedIds.Contains(entity.Id)).ToList();
             noteEntities.ForEach(entity => entity.Apply(changed[entity.Id]));
-            _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             _token.Deactivate();
-        }
-
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            foreach (var noteViewModel in this.Notes)
-            {
-                noteViewModel.Dispose();
-            }
         }
     }
 }

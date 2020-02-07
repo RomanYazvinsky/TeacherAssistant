@@ -7,12 +7,16 @@
                         xmlns:local="clr-namespace:TeacherAssistant.Forms.NoteForm"
                         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
                         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+                        xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
                         mc:Ignorable="d"
                         d:DesignHeight="450" d:DesignWidth="800"
                         d:DataContext="{d:DesignInstance local:NoteFormModel}"
                         Padding="5">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="B2V" />
+        <teacherAssistant:BooleanToVisibilityConverter x:Key="InverseB2V"
+                                                       True="Collapsed"
+                                                       False="Visible"/>
         <CollectionViewSource x:Key="SortedList" Source="{Binding Notes}">
             <CollectionViewSource.SortDescriptions>
                 <componentModel:SortDescription PropertyName="Note.CreationDate" Direction="Descending" />
@@ -47,8 +51,7 @@
                         <Border Grid.Column="0"
                                 Margin="5"
                                 x:Name="Border"
-                                Visibility="{Binding Path=IsSelected, Converter={StaticResource B2V}}"
-                                />
+                                Visibility="{Binding Path=IsSelected, Converter={StaticResource B2V}}" />
                         <TextBox Grid.Column="0"
                                  AcceptsReturn="True"
                                  AcceptsTab="True"
@@ -62,7 +65,7 @@
                         <TextBlock Grid.Column="0"
                                    Margin="5"
                                    VerticalAlignment="Center"
-                                   Visibility="{Binding Path=IsNotEditable, Converter={StaticResource B2V}}"
+                                   Visibility="{Binding Path=IsSelected, Converter={StaticResource InverseB2V}}"
                                    Text="{Binding Description}" />
                         <TextBlock Grid.Column="1"
                                    Margin="5"

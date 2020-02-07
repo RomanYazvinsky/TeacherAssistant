@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -21,6 +22,7 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
+using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
@@ -28,39 +30,46 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Utils;
 
-namespace TeacherAssistant.Forms.GroupForm {
-    public class GroupFormModel : AbstractModel<GroupFormModel>, IValidatableViewModel {
+namespace TeacherAssistant.Forms.GroupForm
+{
+    public class GroupFormModel : AbstractModel<GroupFormModel>
+    {
         private readonly GroupFormToken _token;
         private readonly LocalDbContext _db;
         [NotNull] private List<StudentEntity> _students = new List<StudentEntity>();
 
-        private static readonly Dictionary<string, ListSortDirection> Sorts = new Dictionary<string, ListSortDirection> {
+        private static readonly Dictionary<string, ListSortDirection> Sorts = new Dictionary<string, ListSortDirection>
+        {
             {"Name", ListSortDirection.Ascending}
         };
 
-        public GroupFormModel(GroupFormToken token, LocalDbContext db) {
+        public GroupFormModel(GroupFormToken token, LocalDbContext db)
+        {
             _db = db;
             _token = token;
-            this.StudentsTableConfig = new TableConfig {
+            this.StudentsTableConfig = new TableConfig
+            {
                 Filter = FilterStudentNames,
                 Sorts = Sorts
             };
-            this.GroupStudentsTableConfig = new TableConfig {
+            this.GroupStudentsTableConfig = new TableConfig
+            {
                 Filter = FilterStudentNames,
                 Sorts = Sorts
             };
             this.Students = this.StudentsTableConfig.TableItems;
             this.SelectedStudents = this.StudentsTableConfig.SelectedItems;
             this.GroupStudents = this.GroupStudentsTableConfig.TableItems;
-            this.SelectedGroupStudents = this.GroupStudentsTableConfig.TableItems;
+            this.SelectedGroupStudents = this.GroupStudentsTableConfig.SelectedItems;
             this.AddStudentsToGroupHandler = ReactiveCommand.Create(AddStudentsToGroup);
             this.RemoveStudentsFromGroupHandler = ReactiveCommand.Create(RemoveStudentsFromGroup);
             this.SaveGroupHandler = ReactiveCommand.Create(Save);
-            this.ValidationRule(
+            NameValidation = this.ValidationRule(
                 model => model.GroupName,
                 s => !string.IsNullOrWhiteSpace(s),
                 s => Localization["Неверное имя!"]);
-            this.WhenActivated(disposable => {
+            this.WhenActivated(disposable =>
+            {
                 this.IsValid().Subscribe(b => this.IsValid = b);
                 this.WhenAnyValue(model => model.SelectedDepartment)
                     .Skip(1)
@@ -87,7 +96,8 @@ namespace TeacherAssistant.Forms.GroupForm {
         }
 
 
-        private void Init(GroupEntity group) {
+        private void Init(GroupEntity group)
+        {
             this.Group = group.Id == default ? group : new GroupEntity(group);
             this.IsGroupActive = this.Group.IsActive;
             this.ExpirationDate = this.Group.ExpirationDate ?? DateTime.Now;
@@ -100,7 +110,8 @@ namespace TeacherAssistant.Forms.GroupForm {
                 .Subscribe(_ => SetupChiefStudents());
         }
 
-        private void SetupGroupStudents() {
+        private void SetupGroupStudents()
+        {
             this.GroupStudents.Clear();
             var studentViewModels = this.Group.Students?
                                         .Select(model => new StudentViewModel(model)).ToList()
@@ -108,20 +119,23 @@ namespace TeacherAssistant.Forms.GroupForm {
             this.GroupStudents.AddRange(studentViewModels);
         }
 
-        private async Task SetupAvailableStudentsAsync() {
+        private async Task SetupAvailableStudentsAsync()
+        {
             _students = await _db.Students.Include(entity => entity.Groups).ToListAsync();
             _students.Sort(CompareStudentNames);
             var studentListItems = this.Group.Students == null
                 ? _students.Select(entity => new StudentViewModel(entity))
                 : _students.Where(student => this.Group.Students.All(s => s.Id != student.Id))
                     .Select(model => new StudentViewModel(model));
-            RunInUiThread(() => {
+            RunInUiThread(() =>
+            {
                 this.Students.Clear();
                 this.Students.AddRange(studentListItems);
             });
         }
 
-        private void SetupChiefStudents() {
+        private void SetupChiefStudents()
+        {
             var studentListItems = this.Group.Students ?? _students;
             var studentAvailableToChief = studentListItems
                 .Select(student => new StudentDropdownItem(student))
@@ -132,14 +146,17 @@ namespace TeacherAssistant.Forms.GroupForm {
                 studentAvailableToChief.FirstOrDefault(o => o.Student.Id == this.Group.Chief?.Id);
         }
 
-        private async Task SetupDepartmentsAsync() {
+        private async Task SetupDepartmentsAsync()
+        {
             var departments = await _db.Departments.ToListAsync();
-            RunInUiThread(() => {
+            RunInUiThread(() =>
+            {
                 this.DepartmentSelectionAvailable = departments.Count > 0;
                 departments.Insert
                 (
                     0,
-                    new DepartmentEntity {
+                    new DepartmentEntity
+                    {
                         Id = -1, Name = Localization["dropdown.empty"]
                     }
                 );
@@ -149,7 +166,8 @@ namespace TeacherAssistant.Forms.GroupForm {
             });
         }
 
-        private static int CompareStudentNames(StudentEntity s1, StudentEntity s2) {
+        private static int CompareStudentNames(StudentEntity s1, StudentEntity s2)
+        {
             return string.Compare(
                 s1.LastName.ToUpper(),
                 s2.LastName.ToUpper(),
@@ -157,7 +175,8 @@ namespace TeacherAssistant.Forms.GroupForm {
             );
         }
 
-        private static bool FilterStudentNames(object studentObject, string value) {
+        private static bool FilterStudentNames(object studentObject, string value)
+        {
             var upperString = value.ToUpper();
             var student = ((StudentViewModel) studentObject).Student;
             return student.FirstName.ToUpper().Contains(upperString)
@@ -165,6 +184,7 @@ namespace TeacherAssistant.Forms.GroupForm {
                    || student.SecondName.ToUpper().Contains(upperString);
         }
 
+        public ValidationHelper NameValidation { get; set; }
         public TableConfig StudentsTableConfig { get; set; }
         public TableConfig GroupStudentsTableConfig { get; set; }
 
@@ -187,57 +207,65 @@ namespace TeacherAssistant.Forms.GroupForm {
         public ObservableCollection<object> ChiefStudents { get; set; } =
             new ObservableCollection<object>();
 
-        public ObservableCollection<object> SelectedStudents { get; set; }
+        public ObservableCollection<object> SelectedStudents { get; }
 
-        public ObservableCollection<object> SelectedGroupStudents { get; set; }
+        public ObservableCollection<object> SelectedGroupStudents { get; }
 
         public ICommand AddStudentsToGroupHandler { get; set; }
         public ICommand RemoveStudentsFromGroupHandler { get; set; }
         public ICommand SaveGroupHandler { get; set; }
 
-        private void AddStudentsToGroup() {
+        private void AddStudentsToGroup()
+        {
             var selectedGroupStudents = this.SelectedStudents.ToList();
-            foreach (var selectedGroupStudent in selectedGroupStudents) {
+            foreach (var selectedGroupStudent in selectedGroupStudents)
+            {
                 this.GroupStudents.Add(selectedGroupStudent);
                 this.Students.Remove(selectedGroupStudent);
             }
         }
 
-        private void RemoveStudentsFromGroup() {
+        private void RemoveStudentsFromGroup()
+        {
             var selectedGroupStudents = this.SelectedGroupStudents.ToList();
-            foreach (var selectedGroupStudent in selectedGroupStudents) {
+            foreach (var selectedGroupStudent in selectedGroupStudents)
+            {
                 this.GroupStudents.Remove(selectedGroupStudent);
                 this.Students.Add(selectedGroupStudent);
             }
         }
 
 
-        protected override string GetLocalizationKey() {
+        protected override string GetLocalizationKey()
+        {
             return "group.form";
         }
 
-        private void Save() {
+        private async Task Save()
+        {
             this.Group.Students = this.GroupStudents
                 .Cast<StudentViewModel>()
                 .Select(item => item.Student)
                 .ToList();
-            if (this.Group.Id == 0) {
+            if (this.Group.Id == 0)
+            {
                 _db.Groups.Add(this.Group);
             }
-            else {
+            else
+            {
                 var group = _db.Groups.Find(this.Group.Id);
                 group?.Apply(this.Group);
             }
 
-            _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
             _token.Deactivate();
         }
-
-        public ValidationContext ValidationContext { get; } = new ValidationContext();
     }
 
-    public class StudentDropdownItem {
-        public StudentDropdownItem(StudentEntity student) {
+    public class StudentDropdownItem
+    {
+        public StudentDropdownItem(StudentEntity student)
+        {
             this.Student = student;
             this.Name = student.LastName
                         + " "
@@ -250,8 +278,10 @@ namespace TeacherAssistant.Forms.GroupForm {
         public StudentEntity Student { get; }
     }
 
-    public class StudentViewModel : StudentDropdownItem {
-        public StudentViewModel(StudentEntity student) : base(student) {
+    public class StudentViewModel : StudentDropdownItem
+    {
+        public StudentViewModel(StudentEntity student) : base(student)
+        {
             this.Groups = string.Join
             (
                 ", ",

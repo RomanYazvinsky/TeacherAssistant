@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Redux;
@@ -18,7 +19,7 @@ namespace TeacherAssistant.Core.Reducers {
     public abstract class AbstractReducer<TState> : IReducer, IDisposable where TState : new() {
         private readonly string _id;
         protected readonly Storage Storage;
-        private readonly Subject<object> _disposeSubject = new Subject<object>();
+        private readonly Subject<Unit> _disposeSubject = new Subject<Unit>();
 
         protected AbstractReducer(IModuleToken token, Storage storage) {
             _id = token.Id;
@@ -77,9 +78,15 @@ namespace TeacherAssistant.Core.Reducers {
         }
 
         public void Dispose() {
-            Storage.UnregisterReducer(_id);
-            _disposeSubject.OnNext(1);
+            CleanupModuleData();
+            _disposeSubject.OnNext(Unit.Default);
             _disposeSubject.OnCompleted();
+            _disposeSubject.Dispose();
+        }
+
+        protected virtual void CleanupModuleData()
+        {
+            Storage.UnregisterReducer(_id);
         }
 
         public abstract GlobalState Reduce(GlobalState state,
