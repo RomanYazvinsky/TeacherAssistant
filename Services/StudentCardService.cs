@@ -18,7 +18,7 @@ namespace TeacherAssistant.Components {
         }
 
         private void Init() {
-            this.ReadStudentCard = _serialUtil.OnRead()
+            this.ReadStudentCard = _serialUtil.ReadData
                                               .Select(strings => new StudentCard(strings));
             _subscription = this.ReadStudentCard.Subscribe(Save);
         }

@@ -1,5 +1,5 @@
-﻿using Containers.Annotations;
-using Grace.DependencyInjection;
+﻿using Grace.DependencyInjection;
+using JetBrains.Annotations;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;

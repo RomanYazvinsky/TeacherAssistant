@@ -2,15 +2,18 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Containers;
 using DynamicData;
 using Model.Models;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.Tabs;
 using TeacherAssistant.ComponentsImpl;
@@ -40,7 +43,7 @@ namespace TeacherAssistant.Pages
     public class PageControllerModel : AbstractModel<PageControllerModel>
     {
         private readonly WindowPageHost _windowPageHost;
-        private SerialUtil SerialUtil { get; }
+        private readonly SerialUtil _serialUtil;
         private TabPageHost _host;
 
         public PageControllerModel(
@@ -51,7 +54,7 @@ namespace TeacherAssistant.Pages
             WindowPageHost windowPageHost)
         {
             _windowPageHost = windowPageHost;
-            this.SerialUtil = serialUtil;
+            this._serialUtil = serialUtil;
             InitHandlers();
             var tabControllerToken = new TabControllerToken();
             activator.ActivateAsync(tabControllerToken)
@@ -64,19 +67,38 @@ namespace TeacherAssistant.Pages
                     _host.AddPageAsync(new ScheduleToken("Schedule"));
                 });
 
-            mainReducer.Select(state => state.FullscreenMode)
-                .Subscribe(isFullScreen => { this.MenuVisibility = !isFullScreen; });
-            reducer.Select(state => state.SelectedPage)
-                .Where(LambdaHelper.NotNull)
-                .WithLatestFrom(reducer.Select(state => state.Controls), LambdaHelper.ToTuple)
-                .Subscribe(tuple =>
-                {
-                    var (selectedPage, controlsDict) = tuple;
-                    var controls = selectedPage == null
-                        ? new List<ButtonConfig>()
-                        : controlsDict.GetOrDefault(selectedPage.Id) ?? new List<ButtonConfig>();
-                    SetActionButtons(controls);
-                });
+            this.WhenActivated((c) =>
+            {
+
+                mainReducer.Select(state => state.FullscreenMode)
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(isFullScreen => this.MenuVisibility = !isFullScreen)
+                    .DisposeWith(c);
+                reducer.Select(state => state.SelectedPage)
+                    .Where(LambdaHelper.NotNull)
+                    .WithLatestFrom(reducer.Select(state => state.Controls), LambdaHelper.ToTuple)
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(tuple =>
+                    {
+                        var (selectedPage, controlsDict) = tuple;
+                        var controls = selectedPage == null
+                            ? new List<ButtonConfig>()
+                            : controlsDict.GetOrDefault(selectedPage.Id) ?? new List<ButtonConfig>();
+                        SetActionButtons(controls);
+                    })
+                    .DisposeWith(c);
+                _serialUtil.ConnectionStatus
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Select(status => status.IsConnected)
+                    .Subscribe(status =>
+                        {
+                            this.ReaderMenuText = status
+                                ? Localization["Отключить считыватель"]
+                                : Localization["Включить считыватель"];
+                        })
+                    .DisposeWith(c);
+            });
+
         }
 
         private void InitHandlers()
@@ -91,6 +113,7 @@ namespace TeacherAssistant.Pages
             this.OpenAddLessonForm = new CommandHandler(AddLesson_Click);
             this.OpenAddGroupForm = new CommandHandler(AddGroup_Click);
             this.OpenAddStreamForm = new CommandHandler(AddStreamHandler);
+            this.ToggleCardReaderHandler = ReactiveCommand.Create(ToggleCardReader);
         }
 
         private void SetActionButtons(List<ButtonConfig> buttons)
@@ -134,16 +157,19 @@ namespace TeacherAssistant.Pages
 
         [Reactive] public Control CentralControl { get; set; }
 
-        public CommandHandler OpenSchedule { get; set; }
-        public CommandHandler OpenStudentsTable { get; set; }
-        public CommandHandler OpenGroupsTable { get; set; }
-        public CommandHandler OpenSelectPhotoDirectoryDialog { get; set; }
-        public CommandHandler OpenSelectDatabaseDialog { get; set; }
-        public CommandHandler OpenSettings { get; set; }
-        public CommandHandler OpenAddStudentForm { get; set; }
-        public CommandHandler OpenAddLessonForm { get; set; }
-        public CommandHandler OpenAddStreamForm { get; set; }
-        public CommandHandler OpenAddGroupForm { get; set; }
+        [Reactive] public string ReaderMenuText { get; set; }
+
+        public ICommand OpenSchedule { get; set; }
+        public ICommand OpenStudentsTable { get; set; }
+        public ICommand OpenGroupsTable { get; set; }
+        public ICommand OpenSelectPhotoDirectoryDialog { get; set; }
+        public ICommand OpenSelectDatabaseDialog { get; set; }
+        public ICommand ToggleCardReaderHandler { get; set; }
+        public ICommand OpenSettings { get; set; }
+        public ICommand OpenAddStudentForm { get; set; }
+        public ICommand OpenAddLessonForm { get; set; }
+        public ICommand OpenAddStreamForm { get; set; }
+        public ICommand OpenAddGroupForm { get; set; }
         [Reactive] public bool MenuVisibility { get; set; }
 
         public ObservableCollection<MenuItem> CurrentControls { get; set; } =
@@ -161,6 +187,18 @@ namespace TeacherAssistant.Pages
 
             Settings.Default.DatabasePath = dialog.FileName;
             Settings.Default.Save();
+        }
+
+        private void ToggleCardReader()
+        {
+            if (_serialUtil.IsRunning)
+            {
+                _serialUtil.Close();
+            }
+            else
+            {
+                _serialUtil.Start();
+            }
         }
 
         private void OpenSchedulePage()

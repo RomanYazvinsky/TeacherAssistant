@@ -1,5 +1,5 @@
 using System;
-using Containers.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.Core.Module {

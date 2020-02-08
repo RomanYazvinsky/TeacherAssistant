@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
-using Containers.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.ComponentsImpl;
 using ToastNotifications;
 using ToastNotifications.Core;
@@ -38,7 +38,7 @@ namespace TeacherAssistant {
 
         public TimerNotificationModel(DateTime time) : base("", new MessageOptions()) {
             _displayPart = new DynamicNotification(this);
-            this.Title = LocalizationContainer.Localization["До следующего звонка:"];
+            this.Title = LocalizationContainer.Localization["До следующего занятия:"];
             this.Text = (time - DateTime.Now).ToString(@"hh\:mm\:ss");
             var timer = Observable
                 .Interval(TimeSpan.FromMilliseconds(1000))

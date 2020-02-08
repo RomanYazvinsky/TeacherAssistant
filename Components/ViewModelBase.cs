@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Containers.Annotations;
+using JetBrains.Annotations;
 
 namespace TeacherAssistant
 {

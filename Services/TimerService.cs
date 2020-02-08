@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using JetBrains.Annotations;
-using Model;
-using Model.Models;
 
 namespace TeacherAssistant
 {
@@ -21,45 +19,48 @@ namespace TeacherAssistant
         DateTime EndDateTime { get; }
     }
 
-    public interface IIntervalTimePoint
+    public interface IIntervalEvent
     {
         StartPoint RelativelyTo { get; }
         TimeSpan TimeDiff { get; }
     }
 
-    public class TimerService<T, TOffset> : IDisposable where T : IInterval where TOffset : IIntervalTimePoint
+    public class TimerService<T, TEventTimeOffset> : IDisposable where T : IInterval where TEventTimeOffset : IIntervalEvent
     {
-        [NotNull] private readonly Subject<List<(T, TOffset)>> _eventStream =
-            new Subject<List<(T, TOffset)>>();
+        [NotNull] private readonly Subject<List<(T, TEventTimeOffset)>> _eventStream =
+            new Subject<List<(T, TEventTimeOffset)>>();
 
         [CanBeNull] private IDisposable _activeTimer;
-        [CanBeNull] private Dictionary<DateTime, List<(T, TOffset)>> _eventQueue;
-        [CanBeNull] private Dictionary<DateTime, List<T>> _startsQueue;
-        [CanBeNull] private Dictionary<DateTime, List<T>> _endsQueue;
+        [CanBeNull] private Dictionary<DateTime, List<(T, TEventTimeOffset)>> _eventQueue;
+        [CanBeNull] private List<(DateTime, List<T>)> _startsQueue;
+        [CanBeNull] private List<(DateTime, List<T>)> _endsQueue;
 
         public void CreateSchedule([NotNull] IEnumerable<T> timeIntervals,
-            [NotNull] IEnumerable<TOffset> everyLessonTimer)
+            [NotNull] IEnumerable<TEventTimeOffset> everyIntervalEvents)
         {
             Stop(); // todo make easier
             var intervals = timeIntervals.ToList();
-            var intervalTimePoints = everyLessonTimer.ToList();
-            _startsQueue = intervals.Aggregate(new Dictionary<DateTime, List<T>>(),
-                (dictionary, interval) =>
-                {
-                    return dictionary;
-                });
+            var intervalTimePoints = everyIntervalEvents.ToList();
+            _startsQueue = intervals.GroupBy(interval => interval.StartDateTime)
+                .OrderBy(grouping => grouping.Key)
+                .Select(grouping => (Date: grouping.Key, timeIntervals: grouping.ToList()))
+                .ToList();
+            _endsQueue = intervals.GroupBy(interval => interval.EndDateTime)
+                .OrderBy(grouping => grouping.Key)
+                .Select(grouping => (Date: grouping.Key, timeIntervals: grouping.ToList()))
+                .ToList();
             var beginTimePoints = intervalTimePoints
                 .Where(point => point.RelativelyTo == StartPoint.Start);
             var endTimePoints = intervalTimePoints
                 .Where(point => point.RelativelyTo == StartPoint.End);
             var eventsScheduledByBeginning = intervals
                 .Select(interval => (interval, beginTimePoints))
-                .Aggregate(new Dictionary<DateTime, List<(T, TOffset)>>(),
+                .Aggregate(new Dictionary<DateTime, List<(T, TEventTimeOffset)>>(),
                     (dictionary, tuple) => AggregateEventsByTime(dictionary, tuple, StartPoint.Start)
                 );
             var eventsScheduledByEnd = intervals
                 .Select(interval => (interval, endTimePoints))
-                .Aggregate(new Dictionary<DateTime, List<(T, TOffset)>>(),
+                .Aggregate(new Dictionary<DateTime, List<(T, TEventTimeOffset)>>(),
                     (dictionary, tuple) => AggregateEventsByTime(dictionary, tuple, StartPoint.End)
                 );
             _eventQueue = eventsScheduledByEnd.ToDictionary(pair => pair.Key, pair => pair.Value);
@@ -78,10 +79,28 @@ namespace TeacherAssistant
                 });
         }
 
-        public IObservable<List<(T, TOffset)>> OnScheduled => _eventStream;
-        public (DateTime, List<(T, TOffset)>)? NextEvent { get; private set; }
-        [CanBeNull] public List<T> NextStarts { get; private set; }
-        [CanBeNull] public List<T> NextEnds { get; private set; }
+        public IObservable<List<(T, TEventTimeOffset)>> OnScheduled => _eventStream;
+        public (DateTime, List<(T, TEventTimeOffset)>)? NextEvent { get; private set; }
+        [CanBeNull] public List<T> NextStarts
+        {
+            get
+            {
+                var now = DateTime.Now;
+                var next = _startsQueue?.FirstOrDefault(tuple => tuple.Item1 > now);
+                return next?.Item2;
+            }
+        }
+
+        [CanBeNull]
+        public List<T> NextEnds
+        {
+            get
+            {
+                var now = DateTime.Now;
+                var next = _endsQueue?.FirstOrDefault(tuple => tuple.Item1 > now);
+                return next?.Item2;
+            }
+        }
 
         public void Start()
         {
@@ -95,7 +114,7 @@ namespace TeacherAssistant
                 .OrderBy(time => time)
                 .Where(time => time > now)
                 .Aggregate(
-                    new LinkedList<(DateTime, List<(T, TOffset)>)>(),
+                    new LinkedList<(DateTime, List<(T, TEventTimeOffset)>)>(),
                     (list, time) =>
                     {
                         list.AddLast((time, _eventQueue[time]));
@@ -104,7 +123,7 @@ namespace TeacherAssistant
             StartTimer(schedule.First);
         }
 
-        private void StartTimer([CanBeNull] LinkedListNode<(DateTime, List<(T, TOffset)>)> scheduledEventData)
+        private void StartTimer([CanBeNull] LinkedListNode<(DateTime, List<(T, TEventTimeOffset)>)> scheduledEventData)
         {
             if (scheduledEventData == null)
             {
@@ -123,9 +142,9 @@ namespace TeacherAssistant
                 });
         }
 
-        private Dictionary<DateTime, List<(T, TOffset)>> AggregateEventsByTime(
-            Dictionary<DateTime, List<(T, TOffset)>> dictionary,
-            (T, IEnumerable<TOffset>) tuple, StartPoint point)
+        private Dictionary<DateTime, List<(T, TEventTimeOffset)>> AggregateEventsByTime(
+            Dictionary<DateTime, List<(T, TEventTimeOffset)>> dictionary,
+            (T, IEnumerable<TEventTimeOffset>) tuple, StartPoint point)
         {
             var (time, offsets) = tuple;
             foreach (var timeOffset in offsets)
@@ -134,7 +153,7 @@ namespace TeacherAssistant
                                 timeOffset.TimeDiff;
                 if (!dictionary.ContainsKey(eventTime))
                 {
-                    dictionary.Add(eventTime, new List<(T, TOffset)>());
+                    dictionary.Add(eventTime, new List<(T, TEventTimeOffset)>());
                 }
 
                 dictionary[eventTime].Add((time, timeOffset));

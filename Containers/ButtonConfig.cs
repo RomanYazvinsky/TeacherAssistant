@@ -3,9 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using Containers.Annotations;
-using TeacherAssistant.ComponentsImpl;
+using JetBrains.Annotations;
 
 namespace Containers
 {

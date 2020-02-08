@@ -29,6 +29,7 @@
             <Menu DockPanel.Dock="Left" Background="White">
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
+                    <MenuItem Header="{Binding ReaderMenuText}" Command="{Binding Path=ToggleCardReaderHandler}" />
                     <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" />
                     <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" />
                 </MenuItem>

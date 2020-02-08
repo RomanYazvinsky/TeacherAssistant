@@ -1,29 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using System.Windows.Data;
-using System.Windows.Input;
 using Containers;
-using Containers.Annotations;
 using DynamicData;
 using DynamicData.Binding;
+using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
-using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
-using ValidationContext = ReactiveUI.Validation.Contexts.ValidationContext;
 
 namespace TeacherAssistant.Forms.NoteForm
 {

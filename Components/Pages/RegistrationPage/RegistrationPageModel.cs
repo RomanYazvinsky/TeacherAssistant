@@ -45,6 +45,7 @@ namespace TeacherAssistant.RegistrationPage
         private List<StudentLessonEntity> _internalStudentLessons = new List<StudentLessonEntity>();
         private IDisposable _timerToEnd;
         private StudentEntity _selectedStudent;
+        private StudentLessonEntity _selectedStudentLesson;
 
 
         public RegistrationPageModel(
@@ -85,14 +86,13 @@ namespace TeacherAssistant.RegistrationPage
                 var studentViewPageToken = new StudentViewPageToken("Student", selectedStudent);
                 tabPageHost.AddPageAsync<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
             });
-            this.AddStudentNote = new CommandHandler(() =>
+            this.AddStudentNote = ReactiveCommand.Create(() =>
             {
-                var selectedStudent = _selectedStudent;
-                var noteFormToken = new NoteListFormToken("Note", () => new StudentNote
+                var noteFormToken = new NoteListFormToken("Заметки", () => new StudentLessonNote()
                 {
-                    Student = selectedStudent,
-                    EntityId = selectedStudent.Id
-                }, selectedStudent.Notes);
+                    StudentLesson = _selectedStudentLesson,
+                    EntityId = _selectedStudentLesson.Id
+                }, _selectedStudentLesson.Notes);
                 windowPageHost.AddPageAsync<NoteListFormModule, NoteListFormToken>(noteFormToken);
             });
             this.ToggleAllStudentTable = new ButtonConfig
@@ -228,9 +228,9 @@ namespace TeacherAssistant.RegistrationPage
             });
             this.LessonStudentsTableConfig.SelectedItem
                 .Where(LambdaHelper.NotNull)
-                .Select(o => ((IStudentViewModel) o).Student)
-                .Merge(this.RegisteredStudentsTableConfig.SelectedItem.AsObservable().Where(LambdaHelper.NotNull)
-                    .Select(o => ((IStudentViewModel) o).Student))
+                .Merge(this.RegisteredStudentsTableConfig.SelectedItem.AsObservable().Where(LambdaHelper.NotNull))
+                .Do(o => this._selectedStudentLesson = (StudentLessonEntity) o)
+                .Select(o => ((StudentLessonEntity) o).Student)
                 .Merge(this.AllStudentsTableConfig.SelectedItem.AsObservable().Where(LambdaHelper.NotNull))
                 .Throttle(TimeSpan.FromMilliseconds(200))
                 .Subscribe
@@ -301,8 +301,8 @@ namespace TeacherAssistant.RegistrationPage
             UpdateRegistrationInfo();
         }
 
-        public TableConfig RegisteredStudentsTableConfig { get; set; }
-        public TableConfig LessonStudentsTableConfig { get; set; }
+        public TableConfig RegisteredStudentsTableConfig { get; }
+        public TableConfig LessonStudentsTableConfig { get;  }
 
 
         private ObservableCollection<object> SelectedRegisteredStudents =>
@@ -320,7 +320,7 @@ namespace TeacherAssistant.RegistrationPage
 
         private ObservableCollection<object> AllStudents => this.AllStudentsTableConfig.TableItems;
 
-        private static Dictionary<string, ListSortDirection> RegisteredStudentsSorts { get; set; } =
+        private static Dictionary<string, ListSortDirection> RegisteredStudentsSorts { get; } =
             new Dictionary<string, ListSortDirection>
             {
                 {nameof(StudentLessonEntity.RegistrationTime), ListSortDirection.Descending},
@@ -328,7 +328,7 @@ namespace TeacherAssistant.RegistrationPage
                 {"Student.FirstName", ListSortDirection.Ascending}
             };
 
-        private static Dictionary<string, ListSortDirection> Sorts { get; set; } =
+        private static Dictionary<string, ListSortDirection> Sorts { get; } =
             new Dictionary<string, ListSortDirection>
             {
                 {"Student.LastName", ListSortDirection.Ascending},
@@ -347,7 +347,6 @@ namespace TeacherAssistant.RegistrationPage
         [Reactive] public ICommand DoUnRegister { get; set; }
         [Reactive] public ICommand ShowStudent { get; set; }
         [Reactive] public ICommand AddStudentNote { get; set; }
-        [Reactive] public ICommand AddStudentLessonNote { get; set; }
         [Reactive] public ButtonConfig ToggleAllStudentTable { get; set; }
 
         [Reactive] public bool IsAutoRegistrationEnabled { get; set; }
@@ -477,12 +476,12 @@ namespace TeacherAssistant.RegistrationPage
             var studentFromDatabase = _db.Students.FirstOrDefault(model => model.CardUid.Equals(readData.CardUid));
             if (studentFromDatabase != null)
             {
-                var studentView = new StudentEntity();
-                UpdateDescription(studentView);
+                var studentEntity = studentFromDatabase.Clone();
+                UpdateDescription(studentEntity);
                 if (this.IsAutoRegistrationEnabled)
                     RunInUiThread(() =>
                     {
-                        RegisterExtStudent(studentView);
+                        RegisterExtStudent(studentEntity);
                         UpdateRegistrationInfo();
                     });
 
@@ -533,7 +532,7 @@ namespace TeacherAssistant.RegistrationPage
             var studentLessonModel = new StudentLessonEntity
             {
                 Lesson = Lesson,
-                Student = studentEntity,
+                _StudentId = studentEntity.Id,
                 IsRegistered = true,
                 RegistrationTime = DateTime.Now
             };
@@ -638,16 +637,6 @@ namespace TeacherAssistant.RegistrationPage
                 NotRegistered = $"{Localization["Нет"]} {this.LessonStudents.Count}",
                 Total = $"{Localization["Всего"]} {this.RegisteredStudents.Count + this.LessonStudents.Count}"
             };
-        }
-
-        public void Remove(StudentLessonEntity model)
-        {
-            if (model == null)
-                return;
-
-            this.LessonStudents.Remove(model);
-            _db.StudentLessons.Remove(model);
-            _db.SaveChanges();
         }
 
         protected override string GetLocalizationKey()

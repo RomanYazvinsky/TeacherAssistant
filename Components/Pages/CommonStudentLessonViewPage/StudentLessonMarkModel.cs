@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
-using Containers.Annotations;
+using JetBrains.Annotations;
 using Model.Models;
 using TeacherAssistant.Dao;
 

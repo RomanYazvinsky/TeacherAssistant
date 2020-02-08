@@ -125,10 +125,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Containers\Containers.csproj">
-      <Project>{0b04b309-e379-45e6-85e8-0a2d03299184}</Project>
-      <Name>Containers</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{e17e2ae5-5531-498e-b686-87d654ff123d}</Project>
       <Name>Model</Name>

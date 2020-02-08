@@ -14,7 +14,7 @@
             <ContextMenu.Items>
                 <MenuItem Header="Показать"
                           Command="{Binding Path=DataContext.ShowStudent, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
-                <MenuItem Header="Заметка (студент)"
+                <MenuItem Header="Заметка о студенте"
                           Command="{Binding Path=DataContext.AddStudentNote, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
             </ContextMenu.Items>
         </ContextMenu>

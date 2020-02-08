@@ -65,7 +65,7 @@ namespace TeacherAssistant.Modules.MainModule
             block.ExportModuleScope<PhotoService>();
             block.ExportModuleScope<ModuleActivator>();
             block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
-            block.ExportModuleScope<TimerService<LessonInterval, AlarmData>>();
+            block.ExportModuleScope<TimerService<LessonInterval, AlarmEvent>>();
             block.ExportFactory(() => LocalDbContext.Instance).As<LocalDbContext>().ExternallyOwned();
             var notifier = new Notifier(configuration =>
             {
@@ -84,6 +84,8 @@ namespace TeacherAssistant.Modules.MainModule
             var generalDbContext = Injector.Locate<LocalDbContext>();
             generalDbContext
                 .ChangeListener<AlarmEntity>()
+                .Select(_ => 0)
+                .Merge(generalDbContext.ChangeListener<LessonEntity>().Select(_ => 1))
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => StartTimer());
             StartTimer();
@@ -91,25 +93,27 @@ namespace TeacherAssistant.Modules.MainModule
 
         private void StartTimer()
         {
-            var _db = Injector.Locate<LocalDbContext>();
-            var lessonTimerService = Injector.Locate<TimerService<LessonInterval, AlarmData>>();
-            var alarms = _db.Alarms
+            var db = Injector.Locate<LocalDbContext>();
+            var lessonTimerService = Injector.Locate<TimerService<LessonInterval, AlarmEvent>>();
+            var alarms = db.Alarms
                 .Where(model => model._Active > 0 && model._Timer.HasValue && model._Active == 1)
                 .ToList()
-                .Select(alarm => new AlarmData(alarm));
-
-            var lessons = _db.Lessons
+                .Select(alarm => new AlarmEvent(alarm));
+            var now = DateTime.Now;
+            var lessons = db.Lessons
                 .Where(model => model._Date != null
                                 && model.Schedule != null
                                 && model.Schedule._Begin != null
                                 && model.Schedule._End != null)
-                .ToList().Select(entity => new LessonInterval(entity));
+                .ToList()
+                .Where(entity => entity.Date?.Date >= now.Date)
+                .Select(entity => new LessonInterval(entity));
             lessonTimerService.CreateSchedule(lessons, alarms);
             lessonTimerService.Start();
-            var valueTuples = lessonTimerService.NextEvent;
-            if (valueTuples != null)
+            var nextStarts = lessonTimerService.NextStarts;
+            if (nextStarts != null)
             {
-                Injector.Locate<Notifier>().ShowTimerNotification(valueTuples.Value.Item1);
+                Injector.Locate<Notifier>().ShowTimerNotification(nextStarts.First().StartDateTime);
             }
         }
 
@@ -124,8 +128,8 @@ namespace TeacherAssistant.Modules.MainModule
         public LessonInterval(LessonEntity lesson)
         {
             Lesson = lesson;
-            this.StartDateTime = lesson.Date.Value + lesson.Schedule.Begin.Value;
-            this.EndDateTime = lesson.Date.Value + lesson.Schedule.End.Value;
+            this.StartDateTime = (lesson.Date ?? default) + lesson.Schedule?.Begin ?? default;
+            this.EndDateTime = (lesson.Date ?? default) + lesson.Schedule?.End ?? default;
         }
 
         public LessonEntity Lesson { get; }
@@ -133,12 +137,12 @@ namespace TeacherAssistant.Modules.MainModule
         public DateTime EndDateTime { get; }
     }
 
-    public class AlarmData : IIntervalTimePoint
+    public class AlarmEvent : IIntervalEvent
     {
-        public AlarmData(AlarmEntity alarm)
+        public AlarmEvent(AlarmEntity alarm)
         {
             this.Alarm = alarm;
-            this.TimeDiff = alarm.SinceLessonStart.Value;
+            this.TimeDiff = alarm.SinceLessonStart ?? default;
         }
 
         public AlarmEntity Alarm { get; }

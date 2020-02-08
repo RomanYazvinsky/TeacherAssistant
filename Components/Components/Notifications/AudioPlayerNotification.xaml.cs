@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Containers;
-using Containers.Annotations;
+using JetBrains.Annotations;
 using NAudio.Wave;
 using TeacherAssistant.ComponentsImpl;
 using ToastNotifications;
@@ -19,7 +19,7 @@ namespace TeacherAssistant {
             Bind(model);
         }
     }
-    
+
     public class AudioPlayerNotificationModel : NotificationBase, INotifyPropertyChanged {
         private NotificationDisplayPart _displayPart;
         public event PropertyChangedEventHandler PropertyChanged;
