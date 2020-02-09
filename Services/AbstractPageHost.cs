@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -63,12 +64,21 @@ namespace TeacherAssistant
 
         public abstract void ClosePage(string id);
 
-        public virtual void Attach<TModule>(TModule module) where TModule : SimpleModule
+        public virtual Control Attach<TModule>(TModule module) where TModule : SimpleModule
         {
-            Attach(module, module.GetToken());
+            return Attach(module, module.GetToken());
         }
 
-        protected virtual void Attach<TModule, TToken>(TModule module, TToken token)
+        public Control Detach<TModule>(TModule module) where TModule : SimpleModule {
+            var id = module.GetToken()?.Id;
+            if (id == null) {
+                throw new ArgumentException("id is null");
+            }
+            var pageInfo = this.Pages[id];
+            return pageInfo.Page;
+        }
+
+        protected virtual TContainer Attach<TModule, TToken>(TModule module, TToken token)
             where TModule : SimpleModule
             where TToken : IModuleToken
         {
@@ -76,6 +86,7 @@ namespace TeacherAssistant
             var pageInfo = new PageInfo<TContainer>(token.Id,
                 BuildContainer(token, control), control, token);
             this.Pages.Add(token.Id, pageInfo);
+            return pageInfo.Container;
         }
 
         public IEnumerable<TContainer> CurrentPages => this.Pages.Values.Select(info => info.Container);

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using System.Windows.Controls;
 using TeacherAssistant.Core.Module;
 
 namespace TeacherAssistant.Components {
@@ -13,6 +14,8 @@ namespace TeacherAssistant.Components {
 
         void ClosePage(string id);
 
-        void Attach<TModule>(TModule module) where TModule : SimpleModule;
+        Control Attach<TModule>(TModule module) where TModule : SimpleModule;
+
+        Control Detach<TModule>(TModule module) where TModule : SimpleModule;
     }
 }

@@ -1,23 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using TeacherAssistant.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 
 namespace Model.Models {
     [Table("STUDENT")]
-    public class StudentEntity : Trackable<StudentEntity>, INotifyPropertyChanged {
-        private string _cardUid;
-        private string _email;
-        private string _firstName;
-        private string _lastName;
-        private string _phoneNumber;
-        private string _secondName;
-
+    public class StudentEntity : ATrackable<StudentEntity> {
         public StudentEntity() {
         }
 
@@ -27,90 +18,25 @@ namespace Model.Models {
 
         [Key] [Column("id")] public long Id { get; set; }
 
-        [Column("card_uid")]
-        public virtual string CardUid {
-            get => _cardUid;
-            set {
-                if (value == _cardUid) {
-                    return;
-                }
+        [Column("card_uid")] public virtual string CardUid { get; set; }
 
-                _cardUid = value;
-                OnPropertyChanged();
-            }
-        }
+        [Column("first_name")] public virtual string FirstName { get; set; }
 
-        [Column("first_name")]
-        public virtual string FirstName {
-            get => _firstName;
-            set {
-                if (value == _firstName) {
-                    return;
-                }
+        [Column("last_name")] public virtual string LastName { get; set; }
 
-                _firstName = value;
-                OnPropertyChanged();
-            }
-        }
+        [Column("patronymic")] public virtual string SecondName { get; set; }
 
-        [Column("last_name")]
-        public virtual string LastName {
-            get => _lastName;
-            set {
-                if (value == _lastName) {
-                    return;
-                }
+        [Column("phone")] public virtual string PhoneNumber { get; set; }
 
-                _lastName = value;
-                OnPropertyChanged();
-            }
-        }
+        [Column("email")] public virtual string Email { get; set; }
 
-        [Column("patronymic")]
-        public virtual string SecondName {
-            get => _secondName;
-            set {
-                if (value == _secondName) {
-                    return;
-                }
+        [CanBeNull] public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
 
-                _secondName = value;
-                OnPropertyChanged();
-            }
-        }
-
-        [Column("phone")]
-        public virtual string PhoneNumber {
-            get => _phoneNumber;
-            set {
-                if (value == _phoneNumber) {
-                    return;
-                }
-
-                _phoneNumber = value;
-                OnPropertyChanged();
-            }
-        }
-
-        [Column("email")]
-        public virtual string Email {
-            get => _email;
-            set {
-                if (value == _email) {
-                    return;
-                }
-
-                _email = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
+        [CanBeNull]
         public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
-        public virtual ICollection<StudentNote> Notes { get; set; } = new List<StudentNote>();
 
+        [CanBeNull] public virtual ICollection<StudentNote> Notes { get; set; } = new List<StudentNote>();
 
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public sealed override void Apply(StudentEntity entity) {
             this.Id = entity.Id;
@@ -122,11 +48,10 @@ namespace Model.Models {
             this.Email = entity.Email;
             this.Groups = entity.Groups;
             this.StudentLessons = entity.StudentLessons;
-           // this.Notes = model.Notes;
+            this.Notes = entity.Notes;
         }
 
-        public override StudentEntity Clone()
-        {
+        public override StudentEntity Clone() {
             return new StudentEntity(this);
         }
 
@@ -134,10 +59,10 @@ namespace Model.Models {
         public static string CardUidToId(string cardUid) {
             return int.Parse(cardUid, NumberStyles.HexNumber).ToString();
         }
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        public static bool IsCardUidValid([CanBeNull] string cardUid) {
+            return !string.IsNullOrWhiteSpace(cardUid)
+                   && cardUid.Length > 6
+                   && int.TryParse(cardUid, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
         }
     }
 }

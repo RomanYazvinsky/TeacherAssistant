@@ -6,6 +6,7 @@
                       xmlns:local="clr-namespace:TeacherAssistant.Pages.LessonForm"
                       xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
                       xmlns:label="clr-namespace:TeacherAssistant.Label"
+                      xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
                       mc:Ignorable="d"
                       d:DesignHeight="450" d:DesignWidth="800"
                       d:DataContext="{d:DesignInstance local:LessonFormModel}">
@@ -14,6 +15,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
                     <BooleanToVisibilityConverter x:Key="b2v" />
+                    <teacherAssistant:SelectionEnabledConverter x:Key="SelectionEn" />
                 </ResourceDictionary>
                 <ResourceDictionary Source="../../Styles.xaml" />
                 <ResourceDictionary>
@@ -49,34 +51,41 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <label:Label Text="Stream">
-            <ComboBox ItemsSource="{Binding Streams}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedStream}" />
+            <ComboBox ItemsSource="{Binding Streams}"
+                      IsEnabled="{Binding Streams.Count, Converter={StaticResource SelectionEn}}"
+                      DisplayMemberPath="Name"
+                      SelectedItem="{Binding SelectedStream}" />
         </label:Label>
-        <label:Label Grid.Row="1" Text="Discipline">
+        <label:Label Grid.Row="1" Text="Предмет">
             <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Discipline.Name}" />
         </label:Label>
-        <label:Label Grid.Row="2" Text="Faculty">
+        <label:Label Grid.Row="2" Text="Факультет">
             <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Department.Name}" />
         </label:Label>
-        <label:Label Grid.Row="3" Text="Course">
+        <label:Label Grid.Row="3" Text="Курс">
             <TextBox Style="{StaticResource LabelLike}" Text="{Binding SelectedStream.Course}" />
         </label:Label>
-        <label:Label Grid.Row="4" Text="Type">
+        <label:Label Grid.Row="4" Text="Тип">
             <ComboBox ItemsSource="{Binding LessonTypes}" SelectedItem="{Binding SelectedLessonType}" />
         </label:Label>
-        <label:Label Grid.Row="5" Text="Groups"
+        <label:Label Grid.Row="5" Text="Группа"
                      Visibility="{Binding IsGroupsAvailable, Converter={StaticResource b2v}}">
-            <ComboBox ItemsSource="{Binding Groups}" SelectedItem="{Binding Lesson.Group}" DisplayMemberPath="Name" />
+            <ComboBox ItemsSource="{Binding Groups}"
+                      IsEnabled="{Binding Groups.Count, Converter={StaticResource SelectionEn}}"
+                      SelectedItem="{Binding SelectedGroup}"
+                      DisplayMemberPath="Name" />
         </label:Label>
-        <label:Label Grid.Row="6" Text="{Binding [Date]}">
+        <label:Label Grid.Row="6" Text="Дата">
             <DatePicker SelectedDate="{Binding LessonDate}" />
         </label:Label>
-        <label:Label Grid.Row="7" Text="{Binding [schedule]}">
-            <ComboBox ItemsSource="{Binding ScheduleList}" SelectedItem="{Binding SelectedSchedule}" />
+        <label:Label Grid.Row="7" Text="Время">
+            <ComboBox ItemsSource="{Binding ScheduleList}"
+                      SelectedItem="{Binding SelectedSchedule}" />
         </label:Label>
-        <label:Label Grid.Row="8" Text="{Binding [description]}" Height="60">
+        <label:Label Grid.Row="8" Text="Описание" Height="60">
             <TextBox Text="{Binding Description}" AcceptsReturn="True" />
         </label:Label>
-        <label:Label Grid.Row="9" Text="{Binding [all.present]}">
+        <label:Label Grid.Row="9" Text="Отметить всех как присутствующих">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding SetAllPresent}" />
         </label:Label>
         <Grid Grid.Row="10">
@@ -85,12 +94,12 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Margin="5, 5, 45, 5" Command="{Binding SaveButtonConfig.Command}"
-                    Content="{Binding SaveButtonConfig.Text}" />
-            <Button Grid.Column="1" Margin="5, 5, 45, 5" Command="{Binding RegisterButtonConfig.Command}"
-                    Content="{Binding RegisterButtonConfig.Text}" />
-            <Button Grid.Column="2" Margin="5, 5, 45, 5" Command="{Binding NewOneButtonConfig.Command}"
-                    Content="{Binding NewOneButtonConfig.Text}" />
+            <Button Grid.Column="0" Margin="5, 5, 45, 5" Command="{Binding SaveHandler}"
+                    Content="Сохранить" />
+            <Button Grid.Column="1" Margin="5, 5, 45, 5" Command="{Binding SaveAndRegisterHandler}"
+                    Content="Сохранить и открыть регистрацию" />
+            <Button Grid.Column="2" Margin="5, 5, 45, 5" Command="{Binding CreateNewOneHandler}"
+                    Content="Сохранить и создать новое занятие" />
         </Grid>
     </Grid>
 </local:LessonFormBase>

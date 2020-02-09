@@ -219,7 +219,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractModel.cs" />
-    <Compile Include="BooleanToVisibilityConverter.cs" />
     <Compile Include="Components\DataGridAsyncTemplateColumn.cs" />
     <Compile Include="Components\Label\Label.cs">
       <DependentUpon>Label.xaml</DependentUpon>
@@ -236,6 +235,7 @@
     <Compile Include="Components\Webcam.xaml.cs">
       <DependentUpon>Webcam.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="DataTemplateContentPresenter.cs" />
     <Compile Include="Forms\GroupForm\GroupForm.xaml.cs">
       <DependentUpon>GroupForm.xaml</DependentUpon>
@@ -314,12 +314,10 @@
     <Compile Include="Pages\SchedulePage\SchedulePageModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SortHelper.cs" />
-    <Compile Include="Forms\StudentForm\InverseBooleanConverter.cs" />
     <Compile Include="Forms\StudentForm\StudentForm.xaml.cs">
       <DependentUpon>StudentForm.xaml</DependentUpon>
     </Compile>
     <Compile Include="Forms\StudentForm\StudentFormModel.cs" />
-    <Compile Include="Forms\StudentForm\ValueConverterGroup.cs" />
     <Compile Include="Pages\StudentTablePage\StudentTable.xaml.cs">
       <DependentUpon>StudentTable.xaml</DependentUpon>
     </Compile>

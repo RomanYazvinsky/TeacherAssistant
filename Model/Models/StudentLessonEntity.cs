@@ -10,7 +10,7 @@ using TeacherAssistant.Dao.ViewModels;
 namespace Model.Models
 {
     [Table("STUDENT_LESSON")]
-    public class StudentLessonEntity: Trackable<StudentLessonEntity>, IStudentViewModel
+    public class StudentLessonEntity: ATrackable<StudentLessonEntity>, IStudentViewModel
     {
         public StudentLessonEntity()
         {

@@ -9,7 +9,7 @@ using TeacherAssistant.Dao;
 namespace Model
 {
     [Table("ALARM")]
-    public class AlarmEntity : Trackable<AlarmEntity>
+    public class AlarmEntity : ATrackable<AlarmEntity>
     {
         private string _discriminator;
         private string _resourceName;

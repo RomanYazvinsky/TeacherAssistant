@@ -15,7 +15,7 @@ namespace Model.Models
     }
 
     [Table("NOTE")]
-    public class NoteEntity: Trackable<NoteEntity>
+    public class NoteEntity: ATrackable<NoteEntity>
     {
         [Key] [Column("id")] public long Id { get; set; }
         // [Column("type")] public string _Type { get; set; }

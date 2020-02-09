@@ -10,7 +10,7 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("GROUP")]
-    public class GroupEntity : Trackable<GroupEntity> {
+    public class GroupEntity : ATrackable<GroupEntity> {
         private DepartmentEntity _department;
         private string _name;
         private const string ExpirationDateTemplate = "yyyy-MM-dd";

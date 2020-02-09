@@ -43,6 +43,7 @@ namespace TeacherAssistant
                 .Subscribe(isFullscreen =>
                 {
                     window.WindowStyle = isFullscreen ? WindowStyle.None : WindowStyle.SingleBorderWindow;
+                    window.WindowState = isFullscreen ? WindowState.Maximized : WindowState.Normal;
                 });
 
             void OuterDeactivationHandler(object sender, EventArgs args)

@@ -5,9 +5,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:studentForm="clr-namespace:TeacherAssistant.StudentForm"
-    xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
     xmlns:label="clr-namespace:TeacherAssistant.Label"
     xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     mc:Ignorable="d"
     d:DesignHeight="450" d:DesignWidth="800"
     d:DataContext="{d:DesignInstance studentForm:StudentFormModel}">
@@ -30,10 +30,6 @@
                         </Style.Resources>
                     </Style>
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
-                    <studentForm:ValueConverterGroup x:Key="InvertAndToVisibility">
-                        <studentForm:InverseBooleanConverter />
-                        <componentsImpl:TypedBooleanToVisibilityConverter />
-                    </studentForm:ValueConverterGroup>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -45,25 +41,32 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="300" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.ColumnSpan="2" LastChildFill="False">
-            <Button DockPanel.Dock="Right" Width="80" Margin="5"
-                    Content="{Binding Localization[student.form.save.button]}"
+        <DockPanel Margin="5"
+                   Grid.Column="1"
+                   LastChildFill="False">
+            <Button DockPanel.Dock="Right"
+                    Height="30"
+                    Padding="5"
+                    IsEnabled="{Binding Path=IsValid}"
+                    Content="{Binding Localization[Сохранить]}"
                     Command="{Binding SaveHandler}" />
         </DockPanel>
-        <Grid Grid.Row="1" Grid.Column="0">
+        <Grid Margin="0, 0, 50, 0" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="40" />
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="200"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Image Margin="5" Grid.Column="0"
-                   Visibility="{Binding Path=IsShowPhoto, Converter={StaticResource BooleanToVisibility}}"
-                   Source="{Binding Path=StudentPhoto}" />
-            <ListView Margin="5" Grid.Column="0"
-                      Visibility="{Binding Path=IsShowPhoto, Converter={StaticResource InvertAndToVisibility}}"
+            <ListView Margin="10" Grid.Column="0"
+                      SelectedItem="{Binding SelectedStudentCard}"
                       ItemsSource="{Binding Path=ReadStudents}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDoubleClick">
+                        <i:InvokeCommandAction Command="{Binding SelectStudentCardHandler}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=LastName}">
@@ -85,8 +88,9 @@
                     </GridView>
                 </ListView.View>
             </ListView>
-            <Button Grid.Column="1" Height="40" Content="{Binding Localization[student.form.switch.view]}"
-                    Command="{Binding SwitchViewHandler}" />
+            <Image Margin="5" Grid.Column="1"
+                   Visibility="{Binding Path=IsShowPhoto, Converter={StaticResource BooleanToVisibility}}"
+                   Source="{Binding Path=StudentPhoto}" />
         </Grid>
         <Grid Grid.Column="1" Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -95,23 +99,23 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="1" LastChildFill="False">
-                <label:Label Text="{Binding Path=Localization[student.form.lastname.label]}">
-                    <TextBox Text="{Binding Path=Student.LastName}" />
+                <label:Label Text="{Binding Path=Localization[Фамилия]}">
+                    <TextBox Text="{Binding Path=LastName}" />
                 </label:Label>
-                <label:Label Text="{Binding Path=Localization[student.form.name.label]}">
-                    <TextBox Text="{Binding Path=Student.FirstName}" />
+                <label:Label Text="{Binding Path=Localization[Имя]}">
+                    <TextBox Text="{Binding Path=FirstName}" />
                 </label:Label>
-                <label:Label Text="{Binding Path=Localization[student.form.secondname.label]}">
-                    <TextBox Text="{Binding Path=Student.SecondName}" />
+                <label:Label Text="{Binding Path=Localization[Отчество]}">
+                    <TextBox Text="{Binding Path=SecondName}" />
                 </label:Label>
-                <label:Label Text="{Binding Path=Localization[student.form.card.uid.label]}">
-                    <TextBox Text="{Binding Path=Student.CardUid}" />
+                <label:Label Text="{Binding Path=Localization[Card Uid]}">
+                    <TextBox Text="{Binding Path=CardUid}" />
                 </label:Label>
-                <label:Label Text="{Binding Path=Localization[student.form.phone.label]}">
-                    <TextBox Text="{Binding Path=Student.PhoneNumber}" />
+                <label:Label Text="{Binding Path=Localization[Телефон]}">
+                    <TextBox Text="{Binding Path=PhoneNumber}" />
                 </label:Label>
-                <label:Label Text="{Binding Path=Localization[student.form.email.label]}">
-                    <TextBox Text="{Binding Path=Student.Email}" />
+                <label:Label Text="{Binding Path=Localization[Email]}">
+                    <TextBox Text="{Binding Path=Email}" />
                 </label:Label>
             </DockPanel>
         </Grid>
@@ -120,19 +124,19 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="40" />
             </Grid.ColumnDefinitions>
-            <tableFilter:TableFilter Margin="5" Grid.Column="0" x:Name="AvailableGroupsBox"
+            <tableFilter:TableFilter Margin="5" Grid.Column="0"
                                      TableConfig="{Binding Path=AvailableGroupTableConfig}"
                                      HorizontalAlignment="Stretch">
                 <GridView>
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[groupname]}" Tag="Name" />
+                                                  Content="{Binding Localization[Группа]}" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
-            <Button Grid.Column="1" Height="40" Content="&lt;"
+            <Button Grid.Column="1" Height="40" Content="&gt;"
                     Command="{Binding Path=SelectGroupsHandler}" />
         </Grid>
 
@@ -142,25 +146,25 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <tableFilter:TableFilter Margin="5" Grid.Column="1"
-                     TableConfig="{Binding ChosenGroupTableConfig}"
-                     HorizontalAlignment="Stretch">
+                                     TableConfig="{Binding ChosenGroupTableConfig}"
+                                     HorizontalAlignment="Stretch">
                 <GridView>
-                    <GridViewColumn Header="{Binding Localization[chief]}">
+                    <GridViewColumn Header="{Binding Localization[Староста]}">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=IsPraepostor}"/>
+                                <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=IsPraepostor}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn DisplayMemberBinding="{Binding Group.Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[groupname]}" Tag="Group.Name" />
+                                                  Content="{Binding Localization[Группа]}" Tag="Group.Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
-            <Button Grid.Column="0" Height="40" Content="&gt;"
+            <Button Grid.Column="0" Height="40" Content="&lt;"
                     Command="{Binding Path=DeselectGroupsHandler}" />
         </Grid>
     </Grid>

@@ -88,10 +88,10 @@ namespace TeacherAssistant {
             host.WhenTabAdded
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(tab => {
-                this.Tabs.Add(tab);
-                this.ActiveTab = tab;
-                this.ActiveTab.AllowDrop = true;
-            });
+                    this.Tabs.Add(tab);
+                    this.ActiveTab = tab;
+                    this.ActiveTab.AllowDrop = true;
+                });
             host.WhenTabClosed
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(RemoveTab);
@@ -101,7 +101,8 @@ namespace TeacherAssistant {
                 .Subscribe(tab => {
                     tab.IsSelected = true;
                     var activeTabUid = tab.Uid;
-                    controllerReducer.DispatchSetValueAction(state => state.SelectedPage, host.Pages[activeTabUid].Token);
+                    controllerReducer.DispatchSetValueAction(state => state.SelectedPage,
+                        host.Pages[activeTabUid].Token);
                 });
         }
 
@@ -148,9 +149,5 @@ namespace TeacherAssistant {
             this._pageService.RemovePageHost(window.Uid);
             return TabEmptiedResponse.DoNothing;
         }*/
-
-        public override void Dispose() {
-            base.Dispose();
-        }
     }
 }

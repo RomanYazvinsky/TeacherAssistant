@@ -5,6 +5,23 @@ using System.Windows;
 using System.Windows.Data;
 
 namespace TeacherAssistant {
+    public class SelectionEnabledConverter : IValueConverter {
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+            switch (value) {
+                case int i when i > 0:
+                case long l when l > 0:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+            throw new NotSupportedException("Conversion is not supported");
+        }
+    }
+
     // https://stackoverflow.com/questions/534575/how-do-i-invert-booleantovisibilityconverter
     public class BooleanConverter<T> : IValueConverter {
         public BooleanConverter(T trueValue, T falseValue) {

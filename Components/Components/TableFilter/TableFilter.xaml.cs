@@ -158,6 +158,7 @@ namespace TeacherAssistant.Components.TableFilter {
         private void UpdateFilter(string text) {
             var collectionView = CollectionViewSource.GetDefaultView(this.TableConfig.TableItems);
             if (!string.IsNullOrWhiteSpace(text)) {
+                text = text.ToUpperInvariant();
                 collectionView.Filter = o => this.TableConfig.Filter?.Invoke(o, text) ?? true;
             }
             else {

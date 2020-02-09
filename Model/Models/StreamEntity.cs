@@ -11,7 +11,7 @@ using TeacherAssistant.Dao;
 
 namespace Model.Models {
     [Table("STREAM")]
-    public class StreamEntity : Trackable<StreamEntity> {
+    public class StreamEntity : ATrackable<StreamEntity> {
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
         private const string ExpirationDateTime = "T00:00:00";
 

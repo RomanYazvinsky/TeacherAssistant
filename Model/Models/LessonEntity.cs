@@ -9,7 +9,7 @@ using TeacherAssistant.Dao.Notes;
 
 namespace Model.Models {
     [Table("LESSON")]
-    public class LessonEntity : Trackable<LessonEntity> {
+    public class LessonEntity : ATrackable<LessonEntity> {
         #region Database mapping
 
         [Key] [Column("id")] public long Id { get; set; }

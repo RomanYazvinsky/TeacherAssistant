@@ -3,15 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 using EntityFramework.Triggers;
 
 namespace TeacherAssistant.Dao {
-    public abstract class Trackable<T> where T: class {
+    public abstract class ATrackable<T> where T: class {
         [NotMapped] public DateTime Inserted { get; protected set; }
         [NotMapped] public DateTime Updated { get; protected set; }
         [NotMapped] public DateTime Deleted { get; protected set; }
 
-        static Trackable() {
-            Triggers<T>.Inserting += e => (e.Entity as Trackable<T>).Inserted = DateTime.UtcNow;
-            Triggers<T>.Updating += e => (e.Entity as Trackable<T>).Updated = DateTime.UtcNow;
-            Triggers<T>.Deleted += e => (e.Entity as Trackable<T>).Deleted = DateTime.Now;
+        static ATrackable() {
+            Triggers<T>.Inserting += e => (e.Entity as ATrackable<T>).Inserted = DateTime.UtcNow;
+            Triggers<T>.Updating += e => (e.Entity as ATrackable<T>).Updated = DateTime.UtcNow;
+            Triggers<T>.Deleted += e => (e.Entity as ATrackable<T>).Deleted = DateTime.Now;
         }
 
         public abstract void Apply(T trackable);
