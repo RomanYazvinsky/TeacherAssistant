@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Windows;
 using System.Windows.Threading;
 using Containers;
 using DynamicData;
@@ -51,10 +52,14 @@ namespace TeacherAssistant.GroupTable {
             if (this.SelectedGroupEntity == null) {
                 return;
             }
-
+            var messageBoxResult = MessageBox.Show(Localization["Вы уверены, что хотите удалить группу?"],
+                Localization["Подтверждение удаления"], MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (messageBoxResult != MessageBoxResult.Yes)
+            {
+                return;
+            }
             _db.Groups.Remove(this.SelectedGroupEntity);
             _db.SaveChangesAsync();
-            this.Groups.Remove(this.SelectedGroupEntity);
         }
 
         public ObservableCollection<GroupEntity> Groups { get; set; } =

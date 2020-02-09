@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using TeacherAssistant.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 
 namespace Model.Models {
@@ -34,11 +32,15 @@ namespace Model.Models {
         // [ForeignKey("lecturer_id")] public virtual LecturerModel Lecturer { get; set; }
         [Column("discipline_id")] public long? _DisciplineId { get; set; }
 
-        [ForeignKey(nameof(_DisciplineId))] public virtual DisciplineEntity Discipline { get; set; }
+        [ForeignKey(nameof(_DisciplineId))]
+        [CanBeNull]
+        public virtual DisciplineEntity Discipline { get; set; }
         [Column("department_id")] public long? _DepartmentId { get; set; }
-        [ForeignKey(nameof(_DepartmentId))] public virtual DepartmentEntity Department { get; set; }
+        [ForeignKey(nameof(_DepartmentId))]
+        [CanBeNull]
+        public virtual DepartmentEntity Department { get; set; }
 
-        public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
+        [CanBeNull] public virtual ICollection<GroupEntity> Groups { get; set; } = new List<GroupEntity>();
 
         [Column("course")]
         public int? Course { get; set; }
@@ -49,7 +51,7 @@ namespace Model.Models {
         [Column("practical_count")] public short? _PracticalCount { get; set; }
         [Column("lab_count")] public short? _LabCount { get; set; }
 
-        public virtual ICollection<LessonEntity> StreamLessons { get; set; }
+        [CanBeNull] public virtual ICollection<LessonEntity> StreamLessons { get; set; }
 
         [NotMapped]
         public int LectureCount {

@@ -29,6 +29,7 @@ using TeacherAssistant.Pages.SettingsPage;
 using TeacherAssistant.Properties;
 using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.State;
+using TeacherAssistant.StreamTable;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.StudentTable;
 using TeacherAssistant.Utils;
@@ -106,6 +107,7 @@ namespace TeacherAssistant.Pages
             this.OpenSchedule = new CommandHandler(OpenSchedulePage);
             this.OpenStudentsTable = new CommandHandler(Students_Click);
             this.OpenGroupsTable = new CommandHandler(Groups_Click);
+            this.OpenStreamsTable = new CommandHandler(OpenStreams);
             this.OpenSelectPhotoDirectoryDialog = new CommandHandler(SelectPhotoDir_Click);
             this.OpenSelectDatabaseDialog = new CommandHandler(SelectDatabase_Click);
             this.OpenSettings = new CommandHandler(OpenSettingsClick);
@@ -162,6 +164,7 @@ namespace TeacherAssistant.Pages
         public ICommand OpenSchedule { get; set; }
         public ICommand OpenStudentsTable { get; set; }
         public ICommand OpenGroupsTable { get; set; }
+        public ICommand OpenStreamsTable { get; set; }
         public ICommand OpenSelectPhotoDirectoryDialog { get; set; }
         public ICommand OpenSelectDatabaseDialog { get; set; }
         public ICommand ToggleCardReaderHandler { get; set; }
@@ -214,6 +217,10 @@ namespace TeacherAssistant.Pages
         private void Groups_Click()
         {
             _host.AddPageAsync(new GroupTableToken("Группы"));
+        }
+        private void OpenStreams()
+        {
+            _host.AddPageAsync(new StreamTableToken("Потоки"));
         }
 
         private void SelectPhotoDir_Click()

@@ -254,6 +254,7 @@
     <Compile Include="Modules\MainModule\MainModuleToken.cs" />
     <Compile Include="Modules\MainModule\MainReducer.cs" />
     <Compile Include="Modules\MainModule\MainState.cs" />
+    <Compile Include="PageHostProviders\PageHostManager.cs" />
     <Compile Include="PageHostProviders\TabPageHost.cs" />
     <Compile Include="PageHostProviders\Tabs\TabController.xaml.cs">
       <DependentUpon>TabController.xaml</DependentUpon>
@@ -296,6 +297,10 @@
     <Compile Include="Pages\SettingsPage\Views\AlarmSettingView.xaml.cs">
       <DependentUpon>AlarmSettingView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\StreamTablePage\StreamTable.xaml.cs">
+      <DependentUpon>StreamTable.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\StreamTablePage\StreamTableModel.cs" />
     <Compile Include="Pages\StudentTablePage\ViewModels\StudentViewModel.cs" />
     <Compile Include="Pages\StudentViewPage\Models\MarkStatistics.cs" />
     <Compile Include="Pages\StudentViewPage\Models\StudentAttestationExamView.cs" />
@@ -398,6 +403,10 @@
     </Page>
     <Page Include="Pages\SettingsPage\SettingsPage.xaml" />
     <Page Include="Pages\SettingsPage\Views\AlarmSettingView.xaml" />
+    <Page Include="Pages\StreamTablePage\StreamTable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\StudentTablePage\StudentTable.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

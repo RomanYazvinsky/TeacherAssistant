@@ -36,6 +36,7 @@
                 <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
                 <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />
                 <MenuItem Header="Группы" Command="{Binding Path=OpenGroupsTable}" />
+                <MenuItem Header="Потоки" Command="{Binding Path=OpenStreamsTable}" />
                 <MenuItem Header="Добавить">
                     <MenuItem Header="Студент" Command="{Binding Path=OpenAddStudentForm}" />
                     <MenuItem Header="Группа" Command="{Binding Path=OpenAddGroupForm}" />

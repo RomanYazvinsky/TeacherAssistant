@@ -4,7 +4,6 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:local="clr-namespace:TeacherAssistant.Forms.StreamForm"
-                      xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
                       xmlns:label="clr-namespace:TeacherAssistant.Label"
                       xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
                       xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
@@ -16,11 +15,18 @@
             <Style TargetType="xctk:IntegerUpDown" x:Key="NumericStepper">
                 <Setter Property="Minimum" Value="0" />
                 <Setter Property="Maximum" Value="100" />
+                <Setter Property="Margin" Value="10, 0, 0, 0" />
+            </Style>
+            <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="LineHeight" Value="16" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="10">
         <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
@@ -31,47 +37,51 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
-        <label:Label Grid.Row="0" Text="{Binding Path=Localization[discipline name]}">
+        <label:Label Grid.Row="0" Text="{Binding Path=Localization[Дисциплина]}">
             <ComboBox ItemsSource="{Binding Path=Disciplines}" SelectedItem="{Binding Path=SelectedDiscipline}"
                       DisplayMemberPath="Name" />
         </label:Label>
-        <label:Label Grid.Row="1" Text="{Binding Path=Localization[department name]}">
+        <label:Label Grid.Row="1" Text="{Binding Path=Localization[Факультет]}">
             <ComboBox ItemsSource="{Binding Path=Departments}" SelectedItem="{Binding Path=SelectedDepartment}"
                       DisplayMemberPath="Name" />
         </label:Label>
-        <label:Label Grid.Row="2" Text="{Binding Path=Localization[stream name]}">
-            <TextBox Text="{Binding Path=StreamName, UpdateSourceTrigger=PropertyChanged}" />
+        <label:Label Grid.Row="2" Text="{Binding Path=Localization[Имя потока]}">
+            <TextBox Text="{Binding Path=StreamName}" />
         </label:Label>
-        <label:Label Grid.Row="3" Text="{Binding Path=Localization[stream course]}">
+        <label:Label Grid.Row="3" Text="{Binding Path=Localization[Курс]}">
             <ComboBox ItemsSource="{Binding Path=AvailableCourses}" SelectedItem="{Binding Path=SelectedCourse}"
                       DisplayMemberPath="Label" />
         </label:Label>
-        <label:Label Grid.Row="4" Text="{Binding Path=Localization[stream active]}">
+        <label:Label Grid.Row="4" Text="{Binding Path=Localization[Описание]}">
+            <TextBox Text="{Binding Description}" />
+        </label:Label>
+        <label:Label Grid.Row="5" Text="{Binding Path=Localization[Активный]}">
             <CheckBox IsChecked="{Binding Path=IsActive}" />
         </label:Label>
-        <label:Label Grid.Row="5" Text="{Binding Path=Localization[stream expiration]}">
+        <label:Label Grid.Row="6" Text="{Binding Path=Localization[Завершение]}">
             <DatePicker SelectedDate="{Binding Path=ExpirationDate}" />
         </label:Label>
-        <Grid Grid.Row="6">
+        <Grid Grid.Row="7">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <label:Label Grid.Column="0" Text="{Binding Path=Localization[stream lectures]}">
-                <xctk:IntegerUpDown Value="{Binding Path=LectureCount}" Style="{StaticResource NumericStepper}" />
+            <label:Label Grid.Column="0" Text="{Binding Path=Localization[Кол-во лекций]}" Margin="0, 0, 20, 0">
+                <xctk:IntegerUpDown Value="{Binding Path=LectureCount}"
+                                    Style="{StaticResource NumericStepper}" />
             </label:Label>
-            <label:Label Grid.Column="1" Text="{Binding Path=Localization[stream pract]}">
+            <label:Label Grid.Column="1" Text="{Binding Path=Localization[Кол-во практик]}" Margin="0, 0, 20, 0">
                 <xctk:IntegerUpDown Value="{Binding Path=PracticeCount}" Style="{StaticResource NumericStepper}" />
             </label:Label>
-            <label:Label Grid.Column="2" Text="{Binding Path=Localization[stream labs]}">
+            <label:Label Grid.Column="2" Text="{Binding Path=Localization[Кол-во лаб]}" Margin="0, 0, 20, 0">
                 <xctk:IntegerUpDown Value="{Binding Path=LaboratoryCount}" Style="{StaticResource NumericStepper}" />
             </label:Label>
         </Grid>
-        <Grid Grid.Row="7">
+        <Grid Grid.Row="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition />
+                <ColumnDefinition Width="50" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <tableFilter:TableFilter Grid.Column="0" TableConfig="{Binding Path=AvailableGroupTableConfig}">
@@ -79,19 +89,21 @@
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[group name]}" Tag="Name" />
+                                                  Content="{Binding Localization[Имя]}" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
             <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Button Height="40" Grid.Column="0" Content="{Binding Path=Localization[add]}"
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="50" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Button Height="40" Grid.Row="1" Content="&gt;" Margin="5"
                         Command="{Binding Path=AddGroupsHandler}" />
-                <Button Height="40" Grid.Column="1" Content="{Binding Path=Localization[remove]}"
+                <Button Height="40" Grid.Row="2" Content="&lt;" Margin="5"
                         Command="{Binding Path=RemoveGroupsHandler}" />
             </Grid>
             <tableFilter:TableFilter Grid.Column="2" TableConfig="{Binding Path=ChosenGroupTableConfig}">
@@ -99,12 +111,12 @@
                     <GridViewColumn DisplayMemberBinding="{Binding Path=Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
-                                                  Content="{Binding Localization[group name]}" Tag="Name" />
+                                                  Content="{Binding Localization[Имя]}" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                 </GridView>
             </tableFilter:TableFilter>
         </Grid>
-        <Button Grid.Row="8" Content="{Binding Path=Localization[save]}" Command="{Binding Path=SaveHandler}" />
+        <Button Grid.Row="9" Content="{Binding Path=Localization[Сохранить]}" Command="{Binding Path=SaveHandler}" />
     </Grid>
 </local:StreamFormBase>

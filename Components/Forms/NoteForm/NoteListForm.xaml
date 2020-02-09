@@ -28,7 +28,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
-        <ListBox ItemsSource="{Binding Source= {StaticResource SortedList}}"
+        <ListBox ItemsSource="{Binding Source={StaticResource SortedList}}"
                  SelectedItem="{Binding SelectedNote}"
                  Visibility="{Binding IsEditorAvailable, Converter={StaticResource B2V}}"
                  FontSize="16"

@@ -12,10 +12,10 @@
         <ContextMenu x:Key="lwMenu">
             <ContextMenu.Items>
                 <MenuItem
-                    Header="{Binding DataContext.Localization[show], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
+                    Header="{Binding DataContext.Localization[Открыть], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
                     Command="{Binding Path=DataContext.ShowMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}" />
                 <MenuItem
-                    Header="{Binding DataContext.Localization[delete], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
+                    Header="{Binding DataContext.Localization[Удалить], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
                     Command="{Binding Path=DataContext.DeleteMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}" />
             </ContextMenu.Items>
         </ContextMenu>
