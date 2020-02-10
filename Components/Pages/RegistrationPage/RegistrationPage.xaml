@@ -6,34 +6,42 @@
                             xmlns:local="clr-namespace:TeacherAssistant.RegistrationPage"
                             xmlns:ta="clr-namespace:TeacherAssistant"
                             xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                            xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
                             mc:Ignorable="d"
                             d:DesignHeight="680" d:DesignWidth="1280"
                             d:DataContext="{d:DesignInstance local:RegistrationPageModel}">
     <local:RegistrationPageBase.Resources>
-        <ContextMenu x:Key="lwMenu">
-            <ContextMenu.Items>
-                <MenuItem Header="Показать"
-                          Command="{Binding Path=DataContext.ShowStudent, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
-                <MenuItem Header="Заметка о студенте"
-                          Command="{Binding Path=DataContext.AddStudentNote, RelativeSource={RelativeSource FindAncestor, AncestorType=local:RegistrationPageBase, AncestorLevel=1}}" />
-            </ContextMenu.Items>
-        </ContextMenu>
-        <Style x:Key="CustomItemContainerStyle" TargetType="{x:Type ListViewItem}">
-            <Setter Property="ContextMenu" Value="{StaticResource lwMenu}" />
-            <Setter Property="Height" Value="25" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="BorderThickness" Value="0, 0, 0, 1" />
-            <Setter Property="BorderBrush" Value="Gray" />
-        </Style>
-        <Style BasedOn="{StaticResource LabelLike}" TargetType="TextBox" x:Key="Info">
-            <Setter Property="FontSize" Value="24" />
-        </Style>
-        <Style BasedOn="{StaticResource Info}" TargetType="TextBox" x:Key="MainInfo">
-            <Setter Property="FontWeight" Value="Bold" />
-        </Style>
-        <ta:BooleanToVisibilityConverter x:Key="B2VConverter" />
-        <ta:BooleanToVisibilityConverter True="Collapsed" False="Visible" x:Key="InverseB2VConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Components/TableFilter/TableStyle.xaml" />
+                <ResourceDictionary>
+                    <ContextMenu x:Key="Menu">
+                        <ContextMenu.Items>
+                            <MenuItem Header="Показать"
+                                      Command="{Binding Path=ShowStudent}" />
+                            <MenuItem Header="Заметка о студенте"
+                                      Command="{Binding Path=AddStudentNote}" />
+                        </ContextMenu.Items>
+                    </ContextMenu>
+                    <Style x:Key="CustomItemContainerStyle" TargetType="{x:Type ListViewItem}"
+                           BasedOn="{StaticResource TableItemStyle}">
+                        <Setter Property="ContextMenu" Value="{StaticResource Menu}">
+                        </Setter>
+                        <Setter Property="Height" Value="30" />
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                    <Style x:Key="Info" BasedOn="{StaticResource LabelLike}" TargetType="TextBox">
+                        <Setter Property="FontSize" Value="24" />
+                    </Style>
+                    <Style x:Key="MainInfo" BasedOn="{StaticResource Info}" TargetType="TextBox">
+                        <Setter Property="FontWeight" Value="Bold" />
+                    </Style>
+                    <ta:BooleanToVisibilityConverter x:Key="B2VConverter" />
+                    <ta:BooleanToVisibilityConverter True="Collapsed" False="Visible" x:Key="InverseB2VConverter" />
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </local:RegistrationPageBase.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -141,11 +149,6 @@
                 <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.SecondName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
-                    </GridViewColumn.Header>
-                </GridViewColumn>
-                <GridViewColumn Width="250" DisplayMemberBinding="{Binding Path=GroupsText}">
-                    <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Группы" Tag="GroupsText" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
             </GridView>

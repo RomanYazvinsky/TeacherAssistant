@@ -14,6 +14,7 @@ using Model;
 using Model.Models;
 using SQLite.CodeFirst;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.Dao {
     public enum ChangeReason {

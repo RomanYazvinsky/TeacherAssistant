@@ -147,7 +147,6 @@
     <Compile Include="Models\StudentEntity.cs" />
     <Compile Include="Models\StudentNotificationModel.cs" />
     <Compile Include="Models\Notes\LessonNote.cs" />
-    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

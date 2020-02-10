@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Dao.ViewModels;
@@ -28,7 +29,7 @@ namespace Model.Models
         public long _LessonId { get; set; }
         [ForeignKey(nameof(_StudentId))] public virtual StudentEntity Student { get; set; }
         [ForeignKey(nameof(_LessonId))] public virtual LessonEntity Lesson { get; set; }
-        public virtual ICollection<StudentLessonNote> Notes { get; set; } = new List<StudentLessonNote>();
+        [CanBeNull] public virtual ICollection<StudentLessonNote> Notes { get; set; } = new List<StudentLessonNote>();
 
         // is null when lesson is not started yet
         [Column("registered")] public long? _Registered { get; set; }

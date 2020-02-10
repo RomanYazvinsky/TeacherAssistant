@@ -79,7 +79,6 @@ namespace TeacherAssistant.StudentViewPage {
             this.ExternalLessons.Clear();
             var lessons = GetExternalLessons(student);
             this.ExternalLessons.AddRange(lessons);
-            this.ExternalLessonsVisibility = lessons.Count > 0;
             InterpolateLocalization("page.student.view.external.lessons", lessons.Count);
         }
 
@@ -91,15 +90,13 @@ namespace TeacherAssistant.StudentViewPage {
             this.StudentLessonNotes.Clear();
             this.StudentLessonNotes.AddRange(studentLessonNotes);
             InterpolateLocalization("page.student.view.lesson.notes", studentLessonNotes.Count);
-            this.IsStudentLessonNotesEnabled = studentLessonNotes.Count > 0;
         }
 
         private void UpdateStudentNotes(StudentEntity student) {
-            var studentNotes = student.Notes.ToList();
+            var studentNotes = student.Notes?.ToList() ?? new List<StudentNote>();
             this.StudentNotes.Clear();
             this.StudentNotes.AddRange(studentNotes);
             InterpolateLocalization("page.student.view.student.notes", studentNotes.Count);
-            this.IsStudentNotesEnabled = studentNotes.Count > 0;
         }
 
         private void OnSelectedStreamUpdate(StreamEntity stream) {
@@ -202,7 +199,6 @@ namespace TeacherAssistant.StudentViewPage {
         public ObservableCollection<StudentLessonEntity> ExternalLessons { get; set; } =
             new ObservableCollection<StudentLessonEntity>();
 
-        [Reactive] public bool ExternalLessonsVisibility { get; set; }
 
         public ObservableCollection<StudentNote> StudentNotes { get; set; } =
             new ObservableCollection<StudentNote>();
@@ -218,10 +214,6 @@ namespace TeacherAssistant.StudentViewPage {
 
         public ObservableCollection<StudentAttestationExamView> StudentExams { get; set; } =
             new ObservableCollection<StudentAttestationExamView>();
-
-        [Reactive] public bool IsStudentNotesEnabled { get; set; }
-
-        [Reactive] public bool IsStudentLessonNotesEnabled { get; set; }
 
         [Reactive] public bool IsStudentGroupsSelectorEnabled { get; set; }
         [Reactive] public Visibility StreamDataVisibility { get; set; }
@@ -251,9 +243,8 @@ namespace TeacherAssistant.StudentViewPage {
         public ButtonConfig OpenExternalLesson { get; set; }
 
         private List<StudentLessonEntity> GetExternalLessons(StudentEntity student) {
-            var studentGroupsIds = student.Groups.Select(group => group.Id).AsEnumerable();
-            return LocalDbContext
-                .Instance.StudentLessons
+            var studentGroupsIds = student.Groups?.Select(group => group.Id).AsEnumerable() ?? new List<long>();
+            return _context.StudentLessons
                 .Where(studentLesson => studentLesson.Student.Id == student.Id)
                 .Where(studentLesson => studentLesson.Lesson._GroupId > 0
                     ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
@@ -315,7 +306,8 @@ namespace TeacherAssistant.StudentViewPage {
                 GetRefreshButtonConfig(),
                 new ButtonConfig {
                     Command = new CommandHandler(() => {
-                        _host.AddPageAsync(new StudentFormToken("Редактирование " + this.Student.LastName, this.Student));
+                        _host.AddPageAsync(
+                            new StudentFormToken("Редактирование " + this.Student.LastName, this.Student));
                     }),
                     Text = "Редактировать"
                 }

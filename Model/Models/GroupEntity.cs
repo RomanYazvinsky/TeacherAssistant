@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using TeacherAssistant.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 
 namespace Model.Models {
@@ -30,7 +28,7 @@ namespace Model.Models {
         [ForeignKey("_GroupTypeId")] public virtual GroupTypeModel _GroupType { get; set; }
         [ForeignKey("_PraepostorId")] public virtual StudentEntity _Praepostor { get; set; }
         [Column("praepostor_id")] public long? _PraepostorId { get; set; }
-        [JetBrains.Annotations.CanBeNull] public virtual ICollection<StudentEntity> Students { get; set; } = new List<StudentEntity>();
+        [CanBeNull] public virtual ICollection<StudentEntity> Students { get; set; } = new List<StudentEntity>();
         public virtual ICollection<StreamEntity> Streams { get; set; } = new List<StreamEntity>();
         [Column("active")] public long? _IsActive { get; set; } = 0;
         [Column("expiration_date")] public string _ExpirationDate { get; set; }
@@ -48,7 +46,7 @@ namespace Model.Models {
         [Column("department_id")] public long? _DepartmentId { get; set; }
 
         [ForeignKey("_DepartmentId")]
-        [JetBrains.Annotations.CanBeNull]
+        [CanBeNull]
         public virtual DepartmentEntity Department {
             get => _department;
             set {

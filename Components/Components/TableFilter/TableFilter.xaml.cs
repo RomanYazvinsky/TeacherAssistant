@@ -36,6 +36,8 @@ namespace TeacherAssistant.Components.TableFilter {
         public BehaviorSubject<object> SelectedItem { get; set; } = new BehaviorSubject<object>(null);
         public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection>();
         public Func<object, string, bool> Filter { get; set; } = (o, s) => true;
+
+        public bool IsFilterDependsOnlyOnFilterValue { get; set; } = true;
     }
 
     /// <summary>
@@ -157,12 +159,12 @@ namespace TeacherAssistant.Components.TableFilter {
 
         private void UpdateFilter(string text) {
             var collectionView = CollectionViewSource.GetDefaultView(this.TableConfig.TableItems);
-            if (!string.IsNullOrWhiteSpace(text)) {
-                text = text.ToUpperInvariant();
+            if (!string.IsNullOrWhiteSpace(text) || !this.TableConfig.IsFilterDependsOnlyOnFilterValue) {
+                text = text?.ToUpperInvariant() ?? string.Empty;
                 collectionView.Filter = o => this.TableConfig.Filter?.Invoke(o, text) ?? true;
             }
             else {
-                collectionView.Filter = o => true;
+                collectionView.Filter = null;
             }
         }
 
@@ -195,6 +197,7 @@ namespace TeacherAssistant.Components.TableFilter {
                 var config = (TableConfig) e.NewValue;
                 SortHelper.AddColumnSorting(LView, config.Sorts);
                 SetSelectedItems(config.SelectedItems);
+                UpdateFilter("");
             }
         }
 

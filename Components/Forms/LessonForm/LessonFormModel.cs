@@ -6,19 +6,16 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Containers;
 using DynamicData;
 using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Models;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.Utils;
 
@@ -190,7 +187,7 @@ namespace TeacherAssistant.Pages.LessonForm {
             await RegisterAllStudents(_originalEntity);
         }
 
-        private async Task RegisterAllStudents(LessonEntity lesson) {
+        private async Task RegisterAllStudents(LessonEntity persistentLesson) {
             List<StudentEntity> studentsShouldBeRegistered = null;
             if (this.IsGroupsAvailable) {
                 if (this.SelectedGroup == null) {
@@ -215,13 +212,18 @@ namespace TeacherAssistant.Pages.LessonForm {
             var registrationTime = DateTime.Now;
             var studentLessonsToRegister = notRegisteredStudents
                 .Select(student => new StudentLessonEntity {
-                    Lesson = lesson,
-                    _LessonId = lesson.Id,
+                    Lesson = persistentLesson,
+                    _LessonId = persistentLesson.Id,
                     Student = student,
                     _StudentId = student.Id,
                     IsRegistered = true,
                     RegistrationTime = registrationTime
                 });
+            foreach (var studentLesson in persistentLesson.StudentLessons ?? new List<StudentLessonEntity>()) {
+                studentLesson.IsRegistered = true;
+                studentLesson.RegistrationTime = studentLesson.RegistrationTime ?? registrationTime;
+            }
+
             _db.StudentLessons.AddRange(studentLessonsToRegister);
             await _db.SaveChangesAsync();
         }

@@ -236,6 +236,7 @@
       <DependentUpon>Webcam.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Converters\IsCollectionNotEmptyConverter.cs" />
     <Compile Include="DataTemplateContentPresenter.cs" />
     <Compile Include="Forms\GroupForm\GroupForm.xaml.cs">
       <DependentUpon>GroupForm.xaml</DependentUpon>
@@ -307,8 +308,6 @@
     <Compile Include="Pages\StudentViewPage\Models\StudentLessonViewBox.cs" />
     <Compile Include="SoundUtil.cs" />
     <Compile Include="TemplateBuilder.cs" />
-    <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="Properties\Annotations1.cs" />
     <Compile Include="Pages\RegistrationPage\RegistrationPage.xaml.cs">
       <DependentUpon>RegistrationPage.xaml</DependentUpon>
     </Compile>
@@ -349,6 +348,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Components\TableFilter\TableStyle.xaml" />
     <Page Include="Components\Webcam.xaml" />
     <Page Include="Forms\GroupForm\GroupForm.xaml">
       <SubType>Designer</SubType>
@@ -401,6 +401,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\SchedulePage\CellTemplates.xaml" />
     <Page Include="Pages\SettingsPage\SettingsPage.xaml" />
     <Page Include="Pages\SettingsPage\Views\AlarmSettingView.xaml" />
     <Page Include="Pages\StreamTablePage\StreamTable.xaml">
@@ -415,6 +416,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\StudentViewPage\LessonCardsStyle.xaml" />
     <Page Include="Styles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

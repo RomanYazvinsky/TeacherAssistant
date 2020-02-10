@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
-using TeacherAssistant.Annotations;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Models;
 
 namespace Model.Models {
     [Table("LESSON")]
@@ -36,7 +37,7 @@ namespace Model.Models {
         #region ORM FK
 
         [Column("SCHEDULE_ID")] public long? _ScheduleId { get; set; }
-        public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
+        [CanBeNull] public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
         [CanBeNull] public virtual ICollection<LessonNote> Notes { get; set; }
 
         [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleEntity Schedule { get; set; }

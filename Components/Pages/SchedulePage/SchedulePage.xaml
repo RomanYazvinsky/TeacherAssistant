@@ -6,38 +6,42 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage"
     xmlns:label="clr-namespace:TeacherAssistant.Label"
-    xmlns:fa5="http://schemas.fontawesome.com/icons/"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-    xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
     mc:Ignorable="d"
     d:DesignHeight="720" d:DesignWidth="1280"
-    d:DataContext="{d:DesignInstance local:SchedulePageModel}"
-    x:Name="SchedulePageView">
+    d:DataContext="{d:DesignInstance local:SchedulePageModel}">
     <UserControl.Resources>
-        <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
-            <Setter Property="Margin" Value="5" />
-            <Setter Property="Height" Value="30" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="ContentWidth" Value="2*" />
-            <Style.Resources>
-                <Style TargetType="TextBox">
-                    <Setter Property="VerticalContentAlignment" Value="Center" />
-                </Style>
-            </Style.Resources>
-        </Style>
-        <BooleanToVisibilityConverter x:Key="b2v" />
-        <Style TargetType="{x:Type GridViewColumnHeader}" >
-            <Setter Property="MinWidth" Value="100" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
+                        <Setter Property="Margin" Value="5" />
+                        <Setter Property="Height" Value="30" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="ContentWidth" Value="2*" />
+                        <Style.Resources>
+                            <Style TargetType="TextBox">
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
+                            </Style>
+                        </Style.Resources>
+                    </Style>
+                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                        <Setter Property="MinWidth" Value="100" />
+                    </Style>
+                </ResourceDictionary>
+                <ResourceDictionary Source="CellTemplates.xaml" />
+                <ResourceDictionary Source="../../Components/TableFilter/TableStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="100" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="250" />
                 <ColumnDefinition Width="250" />
@@ -79,7 +83,7 @@
                   SelectedItem="{Binding Path=SelectedLesson}"
                   FontSize="14">
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource TableItemStyle}">
                     <Style.Setters>
                         <Setter Property="ContextMenu">
                             <Setter.Value>
@@ -108,7 +112,6 @@
                                 </ContextMenu>
                             </Setter.Value>
                         </Setter>
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     </Style.Setters>
                 </Style>
             </ListView.ItemContainerStyle>
@@ -119,81 +122,36 @@
             </i:Interaction.Triggers>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="100"
-                                    DisplayMemberBinding="{Binding Path=Lesson.Date, StringFormat=dd-MM-yyyy}">
+                    <GridViewColumn Width="120"
+                                    CellTemplate="{StaticResource DateColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Дата" Tag="Lesson.Date" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="100" DisplayMemberBinding="{Binding Date}">
+                    <GridViewColumn Width="120" CellTemplate="{StaticResource TimeColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
                                                   Content="Время"
                                                   Tag="Lesson.Schedule" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Lesson.Stream.Name}">
+                    <GridViewColumn Width="150" CellTemplate="{StaticResource StreamNameColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Поток" Tag="Stream.Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
                     <GridViewColumn Width="300"
-                                    DisplayMemberBinding="{Binding Path=GroupNames}">
+                                    CellTemplate="{StaticResource GroupNamesColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Группы"
                                                   Tag="GroupsNames" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="Auto">
+                    <GridViewColumn Width="150" CellTemplate="{StaticResource LessonTypeColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Тип"
                                                   Tag="LessonType.name" />
                         </GridViewColumn.Header>
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="20" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding LocalizedType}" />
-                                    <fa5:FontAwesome
-                                        Grid.Column="1"
-                                        Icon="Solid_Info"
-                                        Foreground="{Binding IconColor}"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center">
-                                        <fa5:FontAwesome.ToolTip>
-                                            <ToolTip
-                                                Visibility="{Binding TooltipVisibility, Converter={StaticResource b2v}}">
-                                                <ItemsControl ItemsSource="{Binding Lesson.Notes}"
-                                                              Name="LessonNotesTooltip">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid HorizontalAlignment="Stretch">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock
-                                                                    Grid.Column="0"
-                                                                    Grid.Row="1"
-                                                                    Text="{Binding Description}"
-                                                                    Margin="0, 0, 5, 0" />
-                                                                <TextBlock
-                                                                    Grid.Column="1"
-                                                                    Grid.Row="1"
-                                                                    Text="{Binding CreationDate, StringFormat=dd.MM.yyyy}" />
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </ToolTip>
-                                        </fa5:FontAwesome.ToolTip>
-                                    </fa5:FontAwesome>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                 </GridView>
             </ListView.View>

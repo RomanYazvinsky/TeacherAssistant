@@ -17,6 +17,7 @@ using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Forms.NoteForm;
+using TeacherAssistant.Models;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.RegistrationPage;
@@ -30,14 +31,12 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
         public string Date { get; }
 
         public string GroupNames => this.Lesson._GroupId == null
-            ? string.Join(", ", this.Lesson.Stream.Groups.Select(model => model.Name))
+            ? string.Join(", ", this.Lesson.Stream.Groups?.Select(model => model.Name) ?? new string[]{})
             : this.Lesson.Group.Name;
 
         public string LocalizedType { get; }
 
         public Brush IconColor { get; }
-
-        public bool TooltipVisibility { get; }
 
         public SchedulePageModel Model { get; }
 
@@ -48,7 +47,6 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
             this.LocalizedType = LocalizationContainer.Localization[$"common.lesson.type.{entity.LessonType}"];
             this.Date = $"{entity.Schedule?.Begin:hh\\:mm}-{entity.Schedule?.End:hh\\:mm}";
             this.IconColor = this.Lesson.Checked ? Brushes.Black : Brushes.Red;
-            this.TooltipVisibility = entity.Notes?.Count > 0;
         }
     }
 

@@ -15,7 +15,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
                     <BooleanToVisibilityConverter x:Key="b2v" />
-                    <teacherAssistant:SelectionEnabledConverter x:Key="SelectionEn" />
+                    <teacherAssistant:IsCollectionNotEmptyConverter x:Key="SelectionEn" />
                 </ResourceDictionary>
                 <ResourceDictionary Source="../../Styles.xaml" />
                 <ResourceDictionary>

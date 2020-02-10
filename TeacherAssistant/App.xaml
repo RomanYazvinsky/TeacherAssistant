@@ -1,9 +1,6 @@
 ﻿<Application x:Class="TeacherAssistant.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:label="clr-namespace:TeacherAssistant.Label;assembly=TeacherAssistant.Components"
-
-             xmlns:local="clr-namespace:TeacherAssistant">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -19,8 +16,7 @@
                 <!-- Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" /> -->
                 <!-- <ResourceDictionary -->
                 <!-- Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Lime.xaml" /> -->
-                <!-- <ResourceDictionary Source="pack://application:,,,/Dragablz;component/Themes/materialdesign.xaml"/>
-                -->
+                <!-- <ResourceDictionary Source="pack://application:,,,/Dragablz;component/Themes/materialdesign.xaml"/> -->
                 <ResourceDictionary Source="pack://application:,,,/Dragablz;component/Themes/Generic.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/TeacherAssistant.Components;component/Components/Label/LabelTemplate.xaml" />
