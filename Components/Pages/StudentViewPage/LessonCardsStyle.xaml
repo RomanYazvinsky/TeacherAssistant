@@ -46,7 +46,7 @@
                                     Background="{Binding Path=Background}">
                                 <Border.InputBindings>
                                     <MouseBinding MouseAction="LeftDoubleClick"
-                                                  Command="{Binding Path=ToggleRegistrationHandler}" />
+                                                  Command="{Binding Path=ToggleRegistrationHandler}" CommandParameter="{Binding .}" />
                                 </Border.InputBindings>
                                 <StackPanel Width="80" Height="100">
                                     <TextBlock Margin="5" TextAlignment="Center" FontWeight="Bold"

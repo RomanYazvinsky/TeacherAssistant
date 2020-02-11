@@ -118,7 +118,7 @@ namespace TeacherAssistant.StudentViewPage {
                 stream.PracticalCount,
                 stream.LabCount
             );
-            var missedLessons = LocalDbContext.Instance.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
+            var missedLessons = _context.GetStudentMissedLessons(this.Student, stream, DateTime.Now);
             var missedLectures = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Lecture);
             var missedPractices = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Practice);
             var missedLabs = missedLessons.Count(model => model.Lesson.LessonType == LessonType.Laboratory);
@@ -177,7 +177,7 @@ namespace TeacherAssistant.StudentViewPage {
 
         private async void Initialize(StudentEntity student) {
             this.Student = student;
-            this.Groups = string.Join(", ", student.Groups.Select(group => group.Name));
+            this.Groups = string.Join(", ", student.Groups?.Select(group => group.Name) ?? new string[]{});
             this.StudentGroups.Clear();
             this.StudentGroups.AddRange(student.Groups);
             this.IsStudentGroupsSelectorEnabled = this.StudentGroups.Count > 1;
@@ -348,7 +348,7 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private async Task AddAttestation() {
-            var schedules = await LocalDbContext.Instance.Schedules.ToListAsync();
+            var schedules = await _context.Schedules.ToListAsync();
             var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
@@ -367,18 +367,18 @@ namespace TeacherAssistant.StudentViewPage {
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            LocalDbContext.Instance.Lessons.Add(lesson);
-            await LocalDbContext.Instance.SaveChangesAsync();
+            _context.Lessons.Add(lesson);
+            await _context.SaveChangesAsync();
             if (this.SelectedGroup != null) {
-                var newStudentLessons = this.SelectedGroup.Students.Select
+                var newStudentLessons = this.SelectedGroup.Students?.Select
                     (
                         groupStudent => new StudentLessonEntity {
                             Student = groupStudent,
                             Lesson = lesson
                         }
                     )
-                    .ToList();
-                LocalDbContext.Instance.StudentLessons.AddRange(newStudentLessons);
+                    .ToList() ?? new List<StudentLessonEntity>();
+                _context.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentAttestations.Add
                 (
@@ -396,12 +396,12 @@ namespace TeacherAssistant.StudentViewPage {
                 );
             }
 
-            await LocalDbContext.Instance.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             UpdateExamMark();
         }
 
         private async Task AddExam() {
-            var schedules = await LocalDbContext.Instance.Schedules.ToListAsync();
+            var schedules = await _context.Schedules.ToListAsync();
             var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
@@ -420,12 +420,12 @@ namespace TeacherAssistant.StudentViewPage {
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
-            LocalDbContext.Instance.Lessons.Add(lesson);
-            await LocalDbContext.Instance.SaveChangesAsync();
+            _context.Lessons.Add(lesson);
+            await _context.SaveChangesAsync();
 
 
             if (this.SelectedGroup != null) {
-                var newStudentLessons = this.SelectedGroup.Students.Select
+                var newStudentLessons = this.SelectedGroup.Students?.Select
                     (
                         groupStudent => new StudentLessonEntity {
                             Student =
@@ -433,8 +433,8 @@ namespace TeacherAssistant.StudentViewPage {
                             Lesson = lesson
                         }
                     )
-                    .ToArray();
-                LocalDbContext.Instance.StudentLessons.AddRange(newStudentLessons);
+                    .ToArray() ?? new StudentLessonEntity[]{};
+                _context.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentExams.Add
                 (
@@ -452,14 +452,13 @@ namespace TeacherAssistant.StudentViewPage {
                 );
             }
 
-            await LocalDbContext.Instance.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             UpdateExamMark();
         }
 
         public StudentLessonViewBox ToggleRegistration(StudentLessonViewBox box) {
             box.StudentLesson.IsRegistered = box.StudentLesson.IsLessonMissed;
-            var indexOf = this.StudentLessons.IndexOf(box);
-            LocalDbContext.Instance.SaveChangesAsync();
+            _context.SaveChangesAsync();
             var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
             this.StudentLessons.Replace(box, studentLessonViewBox);
             return studentLessonViewBox;
