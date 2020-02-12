@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DynamicData;
@@ -75,29 +76,21 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
             foreach (var lessonModel in lessonModels)
             {
                 var lessonId = IdGenerator.GenerateId(10);
-                this.LessonModels.Add(lessonId, lessonModel);
+                this.Lessons.Add(lessonId, lessonModel);
                 this.Columns.Add(BuildStudentLessonColumn(lessonId, lessonModel));
             }
 
-            var studentModels = (lesson.Group == null
-                    ? lesson.Stream.Groups.Aggregate(new List<StudentEntity>(),
-                        (list, model) =>
-                        {
-                            list.AddRange(model.Students);
-                            return list;
-                        })
-                    : lesson.Group.Students.ToList())
-                .Select(model => new StudentLessonViewModel(model, this.LessonModels, _scope))
+            var studentModels = ((lesson.Group == null
+                    ? lesson.Stream.Groups?.SelectMany(group => group.Students ?? new List<StudentEntity>())
+                    : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
+                .Select(model => new StudentLessonViewModel(model, this.Lessons, _scope, _db))
                 .OrderBy(view => view.FullName).ToList();
             _items.AddRange(studentModels);
         }
 
         private LessonEntity _currentLesson;
 
-        private Dictionary<string, LessonEntity> LessonModels { get; set; } = new Dictionary<string, LessonEntity>();
-
-        public ObservableCollection<StudentLessonEntity> StudentLessons =
-            new ObservableCollection<StudentLessonEntity>();
+        private Dictionary<string, LessonEntity> Lessons { get; set; } = new Dictionary<string, LessonEntity>();
 
         [Reactive] public string FilterText { get; set; }
 
@@ -114,7 +107,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
                     Width = new DataGridLength(80),
                     Header = new TextBlock {Text = Localization["Пропуски"]},
                     Binding = new Binding("MissedLessons"),
-                    IsReadOnly = true
+                    IsReadOnly = true,
+                    CanUserSort = false
                 };
             return dataGridTemplateColumn;
         }
@@ -132,13 +126,26 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
                                entity.Date?.ToString("dd.MM"),
                         Foreground = entity.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black
                     },
-                    Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")}
+                    Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")},
+                    CanUserSort = false
                 };
             var cellStyle = new Style();
-            var setterBase = new Setter(Control.BackgroundProperty, new Binding($"LessonToLessonMark[{id}].Color"));
-            cellStyle.Setters.Add(setterBase);
+            var backGround = new Setter(Control.BackgroundProperty, new Binding($"LessonToLessonMark[{id}].Color"));
+            var menu = new Setter(FrameworkElement.ContextMenuProperty, BuildLessonCellContextMenu(id));
+            cellStyle.Setters.Add(backGround);
+            cellStyle.Setters.Add(menu);
             dataGridTemplateColumn.CellStyle = cellStyle;
             return dataGridTemplateColumn;
+        }
+
+        private ContextMenu BuildLessonCellContextMenu(string id) {
+            var menu = new ContextMenu();
+            var menuItem = new MenuItem();
+            menuItem.SetBinding(MenuItem.CommandProperty,
+                new Binding($"LessonToLessonMark[{id}].ToggleRegistrationHandler"));
+            menuItem.Header = "Отметить/пропуск";
+            menu.Items.Add(menuItem);
+            return menu;
         }
 
         protected override string GetLocalizationKey()

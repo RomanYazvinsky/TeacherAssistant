@@ -1,20 +1,26 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Grace.DependencyInjection;
-using JetBrains.Annotations;
 using Model.Models;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class StudentLessonViewModel : INotifyPropertyChanged {
+    public class StudentLessonViewModel : ViewModelBase {
         private int _missedLessons = 0;
 
         private Dictionary<string, StudentLessonMarkModel> _lessonToLessonMark =
             new Dictionary<string, StudentLessonMarkModel>();
 
-        public string FullName { get; set; }
+        private string _fullName;
+
+        public string FullName {
+            get => _fullName;
+            set {
+                if (value == _fullName) return;
+                _fullName = value;
+                OnPropertyChanged();
+            }
+        }
 
         public int MissedLessons {
             get => _missedLessons;
@@ -37,36 +43,34 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         public StudentEntity Model { get; set; }
 
-        public StudentLessonViewModel(StudentEntity student, Dictionary<string, LessonEntity> lessonModels, IExportLocatorScope serviceLocator) {
+        public StudentLessonViewModel(StudentEntity student,
+            Dictionary<string, LessonEntity> lessonModels,
+            IExportLocatorScope serviceLocator,
+            LocalDbContext context) {
             this.Model = student;
             ServiceLocator = serviceLocator;
             this.FullName = student.LastName + " " + student.FirstName;
             foreach (var keyValuePair in lessonModels) {
                 var studentLessonModel =
-                    keyValuePair.Value.StudentLessons.FirstOrDefault(model => model._StudentId == student.Id) ??
+                    keyValuePair.Value.StudentLessons?.FirstOrDefault(model => model._StudentId == student.Id) ??
                     new StudentLessonEntity {
+                        _LessonId = keyValuePair.Value.Id,
                         Lesson = keyValuePair.Value,
                         Student = student,
+                        _StudentId = student.Id,
                         IsRegistered = false,
                         Mark = ""
                     };
                 if (studentLessonModel.Id == 0) {
-                    LocalDbContext.Instance.StudentLessons.Add(studentLessonModel);
-                    LocalDbContext.Instance.ThrottleSave();
+                    context.StudentLessons.Add(studentLessonModel);
+                    context.ThrottleSave();
                 }
 
-                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkModel(studentLessonModel));
+                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkModel(studentLessonModel, context));
             }
 
             this.MissedLessons =
-                this.LessonToLessonMark.Values.Aggregate(0, (i, model) => model.Entity.IsLessonMissed ? i + 1 : i);
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                this.LessonToLessonMark.Values.Aggregate(0, (i, model) => model.StudentLesson.IsLessonMissed ? i + 1 : i);
         }
     }
 }
