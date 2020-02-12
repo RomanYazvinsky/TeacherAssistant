@@ -183,7 +183,8 @@ namespace TeacherAssistant.RegistrationPage {
                 DragConfig = new DragConfig {
                     SourceId = token.Id + nameof(this.AllStudentsTableConfig),
                     SourceType = nameof(StudentEntity),
-                    DragValuePath = "Student"
+                    DragValuePath = "Student",
+                    DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 },
                 IsFilterDependsOnlyOnFilterValue = false
             };
@@ -210,7 +211,7 @@ namespace TeacherAssistant.RegistrationPage {
                         }
 
                         if (nameof(StudentEntity).Equals(dragData.SenderType)) {
-                            AcceptDropFromStudentTable(dragData.Data);
+                            RunInUiThread(() => AcceptDropFromStudentTable(dragData.Data));
                         }
 
                         dragData.Accept();
@@ -320,8 +321,10 @@ namespace TeacherAssistant.RegistrationPage {
             };
 
 
-        private bool IsStudentAlreadyRegistered(IEnumerable<StudentLessonInfoViewModel> studentLessons,
-            StudentEntity student) {
+        private bool IsStudentAlreadyRegistered(
+            IEnumerable<StudentLessonInfoViewModel> studentLessons,
+            StudentEntity student
+        ) {
             return studentLessons.Any(studentLesson =>
                 studentLesson.StudentLesson._StudentId == student.Id &&
                 studentLesson.StudentLesson._LessonId == this.Lesson.Id);
@@ -503,8 +506,10 @@ namespace TeacherAssistant.RegistrationPage {
 
         private void RegisterExtStudent(StudentEntity studentEntity) {
             var studentLessonModel = new StudentLessonEntity {
+                _LessonId = Lesson.Id,
                 Lesson = Lesson,
                 _StudentId = studentEntity.Id,
+                Student = studentEntity,
                 IsRegistered = true,
                 RegistrationTime = DateTime.Now
             };
@@ -654,7 +659,8 @@ namespace TeacherAssistant.RegistrationPage {
 
         private List<StudentLessonInfoViewModel> FindInternalStudents(
             List<StudentLessonInfoViewModel> allStudentLessons,
-            LessonEntity lesson) {
+            LessonEntity lesson
+        ) {
             var internalStudents = lesson.Group?.Students ?? lesson.Stream.Students;
 
             return allStudentLessons

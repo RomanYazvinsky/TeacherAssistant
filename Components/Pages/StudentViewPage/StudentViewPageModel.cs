@@ -4,14 +4,16 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Containers;
 using DynamicData;
+using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -19,6 +21,7 @@ using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Pages;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.StudentForm;
@@ -28,6 +31,7 @@ namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageModel : AbstractModel<StudentViewPageModel> {
         private const string LocalizationKey = "page.student.view";
         private readonly TabPageHost _host;
+        private readonly WindowPageHost _windowPageHost;
         private readonly PhotoService _photoService;
         private readonly LocalDbContext _context;
 
@@ -35,71 +39,97 @@ namespace TeacherAssistant.StudentViewPage {
             StudentViewPageToken token,
             PageControllerReducer reducer,
             TabPageHost host,
+            WindowPageHost windowPageHost,
             PhotoService photoService,
-            LocalDbContext context) {
+            LocalDbContext context
+        ) {
             _host = host;
+            _windowPageHost = windowPageHost;
             _photoService = photoService;
             _context = context;
             this.AddAttestationButtonConfig = new ButtonConfig {
-                Command = new CommandHandler(AddAttestation),
+                Command = ReactiveCommand.Create(AddAttestation),
                 Text = "+"
             };
             this.AddExamButtonConfig = new ButtonConfig {
-                Command = new CommandHandler(AddExam),
+                Command = ReactiveCommand.Create(AddExam),
                 Text = "+"
             };
-            this.OpenExternalLesson = new ButtonConfig {
-                Command = new CommandHandler(() => {
-                    var selectedExternalLesson = this.SelectedExternalLesson;
-                    if (selectedExternalLesson == null) {
-                        return;
-                    }
+            this.OpenExternalLessonHandler = ReactiveCommand.Create(() => {
+                var selectedExternalLesson = this.SelectedExternalLesson;
+                if (selectedExternalLesson == null) {
+                    return;
+                }
 
-                    host.AddPageAsync(new RegistrationPageToken("Регистрация", selectedExternalLesson.Lesson));
-                })
-            };
-            this.WhenAnyValue(model => model.Student)
-                .Where(LambdaHelper.NotNull)
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe
-                (
-                    student => {
-                        UpdateExternalLessons(student);
-                        UpdateStudentLessonNotes(student);
-                        UpdateStudentNotes(student);
-                    }
-                );
-            this.WhenAnyValue(model => model.SelectedStream).Subscribe(OnSelectedStreamUpdate);
-            this.WhenAnyValue(model => model.SelectedGroup).Subscribe(OnSelectedGroupUpdate);
+                host.AddPageAsync(new RegistrationPageToken("Регистрация", selectedExternalLesson.Lesson));
+            });
+            this.OpenStudentLessonHandler = ReactiveCommand.Create(() =>
+                OpenLesson(this.SelectedStudentLessonNote?.Note.StudentLesson.Lesson));
             Initialize(token.Student);
+            this.WhenActivated(c => {
+                this.WhenAnyValue(model => model.Student)
+                    .Where(LambdaHelper.NotNull)
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe
+                    (
+                        student => {
+                            UpdateExternalLessons(student);
+                            UpdateStudentLessonNotes(student);
+                            UpdateStudentNotes(student);
+                        }
+                    ).DisposeWith(c);
+                this.WhenAnyValue(model => model.SelectedStream).Subscribe(OnSelectedStreamUpdate).DisposeWith(c);
+                this.WhenAnyValue(model => model.SelectedGroup).Subscribe(OnSelectedGroupUpdate).DisposeWith(c);
+                this.WhenAdded<StudentLessonNote>().Merge(this.WhenRemoved<StudentLessonNote>())
+                    .Merge(WhenUpdated<StudentLessonNote>())
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(_ => UpdateStudentLessonNotes(this.Student)).DisposeWith(c);
+                this.WhenAdded<StudentLessonEntity>()
+                    .Merge(this.WhenRemoved<StudentLessonEntity>())
+                    .Merge(WhenUpdated<StudentLessonEntity>())
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(_ => {
+                        OnSelectedGroupUpdate(this.SelectedGroup);
+                        UpdateExternalLessons(this.Student);
+                        UpdateStudentLessonNotes(this.Student);
+                    });
+                this.WhenAdded<StudentNote>()
+                    .Merge(this.WhenRemoved<StudentNote>())
+                    .Merge(WhenUpdated<StudentNote>())
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(_ => UpdateStudentNotes(this.Student)).DisposeWith(c);
+            });
             reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
         }
 
-        private void UpdateExternalLessons(StudentEntity student) {
+        private void UpdateExternalLessons([NotNull] StudentEntity student) {
             this.ExternalLessons.Clear();
             var lessons = GetExternalLessons(student);
             this.ExternalLessons.AddRange(lessons);
             InterpolateLocalization("page.student.view.external.lessons", lessons.Count);
         }
 
-        private void UpdateStudentLessonNotes(StudentEntity student) {
+        private void UpdateStudentLessonNotes([NotNull] StudentEntity student) {
             var studentLessonNotes = _context.StudentLessonNotes
-                .Include(note => note.StudentLesson)
+                .Include(note => note.StudentLesson.Lesson.Schedule)
                 .Where(note => note.StudentLesson._StudentId == student.Id)
                 .ToList();
             this.StudentLessonNotes.Clear();
-            this.StudentLessonNotes.AddRange(studentLessonNotes);
+            this.StudentLessonNotes.AddRange(studentLessonNotes.Select(note => new StudentLessonNoteViewModel(note)));
             InterpolateLocalization("page.student.view.lesson.notes", studentLessonNotes.Count);
         }
 
-        private void UpdateStudentNotes(StudentEntity student) {
-            var studentNotes = student.Notes?.ToList() ?? new List<StudentNote>();
+        private void UpdateStudentNotes([NotNull] StudentEntity student) {
+            var studentNotes = _context.StudentNotes
+                .Include(note => note.Student)
+                .Where(note => note.EntityId == student.Id)
+                .ToList();
             this.StudentNotes.Clear();
             this.StudentNotes.AddRange(studentNotes);
             InterpolateLocalization("page.student.view.student.notes", studentNotes.Count);
         }
 
-        private void OnSelectedStreamUpdate(StreamEntity stream) {
+        private void OnSelectedStreamUpdate([CanBeNull] StreamEntity stream) {
             if (stream == null) {
                 this.StreamDataVisibility = Visibility.Hidden;
                 return;
@@ -135,7 +165,7 @@ namespace TeacherAssistant.StudentViewPage {
                 );
         }
 
-        private async void OnSelectedGroupUpdate(GroupEntity selectedGroup) {
+        private async void OnSelectedGroupUpdate([CanBeNull] GroupEntity selectedGroup) {
             if (selectedGroup == null) {
                 this.StudentGroups.Clear();
                 return;
@@ -175,26 +205,28 @@ namespace TeacherAssistant.StudentViewPage {
             UpdateExamMark();
         }
 
-        private async void Initialize(StudentEntity student) {
-            this.Student = student;
-            this.Groups = string.Join(", ", student.Groups?.Select(group => group.Name) ?? new string[]{});
+        private void Initialize([NotNull] StudentEntity student) {
+            this.Student = _context.Students.Find(student.Id) ?? student;
+            this.Groups = string.Join(", ", student.Groups?.Select(group => group.Name) ?? new string[] { });
             this.StudentGroups.Clear();
             this.StudentGroups.AddRange(student.Groups);
             this.IsStudentGroupsSelectorEnabled = this.StudentGroups.Count > 1;
             this.SelectedGroup = this.StudentGroups.Count > 0
                 ? this.StudentGroups.FirstOrDefault(groupModel => groupModel.IsActive) ?? this.StudentGroups[0]
                 : null;
-            var path = await _photoService.DownloadPhoto
-                    (StudentEntity.CardUidToId(student.CardUid))
-                .ConfigureAwait(false);
-            var image = _photoService.GetImage(path);
-            RunInUiThread(() => { this.StudentPhoto = image; });
+            LoadPhoto(this.Student);
         }
 
-        [Reactive] public BitmapImage StudentPhoto { get; set; }
+        private async Task LoadPhoto([NotNull] StudentEntity student) {
+            var path = await _photoService.DownloadPhoto(StudentEntity.CardUidToId(student.CardUid));
+            var image = _photoService.GetImage(path);
+            RunInUiThread(() => this.StudentPhoto = image);
+        }
+
+        [Reactive] [CanBeNull] public BitmapImage StudentPhoto { get; set; }
         [Reactive] public string Groups { get; set; }
-        [Reactive] public StudentEntity Student { get; set; }
-        [Reactive] public StudentLessonEntity SelectedExternalLesson { get; set; }
+        [Reactive] [NotNull] public StudentEntity Student { get; set; }
+        [Reactive] [CanBeNull] public StudentLessonEntity SelectedExternalLesson { get; set; }
 
         public ObservableCollection<StudentLessonEntity> ExternalLessons { get; set; } =
             new ObservableCollection<StudentLessonEntity>();
@@ -203,8 +235,8 @@ namespace TeacherAssistant.StudentViewPage {
         public ObservableCollection<StudentNote> StudentNotes { get; set; } =
             new ObservableCollection<StudentNote>();
 
-        public ObservableCollection<StudentLessonNote> StudentLessonNotes { get; set; } =
-            new ObservableCollection<StudentLessonNote>();
+        public ObservableCollection<StudentLessonNoteViewModel> StudentLessonNotes { get; set; } =
+            new ObservableCollection<StudentLessonNoteViewModel>();
 
         public ObservableCollection<StudentLessonViewBox> StudentLessons { get; set; } =
             new ObservableCollection<StudentLessonViewBox>();
@@ -218,7 +250,7 @@ namespace TeacherAssistant.StudentViewPage {
         [Reactive] public bool IsStudentGroupsSelectorEnabled { get; set; }
         [Reactive] public Visibility StreamDataVisibility { get; set; }
 
-        [Reactive] public GroupEntity SelectedGroup { get; set; }
+        [Reactive] [CanBeNull] public GroupEntity SelectedGroup { get; set; }
 
         [Reactive] public StreamEntity SelectedStream { get; set; }
 
@@ -236,13 +268,17 @@ namespace TeacherAssistant.StudentViewPage {
             new ObservableCollection<MarkStatistics>();
 
         [Reactive] public string ResultAttestationMark { get; set; }
+
         [Reactive] public string ResultMark { get; set; }
+
+        [Reactive] [CanBeNull] public StudentLessonNoteViewModel SelectedStudentLessonNote { get; set; }
         public ButtonConfig AddAttestationButtonConfig { get; set; }
         public ButtonConfig AddExamButtonConfig { get; set; }
 
-        public ButtonConfig OpenExternalLesson { get; set; }
+        public ICommand OpenExternalLessonHandler { get; set; }
+        public ICommand OpenStudentLessonHandler { get; set; }
 
-        private List<StudentLessonEntity> GetExternalLessons(StudentEntity student) {
+        private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student) {
             var studentGroupsIds = student.Groups?.Select(group => group.Id).AsEnumerable() ?? new List<long>();
             return _context.StudentLessons
                 .Where(studentLesson => studentLesson.Student.Id == student.Id)
@@ -305,11 +341,21 @@ namespace TeacherAssistant.StudentViewPage {
             var buttonConfigs = new List<ButtonConfig> {
                 GetRefreshButtonConfig(),
                 new ButtonConfig {
-                    Command = new CommandHandler(() => {
+                    Command = ReactiveCommand.Create(() => {
                         _host.AddPageAsync(
                             new StudentFormToken("Редактирование " + this.Student.LastName, this.Student));
                     }),
                     Text = "Редактировать"
+                },
+                new ButtonConfig {
+                    Command = ReactiveCommand.Create(() => {
+                        var noteListFormToken = new NoteListFormToken("Заметки", () => new StudentNote {
+                            Student = this.Student,
+                            EntityId = this.Student.Id
+                        }, _context.StudentNotes.Where(note => note.EntityId == this.Student.Id).ToList());
+                        _windowPageHost.AddPageAsync(noteListFormToken);
+                    }),
+                    Text = "Заметки"
                 }
             };
             return buttonConfigs;
@@ -371,13 +417,13 @@ namespace TeacherAssistant.StudentViewPage {
             await _context.SaveChangesAsync();
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students?.Select
-                    (
-                        groupStudent => new StudentLessonEntity {
-                            Student = groupStudent,
-                            Lesson = lesson
-                        }
-                    )
-                    .ToList() ?? new List<StudentLessonEntity>();
+                                            (
+                                                groupStudent => new StudentLessonEntity {
+                                                    Student = groupStudent,
+                                                    Lesson = lesson
+                                                }
+                                            )
+                                            .ToList() ?? new List<StudentLessonEntity>();
                 _context.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentAttestations.Add
@@ -426,14 +472,14 @@ namespace TeacherAssistant.StudentViewPage {
 
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students?.Select
-                    (
-                        groupStudent => new StudentLessonEntity {
-                            Student =
-                                groupStudent,
-                            Lesson = lesson
-                        }
-                    )
-                    .ToArray() ?? new StudentLessonEntity[]{};
+                                            (
+                                                groupStudent => new StudentLessonEntity {
+                                                    Student =
+                                                        groupStudent,
+                                                    Lesson = lesson
+                                                }
+                                            )
+                                            .ToArray() ?? new StudentLessonEntity[] { };
                 _context.StudentLessons.AddRange(newStudentLessons);
 
                 this.StudentExams.Add
@@ -456,12 +502,32 @@ namespace TeacherAssistant.StudentViewPage {
             UpdateExamMark();
         }
 
-        public StudentLessonViewBox ToggleRegistration(StudentLessonViewBox box) {
-            box.StudentLesson.IsRegistered = box.StudentLesson.IsLessonMissed;
-            _context.SaveChangesAsync();
+        private async Task ToggleRegistration(StudentLessonEntity studentLesson) {
+            studentLesson.IsRegistered = studentLesson.IsLessonMissed;
+            studentLesson.RegistrationTime = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ToggleRegistration(StudentLessonViewBox box) {
+            await ToggleRegistration(box.StudentLesson);
             var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
             this.StudentLessons.Replace(box, studentLessonViewBox);
-            return studentLessonViewBox;
+        }
+
+        public void OpenLesson([CanBeNull] LessonEntity lesson) {
+            if (lesson == null) {
+                return;
+            }
+            var registrationPageToken = new RegistrationPageToken("Регистрация", lesson);
+            _host.AddPageAsync(registrationPageToken);
+        }
+
+        public void ShowStudentLessonNotes(StudentLessonEntity studentLesson) {
+            var studentLessonNotes = new NoteListFormToken("Заметки", () => new StudentLessonNote {
+                StudentLesson = studentLesson,
+                EntityId = studentLesson.Id
+            }, _context.StudentLessonNotes.Where(note => note.EntityId == studentLesson.Id).ToList());
+            _windowPageHost.AddPageAsync(studentLessonNotes);
         }
     }
 }

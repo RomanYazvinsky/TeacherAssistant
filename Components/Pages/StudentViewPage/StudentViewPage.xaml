@@ -5,9 +5,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.StudentViewPage"
-    xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-    xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
+    xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     mc:Ignorable="d"
     d:DesignHeight="450" d:DesignWidth="800"
     d:DataContext="{d:DesignInstance local:StudentViewPageModel }"
@@ -38,14 +38,13 @@
                         <Setter Property="VerticalContentAlignment" Value="Center" />
                     </Style>
                     <Style x:Key="TableItemContainerStyle" TargetType="{x:Type ListViewItem}">
-                        <EventSetter Event="MouseDoubleClick" Handler="ExternalLessonClick" />
                         <Setter Property="Height" Value="30" />
                         <Setter Property="VerticalContentAlignment" Value="Center" />
                         <Setter Property="FontSize" Value="16" />
                         <Setter Property="BorderThickness" Value="0, 0, 0, 1" />
                         <Setter Property="BorderBrush" Value="Black" />
                     </Style>
-                    <teacherAssistant:IsCollectionNotEmptyConverter x:Key="NotEmptyConverter"/>
+                    <teacherAssistant:IsCollectionNotEmptyConverter x:Key="NotEmptyConverter" />
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -107,13 +106,28 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Expander Grid.Row="0" IsEnabled="{Binding Path=ExternalLessons.Count, Converter={StaticResource NotEmptyConverter}}"
+                <Expander Grid.Row="0"
+                          IsEnabled="{Binding Path=ExternalLessons.Count, Converter={StaticResource NotEmptyConverter}}"
                           Header="{Binding Path=[page.student.view.external.lessons]}"
                           Margin="10,10,10,0">
+                    <Expander.Style>
+                        <Style>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ExternalLessons.Count}" Value="0">
+                                    <Setter Property="Expander.IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Expander.Style>
                     <ListView ItemsSource="{Binding Path=ExternalLessons}"
                               SelectedItem="{Binding Path=SelectedExternalLesson}"
                               ItemContainerStyle="{StaticResource TableItemContainerStyle}"
                               HorizontalAlignment="Stretch">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDoubleClick">
+                                <i:InvokeCommandAction Command="{Binding OpenExternalLessonHandler}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn
@@ -128,7 +142,7 @@
                                                               Tag="Schedule" />
                                     </GridViewColumn.Header>
                                     <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
+                                        <DataTemplate DataType="models:StudentLessonEntity">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock
                                                     Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=hh\\:mm}" />
@@ -151,6 +165,15 @@
                 <Expander Grid.Row="1" Margin="10, 10, 10, 0"
                           Header="{Binding Path=[page.student.view.student.notes]}"
                           IsEnabled="{Binding Path=StudentNotes.Count, Converter={StaticResource NotEmptyConverter}}">
+                    <Expander.Style>
+                        <Style>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StudentNotes.Count}" Value="0">
+                                    <Setter Property="Expander.IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Expander.Style>
                     <ListView ItemsSource="{Binding Path=StudentNotes}" VerticalAlignment="Stretch"
                               HorizontalAlignment="Stretch">
                         <ListView.View>
@@ -173,23 +196,44 @@
                     </ListView>
                 </Expander>
                 <Expander Grid.Row="2" Margin="10, 10, 10, 0"
-                          Header="{Binding Path=[page.student.view.lesson.notes]}"
-                          IsEnabled="{Binding Path=StudentNotes.Count, Converter={StaticResource NotEmptyConverter}}">
-                    <ListView ItemsSource="{Binding Path=StudentNotes}" VerticalAlignment="Stretch"
+                          Header="{Binding Path=[page.student.view.lesson.notes]}">
+                    <Expander.Style>
+                        <Style>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StudentLessonNotes.Count}" Value="0">
+                                    <Setter Property="Expander.IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Expander.Style>
+                    <ListView ItemsSource="{Binding Path=StudentLessonNotes}"
+                              SelectedItem="{Binding Path=SelectedStudentLessonNote}"
+                              VerticalAlignment="Stretch"
                               HorizontalAlignment="Stretch">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDoubleClick">
+                                <i:InvokeCommandAction Command="{Binding OpenStudentLessonHandler}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn
-                                    DisplayMemberBinding="{Binding Path=CreationDate, StringFormat=yyyy-MM-dd HH:mm}">
+                                    DisplayMemberBinding="{Binding Path=Note.CreationDate, StringFormat=yyyy-MM-dd HH:mm}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader
                                             Content="{Binding Path=Localization[page.student.view.student.notes.date]}" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path=Description}">
+                                <GridViewColumn DisplayMemberBinding="{Binding Path=Note.Description}">
                                     <GridViewColumn.Header>
                                         <GridViewColumnHeader
                                             Content="{Binding Path=Localization[page.student.view.student.notes.description]}" />
+                                    </GridViewColumn.Header>
+                                </GridViewColumn>
+                                <GridViewColumn DisplayMemberBinding="{Binding Path=LessonTime}">
+                                    <GridViewColumn.Header>
+                                        <GridViewColumnHeader
+                                            Content="{Binding Path=Localization[Время занятия]}" />
                                     </GridViewColumn.Header>
                                 </GridViewColumn>
                             </GridView>

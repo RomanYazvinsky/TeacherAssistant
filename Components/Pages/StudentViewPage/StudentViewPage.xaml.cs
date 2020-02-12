@@ -1,8 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using Grace.DependencyInjection;
+﻿using Grace.DependencyInjection;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
@@ -37,10 +33,6 @@ namespace TeacherAssistant.StudentViewPage {
     public partial class StudentViewPage : StudentViewPageBase {
         public StudentViewPage() {
             InitializeComponent();
-        }
-
-        private void ExternalLessonClick(object sender, MouseButtonEventArgs e) {
-            this.ViewModel.OpenExternalLesson?.Command?.Execute(sender);
         }
     }
 }

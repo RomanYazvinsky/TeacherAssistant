@@ -1,5 +1,7 @@
-﻿using System.Windows.Media;
+﻿using System.Windows.Input;
+using System.Windows.Media;
 using Model.Models;
+using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 
@@ -13,7 +15,14 @@ namespace TeacherAssistant.StudentViewPage {
             this.LessonTypeName = LocalizationContainer.Localization[$"common.lesson.type.{studentLesson.Lesson.LessonType}"];
 
             this.ToggleRegistrationHandler =
-                new CommandHandler<object>(box => model.ToggleRegistration(this));
+                ReactiveCommand.Create(() => model.ToggleRegistration(this));
+            this.OpenLessonHandler =
+                ReactiveCommand.Create(() => model.OpenLesson(StudentLesson.Lesson));
+            this.ShowLessonNotesHandler =
+                ReactiveCommand.Create(() => model.ShowStudentLessonNotes(StudentLesson));
+            this.IsLessonNotesVisible = (this.StudentLesson.Lesson.Notes?.Count ?? 0) > 0;
+            this.IsStudentNotesVisible = (this.StudentLesson.Notes?.Count ?? 0) > 0;
+            this.LessonTime = $"{studentLesson.Lesson.Schedule?.Begin:hh\\:mm}-{studentLesson.Lesson.Schedule?.End:hh\\:mm}";
             switch (studentLesson.Lesson.LessonType) {
                 case LessonType.Lecture: {
                     this.Background = new SolidColorBrush(Color.FromArgb(20, 255, 255, 0));
@@ -36,18 +45,25 @@ namespace TeacherAssistant.StudentViewPage {
                 : new SolidColorBrush(Color.FromArgb(100, 0, 0, 0));
         }
 
-        public CommandHandler<object> ToggleRegistrationHandler { get; }
+        public ICommand ToggleRegistrationHandler { get; }
+        public ICommand OpenLessonHandler { get; }
+        public ICommand ShowLessonNotesHandler { get; }
 
         public StudentLessonEntity StudentLesson { get; }
         public string LessonTypeName { get; }
         public Brush Background { get; }
         public Brush Border { get; }
 
+        public string LessonTime { get; set; }
+
+        public bool IsLessonNotesVisible { get; set; }
+        public bool IsStudentNotesVisible { get; set; }
+
         public string LessonMark {
             get => this.StudentLesson.Mark;
             set {
                 this.StudentLesson.Mark = string.IsNullOrWhiteSpace(value) ? null : value;
-                LocalDbContext.Instance.ThrottleSave();
+                LocalDbContext.Instance.ThrottleSave(); // todo fix
                 _model.UpdateLessonMark();
             }
         }
