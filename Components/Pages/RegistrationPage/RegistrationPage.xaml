@@ -6,7 +6,6 @@
                             xmlns:local="clr-namespace:TeacherAssistant.RegistrationPage"
                             xmlns:ta="clr-namespace:TeacherAssistant"
                             xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
-                            xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
                             mc:Ignorable="d"
                             d:DesignHeight="680" d:DesignWidth="1280"
                             d:DataContext="{d:DesignInstance local:RegistrationPageModel}">
@@ -156,7 +155,7 @@
         <Button Grid.Row="2" Grid.Column="1" Content="->" x:Name="UnregisterButton"
                 HorizontalAlignment="Right" Height="40"
                 Width="100" />
-        <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
+        <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal">
             <Button Content="&lt;-" x:Name="RegisterButton"
                     HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="100" />
             <Button Padding="5" Margin="5, 0, 0, 0" x:Name="ToggleAllStudentsMode" />

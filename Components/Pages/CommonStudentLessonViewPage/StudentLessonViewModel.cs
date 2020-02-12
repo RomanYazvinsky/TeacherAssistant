@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Grace.DependencyInjection;
 using Model.Models;
+using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
@@ -46,6 +47,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         public StudentLessonViewModel(StudentEntity student,
             Dictionary<string, LessonEntity> lessonModels,
             IExportLocatorScope serviceLocator,
+            IPageHost host,
             LocalDbContext context) {
             this.Model = student;
             ServiceLocator = serviceLocator;
@@ -66,7 +68,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     context.ThrottleSave();
                 }
 
-                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkModel(studentLessonModel, context));
+                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkModel(studentLessonModel, context, host));
             }
 
             this.MissedLessons =

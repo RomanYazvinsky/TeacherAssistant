@@ -25,14 +25,16 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
     {
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
+        private readonly TabPageHost _host;
 
         private readonly ObservableCollection<StudentLessonViewModel> _items =
             new ObservableCollection<StudentLessonViewModel>();
 
-        public TableLessonViewPageModel(TableLessonViewToken token, LocalDbContext db, IExportLocatorScope scope)
+        public TableLessonViewPageModel(TableLessonViewToken token, LocalDbContext db, IExportLocatorScope scope, TabPageHost host)
         {
             _db = db;
             _scope = scope;
+            _host = host;
             this.Items = new CollectionViewSource
             {
                 Source = _items
@@ -83,7 +85,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
             var studentModels = ((lesson.Group == null
                     ? lesson.Stream.Groups?.SelectMany(group => group.Students ?? new List<StudentEntity>())
                     : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
-                .Select(model => new StudentLessonViewModel(model, this.Lessons, _scope, _db))
+                .Select(model => new StudentLessonViewModel(model, this.Lessons, _scope, _host, _db))
                 .OrderBy(view => view.FullName).ToList();
             _items.AddRange(studentModels);
         }
@@ -140,11 +142,16 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage
 
         private ContextMenu BuildLessonCellContextMenu(string id) {
             var menu = new ContextMenu();
-            var menuItem = new MenuItem();
-            menuItem.SetBinding(MenuItem.CommandProperty,
+            var toggleItem = new MenuItem();
+            toggleItem.SetBinding(MenuItem.CommandProperty,
                 new Binding($"LessonToLessonMark[{id}].ToggleRegistrationHandler"));
-            menuItem.Header = "Отметить/пропуск";
-            menu.Items.Add(menuItem);
+            toggleItem.Header = "Отметить/пропуск";
+            var openItem = new MenuItem();
+            openItem.SetBinding(MenuItem.CommandProperty,
+                new Binding($"LessonToLessonMark[{id}].OpenRegistrationHandler"));
+            openItem.Header = "Регистрация";
+            menu.Items.Add(toggleItem);
+            menu.Items.Add(openItem);
             return menu;
         }
 

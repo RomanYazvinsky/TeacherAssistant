@@ -1,7 +1,4 @@
 ﻿using System.Reactive.Disposables;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using Grace.DependencyInjection;
 using Model.Models;
 using ReactiveUI;
@@ -89,14 +86,6 @@ namespace TeacherAssistant.RegistrationPage {
             });
             LessonStudents.TableConfig = this.ViewModel.LessonStudentsTableConfig;
             RegisteredStudents.TableConfig = this.ViewModel.RegisteredStudentsTableConfig;
-        }
-
-        private void List_OnMouseEnter(object sender, MouseEventArgs e) {
-            ScrollViewer.SetVerticalScrollBarVisibility((DependencyObject) e.Source, ScrollBarVisibility.Auto);
-        }
-
-        private void List_OnMouseLeave(object sender, MouseEventArgs e) {
-            ScrollViewer.SetVerticalScrollBarVisibility((DependencyObject) e.Source, ScrollBarVisibility.Hidden);
         }
     }
 }

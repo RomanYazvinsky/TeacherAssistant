@@ -1,11 +1,11 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System;
 using System.Windows.Input;
 using System.Windows.Media;
-using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
+using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
+using TeacherAssistant.RegistrationPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class StudentLessonMarkModel : ViewModelBase {
@@ -19,18 +19,22 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 if (Equals(value, _studentLesson)) return;
                 _studentLesson = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(Mark));
+                OnPropertyChanged(nameof(this.Mark));
             }
         }
 
-        public StudentLessonMarkModel(StudentLessonEntity model, LocalDbContext context) {
+        public StudentLessonMarkModel(StudentLessonEntity model, LocalDbContext context, IPageHost pageHost) {
             _context = context;
             this.StudentLesson = model;
             this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;
             this.ToggleRegistrationHandler = ReactiveCommand.Create(() => {
                 model.IsRegistered = model.IsLessonMissed;
+                model.RegistrationTime = model.IsLessonMissed ? (DateTime?) null : DateTime.Now;
                 this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;
                 context.ThrottleSave();
+            });
+            this.OpenRegistrationHandler = ReactiveCommand.Create(() => {
+                pageHost.AddPageAsync(new RegistrationPageToken("Регистрация", model.Lesson));
             });
         }
 
@@ -54,5 +58,6 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
 
         public ICommand ToggleRegistrationHandler { get; set; }
+        public ICommand OpenRegistrationHandler { get; set; }
     }
 }
