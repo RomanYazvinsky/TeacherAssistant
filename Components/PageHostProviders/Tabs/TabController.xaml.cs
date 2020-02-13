@@ -8,6 +8,11 @@ namespace TeacherAssistant.Components.Tabs {
 
         public TabControllerToken() : base("") {
         }
+
+        public override PageProperties PageProperties { get; }= new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class TabControllerModule : SimpleModule {

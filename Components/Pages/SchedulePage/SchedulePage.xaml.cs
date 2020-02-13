@@ -7,6 +7,11 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     public class ScheduleToken : PageModuleToken<ScheduleModule> {
         public ScheduleToken(string title) : base(title) {
         }
+
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class ScheduleModule : SimpleModule {

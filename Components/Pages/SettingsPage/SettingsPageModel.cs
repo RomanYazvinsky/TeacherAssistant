@@ -8,16 +8,20 @@ using Containers;
 using DynamicData;
 using Microsoft.Win32;
 using Model;
+using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel<SettingsPageModel> {
-        public SettingsPageModel() {
+        private readonly AudioService _service;
+
+        public SettingsPageModel(AudioService service, LocalDbContext context) {
+            _service = service;
             this.RefreshSubject.AsObservable().Subscribe(_ => {
                 this.Alarms.Clear();
                 this.Alarms.AddRange(LocalDbContext.Instance.Alarms
-                    .Select(alarm => new AlarmSettingsViewModel(alarm)).ToList());
+                    .Select(alarm => new AlarmSettingsViewModel(alarm, service, context)).ToList());
             });
         }
 
@@ -30,15 +34,16 @@ namespace TeacherAssistant.Pages.SettingsPage {
     }
 
     public class AlarmSettingsViewModel {
+        private readonly LocalDbContext _context;
         public ButtonConfig DoPlay { get; set; }
         public ButtonConfig DoSelectSound { get; set; }
         public AlarmEntity Alarm { get; set; }
 
         public double Volume {
-            get => (double) this.Alarm._Volume;
+            get => (double) this.Alarm.Volume ;
             set {
-                this.Alarm._Volume = (decimal) value;
-                LocalDbContext.Instance.ThrottleSave();
+                this.Alarm.Volume = (decimal) value;
+                _context.ThrottleSave();
             }
         }
 
@@ -46,16 +51,17 @@ namespace TeacherAssistant.Pages.SettingsPage {
             get => (int) (this.Alarm._Timer ?? 0);
             set {
                 this.Alarm._Timer = value;
-                LocalDbContext.Instance.ThrottleSave();
+                _context.ThrottleSave();
             }
         }
 
-        public AlarmSettingsViewModel(AlarmEntity alarm) {
+        public AlarmSettingsViewModel(AlarmEntity alarm, AudioService service, LocalDbContext context) {
+            _context = context;
             this.Alarm = alarm;
             this.DoPlay = new ButtonConfig {
-                Command = new CommandHandler(async () => {
+                Command = ReactiveCommand.Create(async () => {
                     this.DoPlay.IsEnabled = false;
-                    await SoundUtil.PlayAlarm(alarm);
+                    await service.PlayAlarm(alarm);
                     this.DoPlay.IsEnabled = true;
                 }),
                 Text = LocalizationContainer.Localization["Play"]
@@ -71,12 +77,12 @@ namespace TeacherAssistant.Pages.SettingsPage {
                     var file = new FileInfo(openFileDialog.FileName);
                     alarm.Discriminator = file.Extension;
                     if (file.Length > 1 * 1024 * 1024) { // > 1 MB
-                        alarm._Sound = new byte[0];
-                        SoundUtil.AddResource(file);
+                        alarm.Sound = new byte[0];
+                        service.AddResource(file);
                         alarm.ResourceName = file.Name;
                     }
                     else {
-                        alarm._Sound = File.ReadAllBytes(file.FullName);
+                        alarm.Sound = File.ReadAllBytes(file.FullName);
                     }
 
                     LocalDbContext.Instance.SaveChangesAsync();

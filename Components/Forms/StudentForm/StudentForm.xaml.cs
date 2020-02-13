@@ -12,6 +12,10 @@ namespace TeacherAssistant.StudentForm {
         }
 
         [NotNull] public StudentEntity Student { get; }
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 700,
+            InitialWidth = 1000
+        };
     }
 
     public class StudentFormModule : SimpleModule {

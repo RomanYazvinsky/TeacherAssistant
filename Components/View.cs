@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using ReactiveUI;
 using TeacherAssistant.Core.Module;
 
@@ -18,16 +17,10 @@ namespace TeacherAssistant.ComponentsImpl {
             get => _moduleToken;
             set {
                 _moduleToken = value as TToken;
-                if (value == null || this.Uid != null) {
+                if (value == null) {
                     return;
                 }
 
-                void Handler(object sender, RoutedEventArgs args) {
-                    value.Deactivate();
-                    Unloaded -= Handler;
-                }
-
-                Unloaded += Handler;
                 this.Uid = value.Id;
             }
         }

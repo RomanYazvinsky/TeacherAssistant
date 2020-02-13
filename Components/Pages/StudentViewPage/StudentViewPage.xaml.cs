@@ -10,6 +10,10 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         public StudentEntity Student { get; }
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class StudentViewPageModule : SimpleModule {

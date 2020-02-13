@@ -8,7 +8,7 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.RegistrationPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class StudentLessonMarkModel : ViewModelBase {
+    public class StudentLessonMarkViewModel : ViewModelBase {
         private readonly LocalDbContext _context;
         private Brush _color;
         private StudentLessonEntity _studentLesson;
@@ -23,7 +23,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
         }
 
-        public StudentLessonMarkModel(StudentLessonEntity model, LocalDbContext context, IPageHost pageHost) {
+        public StudentLessonMarkViewModel(StudentLessonEntity model, LocalDbContext context, IPageHost pageHost) {
             _context = context;
             this.StudentLesson = model;
             this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;

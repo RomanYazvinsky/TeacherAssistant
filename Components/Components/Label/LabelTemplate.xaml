@@ -17,8 +17,14 @@
                      FontWeight="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=label:Label}, Path=FontWeight}"
                      Height="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=label:Label}, Path=Height}"
                      ToolTip="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=label:Label}, Path=ToolTip}"
+                     Background="Transparent"
                      TextBlock.LineHeight="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=label:Label}, Path=LineHeight}"
-                     TextBlock.LineStackingStrategy="BlockLineHeight" />
+                     TextBlock.LineStackingStrategy="BlockLineHeight" >
+                <TextBox.Style>
+                    <Style>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
             <ContentPresenter Grid.Column="1"
                               Content="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=label:Label}, Path=Content}" />
         </Grid>

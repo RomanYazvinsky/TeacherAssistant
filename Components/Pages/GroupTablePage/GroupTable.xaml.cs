@@ -11,6 +11,10 @@ namespace TeacherAssistant.GroupTable {
             base(title) {
         }
 
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class GroupTableModule : SimpleModule {

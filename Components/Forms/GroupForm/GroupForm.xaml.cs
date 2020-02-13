@@ -18,6 +18,10 @@ namespace TeacherAssistant.Forms.GroupForm
         }
 
         public GroupEntity Group { get; }
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 500,
+            InitialWidth = 700
+        };
     }
 
     public class GroupFormModule : SimpleModule

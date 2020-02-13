@@ -1,27 +1,40 @@
 ﻿<local:TabControllerBase x:Class="TeacherAssistant.Components.Tabs.TabController"
-          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-          xmlns:local="clr-namespace:TeacherAssistant.Components.Tabs"
-          xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
-          xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
-          xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-          mc:Ignorable="d"
-          d:DesignHeight="450" d:DesignWidth="800"
-          x:Name="View"
-          d:DataContext="{d:DesignInstance teacherAssistant:TabControllerModel}">
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                         xmlns:local="clr-namespace:TeacherAssistant.Components.Tabs"
+                         xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
+                         xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
+                         xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
+                         xmlns:themes="clr-namespace:Dragablz.Themes;assembly=Dragablz"
+                         mc:Ignorable="d"
+                         d:DesignHeight="450" d:DesignWidth="800"
+                         x:Name="View"
+                         d:DataContext="{d:DesignInstance teacherAssistant:TabControllerModel}">
     <local:TabControllerBase.Resources>
         <Style x:Key="DragStyle" TargetType="{x:Type dragablz:DragablzItem }"
-               BasedOn="{StaticResource TrapezoidDragableTabItemStyle}">
+               BasedOn="{StaticResource  MaterialDesignAlternateDragableTabItemStyle}">
             <EventSetter Event="DragEnter" Handler="OpenTabOnHover" />
             <Setter Property="AllowDrop" Value="True" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="10, 2, 5, 2" />
+            <Setter Property="themes:MaterialDesignAssist.IndicatorBrush" Value="{DynamicResource SecondaryAccentBrush}"></Setter>
+            <Style.Resources>
+                <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="Transparent"/>
+                <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="DarkGray"/>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Width" Value="15"></Setter>
+                    <Setter Property="Height" Value="15"></Setter>
+                </Style>
+            </Style.Resources>
         </Style>
     </local:TabControllerBase.Resources>
     <dragablz:TabablzControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                              ItemsSource="{Binding Path=Tabs}"
                              SelectedItem="{Binding Path=ActiveTab}"
                              ShowDefaultCloseButton="True"
+                             Style="{StaticResource MaterialDesignAlternateTabablzControlStyle}"
                              ItemContainerStyle="{StaticResource DragStyle}"
                              IsHeaderPanelVisible="{Binding Path=IsHeaderVisible}"
                              x:Name="TabablzControl">

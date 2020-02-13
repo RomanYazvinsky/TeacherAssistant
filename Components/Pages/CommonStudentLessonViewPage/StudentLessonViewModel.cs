@@ -9,8 +9,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class StudentLessonViewModel : ViewModelBase {
         private int _missedLessons = 0;
 
-        private Dictionary<string, StudentLessonMarkModel> _lessonToLessonMark =
-            new Dictionary<string, StudentLessonMarkModel>();
+        private Dictionary<string, StudentLessonMarkViewModel> _lessonToLessonMark =
+            new Dictionary<string, StudentLessonMarkViewModel>();
 
         private string _fullName;
 
@@ -33,7 +33,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
         public IExportLocatorScope ServiceLocator { get; }
 
-        public Dictionary<string, StudentLessonMarkModel> LessonToLessonMark {
+        public Dictionary<string, StudentLessonMarkViewModel> LessonToLessonMark {
             get => _lessonToLessonMark;
             set {
                 if (Equals(value, _lessonToLessonMark)) return;
@@ -68,7 +68,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     context.ThrottleSave();
                 }
 
-                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkModel(studentLessonModel, context, host));
+                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkViewModel(studentLessonModel, context, host));
             }
 
             this.MissedLessons =

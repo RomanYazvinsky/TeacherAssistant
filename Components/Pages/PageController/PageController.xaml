@@ -11,6 +11,17 @@
           d:DataContext="{d:DesignInstance local:PageControllerModel}">
     <pages:PageControllerBase.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MaterialDesignMenuItem}">
+            <Setter Property="FontSize" Value="12"></Setter>
+            <Style.Triggers>
+                <Trigger Property="Role" Value="TopLevelHeader">
+                    <Setter Property="Height" Value="20"></Setter>
+                </Trigger>
+                <Trigger Property="Role" Value="TopLevelItem">
+                    <Setter Property="Height" Value="20"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </pages:PageControllerBase.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -26,7 +37,9 @@
                    VerticalAlignment="Top"
                    Visibility="{Binding Path=MenuVisibility, Converter={StaticResource BooleanToVisibility}}"
                    >
-            <Menu DockPanel.Dock="Left" Background="White">
+            <Menu DockPanel.Dock="Left">
+                <Menu.Resources>
+                </Menu.Resources>
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
                     <MenuItem Header="{Binding ReaderMenuText}" Command="{Binding Path=ToggleCardReaderHandler}" />
@@ -36,7 +49,8 @@
                 <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
                 <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />
                 <MenuItem Header="Группы" Command="{Binding Path=OpenGroupsTable}" />
-                <MenuItem Header="Потоки" Command="{Binding Path=OpenStreamsTable}" />
+                <MenuItem Header="Потоки" Command="{Binding Path=OpenStreamsTable}" >
+                     </MenuItem>
                 <MenuItem Header="Добавить">
                     <MenuItem Header="Студент" Command="{Binding Path=OpenAddStudentForm}" />
                     <MenuItem Header="Группа" Command="{Binding Path=OpenAddGroupForm}" />
@@ -46,7 +60,7 @@
                     <MenuItem Header="Занятие" Command="{Binding Path=OpenAddLessonForm}" />
                 </MenuItem>
             </Menu>
-            <Menu DockPanel.Dock="Right" Background="White" ItemsSource="{Binding Path=CurrentControls}"></Menu>
+            <Menu DockPanel.Dock="Right" ItemsSource="{Binding Path=CurrentControls}"></Menu>
         </DockPanel>
         <ContentPresenter Grid.Row="1" Content="{Binding CentralControl}" />
     </Grid>

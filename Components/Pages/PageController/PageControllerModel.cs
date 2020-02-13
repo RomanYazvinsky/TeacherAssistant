@@ -39,38 +39,28 @@ using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using MenuItem = System.Windows.Controls.MenuItem;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
-namespace TeacherAssistant.Pages
-{
-    public class PageControllerModel : AbstractModel<PageControllerModel>
-    {
+namespace TeacherAssistant.Pages {
+    public class PageControllerModel : AbstractModel<PageControllerModel> {
+        private readonly ModuleActivator _activator;
         private readonly WindowPageHost _windowPageHost;
         private readonly SerialUtil _serialUtil;
         private TabPageHost _host;
 
         public PageControllerModel(
+            PageControllerToken token,
             ModuleActivator activator,
             PageControllerReducer reducer,
             SerialUtil serialUtil,
             MainReducer mainReducer,
-            WindowPageHost windowPageHost)
-        {
+            WindowPageHost windowPageHost
+        ) {
+            _activator = activator;
             _windowPageHost = windowPageHost;
             this._serialUtil = serialUtil;
             InitHandlers();
-            var tabControllerToken = new TabControllerToken();
-            activator.ActivateAsync(tabControllerToken)
-                .ToObservable()
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(module =>
-                {
-                    _host = module.Injector.Locate<TabPageHost>();
-                    this.CentralControl = module.GetEntryComponent();
-                    _host.AddPageAsync(new ScheduleToken("Schedule"));
-                });
+            ActivateContent(token);
 
-            this.WhenActivated((c) =>
-            {
-
+            this.WhenActivated((c) => {
                 mainReducer.Select(state => state.FullscreenMode)
                     .ObserveOnDispatcher(DispatcherPriority.Background)
                     .Subscribe(isFullScreen => this.MenuVisibility = !isFullScreen)
@@ -79,8 +69,7 @@ namespace TeacherAssistant.Pages
                     .Where(LambdaHelper.NotNull)
                     .WithLatestFrom(reducer.Select(state => state.Controls), LambdaHelper.ToTuple)
                     .ObserveOnDispatcher(DispatcherPriority.Background)
-                    .Subscribe(tuple =>
-                    {
+                    .Subscribe(tuple => {
                         var (selectedPage, controlsDict) = tuple;
                         var controls = selectedPage == null
                             ? new List<ButtonConfig>()
@@ -91,19 +80,16 @@ namespace TeacherAssistant.Pages
                 _serialUtil.ConnectionStatus
                     .ObserveOnDispatcher(DispatcherPriority.Background)
                     .Select(status => status.IsConnected)
-                    .Subscribe(status =>
-                        {
-                            this.ReaderMenuText = status
-                                ? Localization["Отключить считыватель"]
-                                : Localization["Включить считыватель"];
-                        })
+                    .Subscribe(status => {
+                        this.ReaderMenuText = status
+                            ? Localization["Отключить считыватель"]
+                            : Localization["Включить считыватель"];
+                    })
                     .DisposeWith(c);
             });
-
         }
 
-        private void InitHandlers()
-        {
+        private void InitHandlers() {
             this.OpenSchedule = new CommandHandler(OpenSchedulePage);
             this.OpenStudentsTable = new CommandHandler(Students_Click);
             this.OpenGroupsTable = new CommandHandler(Groups_Click);
@@ -118,10 +104,8 @@ namespace TeacherAssistant.Pages
             this.ToggleCardReaderHandler = ReactiveCommand.Create(ToggleCardReader);
         }
 
-        private void SetActionButtons(List<ButtonConfig> buttons)
-        {
-            foreach (var buttonConfig in buttons.Where(config => config.Icon != null))
-            {
+        private void SetActionButtons(List<ButtonConfig> buttons) {
+            foreach (var buttonConfig in buttons.Where(config => config.Icon != null)) {
                 var dependencyObject = VisualTreeHelper.GetParent(buttonConfig.Icon);
                 ((Grid) dependencyObject)?.Children.Remove(buttonConfig.Icon);
             }
@@ -133,27 +117,43 @@ namespace TeacherAssistant.Pages
             this.CurrentControls.AddRange(menuItems);
         }
 
-        private MenuItem BuildMenuItem(ButtonConfig button)
-        {
+        private MenuItem BuildMenuItem(ButtonConfig button) {
             var header = new Grid();
-            if (button.Icon != null)
-            {
+            if (button.Icon != null) {
                 header.Children.Add(button.Icon);
             }
 
-            if (button.Text != null)
-            {
+            if (button.Text != null) {
                 header.Children.Add(new TextBlock {Text = button.Text, FontSize = 12});
             }
 
-            var menuItem = new MenuItem
-            {
+            var menuItem = new MenuItem {
                 Header = header,
                 Command = button.Command,
                 ToolTip = button.Tooltip,
-                HorizontalContentAlignment = HorizontalAlignment.Center
+                HorizontalContentAlignment = HorizontalAlignment.Center,
             };
             return menuItem;
+        }
+
+        private void ActivateContent(PageControllerToken token) {
+            var tabControllerToken = new TabControllerToken();
+            if (token.Content == null) {
+                _activator.ActivateAsync(tabControllerToken)
+                    .ToObservable()
+                    .ObserveOnDispatcher(DispatcherPriority.Background)
+                    .Subscribe(module => {
+                        _host = module.Injector.Locate<TabPageHost>();
+                        this.CentralControl = module.GetEntryComponent();
+                        _host.AddPageAsync(token.ContentToken);
+                    });
+            }
+            else {
+                var tabModule = _activator.Activate(tabControllerToken);
+                _host = tabModule.Injector.Locate<TabPageHost>();
+                this.CentralControl = tabModule.GetEntryComponent();
+                // _host.Attach(token.Content);
+            }
         }
 
 
@@ -178,8 +178,7 @@ namespace TeacherAssistant.Pages
         public ObservableCollection<MenuItem> CurrentControls { get; set; } =
             new ObservableCollection<MenuItem>();
 
-        private void SelectDatabase_Click()
-        {
+        private void SelectDatabase_Click() {
             var dialog = new OpenFileDialog();
             var result = dialog.ShowDialog();
 
@@ -192,41 +191,33 @@ namespace TeacherAssistant.Pages
             Settings.Default.Save();
         }
 
-        private void ToggleCardReader()
-        {
-            if (_serialUtil.IsRunning)
-            {
+        private void ToggleCardReader() {
+            if (_serialUtil.IsRunning) {
                 _serialUtil.Close();
             }
-            else
-            {
+            else {
                 _serialUtil.Start();
             }
         }
 
-        private void OpenSchedulePage()
-        {
-            _host.AddPageAsync(new ScheduleToken("Schedule"));
+        private void OpenSchedulePage() {
+            _host.AddPageAsync(new ScheduleToken("Расписание"));
         }
 
-        private void Students_Click()
-        {
+        private void Students_Click() {
             _host.AddPageAsync(new StudentTableToken("Студенты"));
         }
 
-        private void Groups_Click()
-        {
+        private void Groups_Click() {
             _host.AddPageAsync(new GroupTableToken("Группы"));
         }
-        private void OpenStreams()
-        {
+
+        private void OpenStreams() {
             _host.AddPageAsync(new StreamTableToken("Потоки"));
         }
 
-        private void SelectPhotoDir_Click()
-        {
-            using (var dlg = new FolderBrowserDialog())
-            {
+        private void SelectPhotoDir_Click() {
+            using (var dlg = new FolderBrowserDialog()) {
                 var result = dlg.ShowDialog();
 
                 if (result != DialogResult.OK || string.IsNullOrWhiteSpace(dlg.SelectedPath))
@@ -236,33 +227,27 @@ namespace TeacherAssistant.Pages
             }
         }
 
-        private void AddStudent_Click()
-        {
+        private void AddStudent_Click() {
             _windowPageHost.AddPageAsync(new StudentFormToken("Добавить студента", new StudentEntity()));
         }
 
-        private void AddLesson_Click()
-        {
+        private void AddLesson_Click() {
             _windowPageHost.AddPageAsync(new LessonFormToken("Добавить занятие", new LessonEntity(), _host));
         }
 
-        private void AddGroup_Click()
-        {
+        private void AddGroup_Click() {
             _windowPageHost.AddPageAsync(new GroupFormToken("Добавить группу", new GroupEntity()));
         }
 
-        private void AddStreamHandler()
-        {
+        private void AddStreamHandler() {
             _windowPageHost.AddPageAsync(new StreamFormToken("Добавить поток", new StreamEntity()));
         }
 
-        private void OpenSettingsClick()
-        {
-            _host.AddPageAsync(new SettingsToken("Settings"));
+        private void OpenSettingsClick() {
+            _host.AddPageAsync(new SettingsToken("Настройки"));
         }
 
-        protected override string GetLocalizationKey()
-        {
+        protected override string GetLocalizationKey() {
             return "main";
         }
     }

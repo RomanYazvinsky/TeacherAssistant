@@ -6,6 +6,11 @@ namespace TeacherAssistant.StudentTable {
     public class StudentTableToken : PageModuleToken<StudentTableModule> {
         public StudentTableToken(string title) : base(title) {
         }
+
+        public override PageProperties PageProperties { get; }= new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class StudentTableModule : SimpleModule {

@@ -14,6 +14,9 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
+                    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
+                        <Setter Property="FontSize" Value="14"></Setter>
+                    </Style>
                     <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
                         <Setter Property="Margin" Value="5" />
                         <Setter Property="Height" Value="30" />
@@ -82,6 +85,11 @@
         <ListView Grid.Row="1" Name="LessonList" Margin="10" ItemsSource="{Binding Path=Lessons}"
                   SelectedItem="{Binding Path=SelectedLesson}"
                   FontSize="14">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction Command="{Binding OpenRegistrationHandler}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem" BasedOn="{StaticResource TableItemStyle}">
                     <Style.Setters>
@@ -115,11 +123,6 @@
                     </Style.Setters>
                 </Style>
             </ListView.ItemContainerStyle>
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseDoubleClick">
-                    <i:InvokeCommandAction Command="{Binding OpenRegistrationHandler}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="120"

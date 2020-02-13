@@ -20,8 +20,11 @@
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   EnableColumnVirtualization="False"
-                  ItemsSource="{Binding Path=Items.View, IsAsync=True}" FontSize="18" AutoGenerateColumns="False"
-                  RowHeight="30" RowHeaderWidth="0">
+                  ItemsSource="{Binding Path=Items.View, IsAsync=True}"
+                  FontSize="18"
+                  AutoGenerateColumns="False"
+                  RowHeight="30"
+                  RowHeaderWidth="0">
             <DataGrid.Columns>
                 <local:NameColumn Width="300">
                     <DataGridTemplateColumn.Header>

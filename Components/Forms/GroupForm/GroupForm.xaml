@@ -17,7 +17,7 @@
             <Setter Property="LineHeight" Value="16" />
         </Style>
     </local:GroupFormBase.Resources>
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
             <RowDefinition Height="35" />

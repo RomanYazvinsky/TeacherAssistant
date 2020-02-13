@@ -209,7 +209,7 @@ namespace TeacherAssistant.Dao {
         private void TrySetAudioDiscriminator() {
             var alarms = this.Alarms.ToList();
             foreach (var alarmEntity in alarms) {
-                var sound = alarmEntity._Sound;
+                var sound = alarmEntity.Sound;
                 if (sound == null || sound.Length == 0 || !string.IsNullOrWhiteSpace(alarmEntity.Discriminator)) {
                     continue;
                 }

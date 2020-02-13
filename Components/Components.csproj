@@ -255,7 +255,6 @@
     <Compile Include="Modules\MainModule\MainModuleToken.cs" />
     <Compile Include="Modules\MainModule\MainReducer.cs" />
     <Compile Include="Modules\MainModule\MainState.cs" />
-    <Compile Include="PageHostProviders\PageHostManager.cs" />
     <Compile Include="PageHostProviders\TabPageHost.cs" />
     <Compile Include="PageHostProviders\Tabs\TabController.xaml.cs">
       <DependentUpon>TabController.xaml</DependentUpon>
@@ -265,7 +264,7 @@
     <Compile Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml.cs">
       <DependentUpon>StudentNameCell.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonMarkModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonMarkViewModel.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonViewModel.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPage.xaml.cs">
       <DependentUpon>TableLessonViewPage.xaml</DependentUpon>
@@ -307,7 +306,7 @@
     <Compile Include="Pages\StudentViewPage\Models\StudentAttestationExamView.cs" />
     <Compile Include="Pages\StudentViewPage\Models\StudentLessonNoteViewModel.cs" />
     <Compile Include="Pages\StudentViewPage\Models\StudentLessonViewBox.cs" />
-    <Compile Include="SoundUtil.cs" />
+    <Compile Include="AudioService.cs" />
     <Compile Include="TemplateBuilder.cs" />
     <Compile Include="Pages\RegistrationPage\RegistrationPage.xaml.cs">
       <DependentUpon>RegistrationPage.xaml</DependentUpon>

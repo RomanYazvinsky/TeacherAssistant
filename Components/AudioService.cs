@@ -5,12 +5,17 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Model;
 using NAudio.Wave;
+using ToastNotifications;
 
 namespace TeacherAssistant {
-    public class SoundUtil {
+    public class AudioService {
+        private readonly Notifier _notifier;
         private static readonly string CurrentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        public static void AddResource(FileInfo file) {
+        public AudioService(Notifier notifier) {
+            _notifier = notifier;
+        }
+        public void AddResource(FileInfo file) {
             var absolutePath = Path.Combine(CurrentDir, "resources", "sounds", file.Name);
             if (file.FullName.Equals(absolutePath)) {
                 return;
@@ -27,11 +32,18 @@ namespace TeacherAssistant {
             file.CopyTo(absolutePath, true);
         }
 
-        public static async Task PlayAlarm(AlarmEntity alarm) {
+        public async Task PlayAlarm(AlarmEntity alarm) {
             WaveStream waveProvider;
-            var stream = string.IsNullOrWhiteSpace(alarm.ResourceName)
-                ? new MemoryStream(alarm._Sound) as Stream
-                : File.OpenRead(Path.Combine(CurrentDir, "resources", "sounds", alarm.ResourceName));
+            Stream stream;
+            if (string.IsNullOrWhiteSpace(alarm.ResourceName)) {
+                if (alarm.Sound == null || alarm.Sound.Length == 0) {
+                    return;
+                }
+                stream = new MemoryStream(alarm.Sound);
+            }
+            else {
+                stream = File.OpenRead(Path.Combine(CurrentDir, "resources", "sounds", alarm.ResourceName));
+            }
             switch (alarm.Discriminator) {
                 case ".mp3": {
                     waveProvider = new Mp3FileReader(stream);
@@ -48,15 +60,16 @@ namespace TeacherAssistant {
 
             using (waveProvider)
             using (var wo = new WaveOutEvent()) {
-                var observable = Observable.FromEventPattern<StoppedEventArgs>(handler => wo.PlaybackStopped += handler,
-                    handler => wo.PlaybackStopped -= handler);
+                var observable = Observable.FromEventPattern<StoppedEventArgs>(
+                    h => wo.PlaybackStopped += h,
+                    h => wo.PlaybackStopped -= h
+                );
                 wo.Init(waveProvider);
                 if (waveProvider.TotalTime > TimeSpan.FromMilliseconds(5000)) {
-                    // var notifier = Injector.Instance.Kernel.Get<MainModule>()<Notifier>();
-                    // notifier.ShowAudioNotification(wo);
+                    _notifier.ShowAudioNotification(wo);
                 }
 
-                wo.Volume = (float) alarm._Volume;
+                wo.Volume = (float)alarm.Volume;
                 wo.Play();
                 await observable.FirstAsync();
             }

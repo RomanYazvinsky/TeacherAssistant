@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -18,6 +19,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
 
         public LessonEntity Lesson { get; }
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class TableLessonViewModule : SimpleModule {
@@ -46,23 +51,22 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
 
         public void Initialize() {
-            var ObservableCollection = this.ViewModel.Columns;
-            var dynamicColumns = new List<DataGridColumn>(ObservableCollection);
-            Table.Columns.AddRange(dynamicColumns);
-            var fromEventPattern = ObservableCollection.ToObservableChangeSet();
+            var columns = this.ViewModel.Columns;
+            var staticColumns = new List<DataGridColumn>(Table.Columns);
+            var fromEventPattern = columns.ToObservableChangeSet();
 
-            var observable = fromEventPattern.Throttle(TimeSpan.FromMilliseconds(500));
+            var observable = fromEventPattern.Throttle(TimeSpan.FromMilliseconds(300));
             fromEventPattern
+                .StartWith(new List<IChangeSet<DataGridColumn>>())
                 .Buffer(observable)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => {
+                    var dynamicColumns = Table.Columns.Where(item => !staticColumns.Contains(item)).ToList();
                     foreach (var item in dynamicColumns) {
                         Table.Columns.Remove(item);
                     }
 
-                    dynamicColumns.Clear();
-                    foreach (var dataGridColumn in ObservableCollection) {
-                        dynamicColumns.Add(dataGridColumn);
+                    foreach (var dataGridColumn in columns) {
                         Table.Columns.Add(dataGridColumn);
                     }
                 });

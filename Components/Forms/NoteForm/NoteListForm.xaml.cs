@@ -24,6 +24,11 @@ namespace TeacherAssistant.Forms.NoteForm {
             NoteFactory = noteFactory;
             SelectedNote = selectedNote;
         }
+
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class NoteListFormModule : SimpleModule {

@@ -35,7 +35,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Width="600">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
@@ -47,10 +47,10 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="80" />
             <RowDefinition Height="40" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <label:Label Text="Stream">
+        <label:Label Text="Поток">
             <ComboBox ItemsSource="{Binding Streams}"
                       IsEnabled="{Binding Streams.Count, Converter={StaticResource SelectionEn}}"
                       DisplayMemberPath="Name"
@@ -88,18 +88,24 @@
         <label:Label Grid.Row="9" Text="Отметить всех как присутствующих">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding SetAllPresent}" />
         </label:Label>
-        <Grid Grid.Row="10">
+        <Grid Grid.Row="10" VerticalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Margin="5, 5, 45, 5" Command="{Binding SaveHandler}"
-                    Content="Сохранить" />
-            <Button Grid.Column="1" Margin="5, 5, 45, 5" Command="{Binding SaveAndRegisterHandler}"
-                    Content="Сохранить и открыть регистрацию" />
-            <Button Grid.Column="2" Margin="5, 5, 45, 5" Command="{Binding CreateNewOneHandler}"
-                    Content="Сохранить и создать новое занятие" />
+            <Button Grid.Column="0" Margin="5, 5, 25, 5" Command="{Binding SaveHandler}"
+                    VerticalContentAlignment="Center">
+                <TextBlock Text="Сохранить" TextWrapping="Wrap" TextAlignment="Center" />
+            </Button>
+            <Button Grid.Column="1" Margin="5, 5, 25, 5" Command="{Binding SaveAndRegisterHandler}"
+                    VerticalContentAlignment="Center">
+                <TextBlock Text="Сохранить и открыть регистрацию" TextWrapping="Wrap" TextAlignment="Center" />
+            </Button>
+            <Button Grid.Column="2" Margin="5, 5, 5, 5" Command="{Binding CreateNewOneHandler}"
+                    VerticalContentAlignment="Center">
+                <TextBlock Text="Сохранить и создать новое занятие" TextWrapping="Wrap" TextAlignment="Center" />
+            </Button>
         </Grid>
     </Grid>
 </local:LessonFormBase>

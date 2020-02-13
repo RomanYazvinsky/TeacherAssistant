@@ -10,7 +10,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             var textBlock = new TextBlock();
 
             this.Dispatcher?.BeginInvoke(
-                DispatcherPriority.Loaded,
+                DispatcherPriority.Background,
                 new Action<TextBlock>(x => {
                     x.SetValue(FrameworkElement.StyleProperty, this.ElementStyle);
                     x.SetBinding(TextBlock.TextProperty, this.Binding);

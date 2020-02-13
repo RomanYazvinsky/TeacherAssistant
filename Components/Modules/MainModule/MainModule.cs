@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows;
@@ -11,6 +9,7 @@ using Grace.DependencyInjection;
 using Model;
 using Model.Models;
 using TeacherAssistant.Components;
+using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
@@ -35,7 +34,6 @@ namespace TeacherAssistant.Modules.MainModule
 
         public override Control GetEntryComponent()
         {
-            //  Injector.Locate<MainReducer>();
             var windowPageHost = this.Injector?.Locate<WindowPageHost>();
             if (windowPageHost == null)
             {
@@ -51,7 +49,7 @@ namespace TeacherAssistant.Modules.MainModule
             ConfigureServices();
             windowPageHost
                 .AddPageAsync<PageControllerModule, PageControllerToken>(
-                    new PageControllerToken());
+                    new PageControllerToken(new ScheduleToken("Расписание")));
             return null;
         }
 
@@ -63,6 +61,7 @@ namespace TeacherAssistant.Modules.MainModule
             block.ExportModuleScope<SerialUtil>();
             block.ExportModuleScope<StudentCardService>();
             block.ExportModuleScope<PhotoService>();
+            block.ExportModuleScope<AudioService>();
             block.ExportModuleScope<ModuleActivator>();
             block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
             block.ExportModuleScope<TimerService<LessonInterval, AlarmEvent>>();
@@ -95,6 +94,7 @@ namespace TeacherAssistant.Modules.MainModule
         {
             var db = Injector.Locate<LocalDbContext>();
             var lessonTimerService = Injector.Locate<TimerService<LessonInterval, AlarmEvent>>();
+            var util = Injector.Locate<AudioService>();
             var alarms = db.Alarms
                 .Where(model => model._Active > 0 && model._Timer.HasValue && model._Active == 1)
                 .ToList()
@@ -109,6 +109,12 @@ namespace TeacherAssistant.Modules.MainModule
                 .Where(entity => entity.Date?.Date >= now.Date)
                 .Select(entity => new LessonInterval(entity));
             lessonTimerService.CreateSchedule(lessons, alarms);
+            lessonTimerService.OnScheduled.Subscribe(async list => {
+                foreach (var tuple in list) {
+                    var (lessonInterval, alarmEvent) = tuple;
+                    await util.PlayAlarm(alarmEvent.Alarm);
+                }
+            });
             lessonTimerService.Start();
             var nextStarts = lessonTimerService.NextStarts;
             if (nextStarts != null)

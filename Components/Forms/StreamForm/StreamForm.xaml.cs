@@ -10,6 +10,10 @@ namespace TeacherAssistant.Forms.StreamForm {
         }
 
         public StreamEntity Stream { get; }
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 700,
+            InitialWidth = 600
+        };
     }
 
     public class StreamFromModule : SimpleModule {

@@ -16,6 +16,10 @@ namespace TeacherAssistant.Pages.LessonForm {
         public LessonEntity Lesson { get; }
 
         public IPageHost PageHost { get; }
+        public override PageProperties PageProperties { get; }= new PageProperties {
+            InitialHeight = 500,
+            InitialWidth = 600
+        };
     }
 
     public class LessonFormModule : SimpleModule {

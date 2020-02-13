@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using JetBrains.Annotations;
 using TeacherAssistant.Dao;
 
 namespace Model
@@ -28,9 +29,10 @@ namespace Model
 
         [Column("volume")] public decimal? _Volume { get; set; }
 
-        [Column("sound")] public byte[] _Sound { get; set; } = new byte[0];
+        [Column("sound")] [CanBeNull] public byte[] Sound { get; set; } = new byte[0];
 
         [Column("discriminator")]
+        [CanBeNull]
         public string Discriminator
         {
             get => _discriminator;
@@ -42,6 +44,7 @@ namespace Model
         }
 
         [Column("resource_name")]
+        [CanBeNull]
         public string ResourceName
         {
             get => _resourceName;
@@ -58,8 +61,14 @@ namespace Model
             get => this._Active > 0;
             set => this._Active = value ? 1 : 0;
         }
+        [NotMapped]
+        public decimal Volume
+        {
+            get => this._Volume ?? 0;
+            set => this._Volume = value;
+        }
 
-        [NotMapped] public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this._Sound);
+        [NotMapped] public string SoundAsUrl => "data:audio/mpeg;base64," + Convert.ToBase64String(this.Sound);
 
         [NotMapped]
         public TimeSpan? SinceLessonStart

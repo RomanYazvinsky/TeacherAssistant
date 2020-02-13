@@ -11,6 +11,11 @@ namespace TeacherAssistant.Pages.SettingsPage {
         public SettingsToken(string title) :
             base(title) {
         }
+
+        public override PageProperties PageProperties { get; } = new PageProperties {
+            InitialHeight = 400,
+            InitialWidth = 400
+        };
     }
 
     public class SettingsModule : SimpleModule {
@@ -21,8 +26,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
             block.ExportModuleScope<SettingsPageModel>();
             block.ExportModuleScope<SettingsPage>()
                 .ImportProperty(v => v.ModuleToken)
-                .ImportProperty(v => v.ViewModel)
-                ;
+                .ImportProperty(v => v.ViewModel);
         }
     }
 
@@ -30,10 +34,6 @@ namespace TeacherAssistant.Pages.SettingsPage {
     }
 
     public partial class SettingsPage : SettingsPageBase {
-        static SettingsPage() {
-            Locator.CurrentMutable.Register(() => new AlarmSettingView(), typeof(IViewFor<AlarmSettingsViewModel>));
-        }
-
         public SettingsPage() {
             InitializeComponent();
             this.WhenActivated(disposable => {

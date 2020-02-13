@@ -152,14 +152,16 @@
                 </GridViewColumn>
             </GridView>
         </tableFilter:TableFilter>
-        <Button Grid.Row="2" Grid.Column="1" Content="->" x:Name="UnregisterButton"
-                HorizontalAlignment="Right" Height="40"
-                Width="100" />
-        <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-            <Button Content="&lt;-" x:Name="RegisterButton"
-                    HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="100" />
-            <Button Padding="5" Margin="5, 0, 0, 0" x:Name="ToggleAllStudentsMode" />
-        </StackPanel>
+        <DockPanel Grid.Row="2" Grid.Column="1" LastChildFill="False">
+            <Button Content=">" x:Name="UnregisterButton" DockPanel.Dock="Right"
+                    VerticalAlignment="Stretch"
+                    Width="50" />
+        </DockPanel>
+        <DockPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" LastChildFill="False">
+            <Button Content="&lt;" x:Name="RegisterButton" DockPanel.Dock="Left"
+                    HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="50" />
+            <Button Padding="5" Margin="5, 0, 0, 0" x:Name="ToggleAllStudentsMode" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" DockPanel.Dock="Left" />
+        </DockPanel>
 
         <Grid Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5">
             <Grid.RowDefinitions>
