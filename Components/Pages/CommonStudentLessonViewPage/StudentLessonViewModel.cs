@@ -19,11 +19,14 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             new Dictionary<string, StudentLessonMarkViewModel>();
 
         private string _fullName;
-        public StudentLessonViewModel(StudentEntity student,
+
+        public StudentLessonViewModel(
+            StudentEntity student,
             Dictionary<string, LessonEntity> lessonModels,
             IExportLocatorScope serviceLocator,
             IPageHost host,
-            LocalDbContext context) {
+            LocalDbContext context
+        ) {
             OpenStudentHandler = ReactiveCommand.Create(OpenStudent);
             OpenImageHandler = ReactiveCommand.Create(LoadImage);
             this.Model = student;
@@ -45,12 +48,15 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     context.ThrottleSave();
                 }
 
-                this.LessonToLessonMark.Add(keyValuePair.Key, new StudentLessonMarkViewModel(studentLessonModel, context, host));
+                this.LessonToLessonMark.Add(keyValuePair.Key,
+                    new StudentLessonMarkViewModel(studentLessonModel, context, host));
             }
 
             this.MissedLessons =
-                this.LessonToLessonMark.Values.Aggregate(0, (i, model) => model.StudentLesson.IsLessonMissed ? i + 1 : i);
+                this.LessonToLessonMark.Values.Aggregate(0,
+                    (i, model) => model.StudentLesson.IsLessonMissed ? i + 1 : i);
         }
+
         public string FullName {
             get => _fullName;
             set {
@@ -68,6 +74,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 OnPropertyChanged();
             }
         }
+
         public IExportLocatorScope ServiceLocator { get; }
 
         public Dictionary<string, StudentLessonMarkViewModel> LessonToLessonMark {
@@ -93,7 +100,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         private void OpenStudent() {
             var tabPageHost = ServiceLocator.Locate<TabPageHost>();
-            tabPageHost.AddPageAsync(new StudentViewPageToken("Student", Model));
+            tabPageHost.AddPageAsync(new StudentViewPageToken("Студент", Model));
         }
 
 
@@ -119,7 +126,5 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         }
 
         public StudentEntity Model { get; set; }
-
-
     }
 }

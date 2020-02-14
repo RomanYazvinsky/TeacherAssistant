@@ -12,26 +12,11 @@
     d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource MaterialDesignDataGridCell}">
-            <Setter Property="Padding" Value="2"/>
-            <Setter Property="Margin" Value="-1"/>
-            <Setter Property="BorderBrush" Value="Black"></Setter>
-            <Setter Property="BorderThickness" Value="0, 0, 1, 0"></Setter>
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="Margin" Value="-1" />
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderThickness" Value="0, 0, 1, 0" />
         </Style>
-        <Grid x:Key="StudentNameColumnHeader">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="30" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <TextBox Grid.Column="1" Grid.Row="1"
-                     Text="{ Binding Path= DataContext.FilterText, RelativeSource={RelativeSource FindAncestor, AncestorType=local:TableLessonViewPageBase},
-                                     UpdateSourceTrigger=PropertyChanged}" />
-        </Grid>
 
     </UserControl.Resources>
     <Grid>
@@ -50,10 +35,29 @@
                   RowHeight="30"
                   RowHeaderWidth="0">
             <DataGrid.Columns>
-                <local:NameColumn Width="300" Header="{StaticResource StudentNameColumnHeader}">
+                <local:NameColumn Width="300">
+                    <DataGridTemplateColumn.HeaderTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="200" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition Height="30" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Column="1" Grid.Row="1"
+                                         Text="{Binding Path=DataContext.FilterText, RelativeSource={RelativeSource AncestorType=DataGrid},
+                                         UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.HeaderTemplate>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type cellTemplates:StudentNameCell}">
-                            <cellTemplates:StudentNameCell Margin="0"/>
+                            <cellTemplates:StudentNameCell Margin="0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </local:NameColumn>

@@ -76,7 +76,7 @@ namespace TeacherAssistant.RegistrationPage {
 
             this.ShowStudent = ReactiveCommand.Create(() => {
                 var selectedStudent = _selectedStudent;
-                var studentViewPageToken = new StudentViewPageToken("Student", selectedStudent);
+                var studentViewPageToken = new StudentViewPageToken("Студент", selectedStudent);
                 tabPageHost.AddPageAsync<StudentViewPageModule, StudentViewPageToken>(studentViewPageToken);
             });
             this.AddStudentNote = ReactiveCommand.Create(() => {

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using TeacherAssistant.Components;
 using TeacherAssistant.Core.Module;
+using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
 
 namespace TeacherAssistant {
     class TabSubscriptionContainer : IDisposable {
@@ -23,9 +24,11 @@ namespace TeacherAssistant {
         }
 
         public void Dispose() {
-            _token.Deactivated -= DeactivationHandler;
-            _item.Unloaded -= DeactivationHandler;
-            Disposed?.Invoke(this, new ModuleDestroyEventArgs(_item, _token));
+            Application.Current.Dispatcher?.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+                _token.Deactivated -= DeactivationHandler;
+                _item.Unloaded -= DeactivationHandler;
+                Disposed?.Invoke(this, new ModuleDestroyEventArgs(_item, _token));
+            }));
         }
     }
 

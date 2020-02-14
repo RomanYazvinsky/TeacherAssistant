@@ -264,13 +264,13 @@
                         <Grid Margin="5, 5, 5, 0" DockPanel.Dock="Top">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock FontSize="18" FontWeight="Bold" Grid.Column="0" TextTrimming="CharacterEllipsis"
                                        Text="{Binding Localization[page.student.view.average.mark]}" />
-                            <TextBox FontSize="18" Grid.Column="1" BorderThickness="0" Background="Transparent"
-                                     IsReadOnly="True"
-                                     Text="{Binding AverageMark, StringFormat=N2}" />
+                            <TextBox FontSize="18" Grid.Column="1"
+                                     Style="{StaticResource LabelLike}"
+                                     Text="{Binding AverageMark, StringFormat=N5}" />
                         </Grid>
                         <DockPanel Margin="5, 5, 5, 0" DockPanel.Dock="Top">
                             <TextBlock FontSize="18" FontWeight="Bold" DockPanel.Dock="Top"

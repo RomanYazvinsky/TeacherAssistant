@@ -297,23 +297,11 @@ namespace TeacherAssistant.StudentViewPage {
         public void UpdateLessonMark() {
             var allLessons = new List<StudentLessonEntity>(this.StudentLessons.Select(box => box.StudentLesson));
             allLessons.AddRange(this.ExternalLessons);
-            var markStatistics = allLessons.Aggregate
-                (
-                    new Dictionary<string, int>(),
-                    (markStat, model) => {
-                        var mark1 = model.Mark;
-                        if (string.IsNullOrWhiteSpace(mark1))
-                            return markStat;
-                        if (markStat.ContainsKey(mark1))
-                            markStat[mark1]++;
-                        else
-                            markStat.Add(mark1, 1);
-
-                        return markStat;
-                    }
-                )
-                .Select(pair => new MarkStatistics(pair.Key, pair.Value))
-                .ToArray();
+            var markStatistics = allLessons
+                .Where(entity => !string.IsNullOrWhiteSpace(entity.Mark))
+                .GroupBy(entity => entity.Mark?.Trim())
+                .Select(group => new MarkStatistics(group.Key, group.Count()))
+                .ToList();
             this.NumberMarkStatistics.Clear();
             this.StringMarkStatistics.Clear();
             this.NumberMarkStatistics.AddRange
@@ -330,11 +318,13 @@ namespace TeacherAssistant.StudentViewPage {
                     .OrderBy(statistics => statistics.Mark)
                     .ToList()
             );
-            if (this.NumberMarkStatistics.Count > 0)
-                this.AverageMark =
-                    this.NumberMarkStatistics.Aggregate
-                        (0.0, (i, statistics) => i + statistics.MarkAsNumber)
-                    / this.NumberMarkStatistics.Count;
+            if (this.NumberMarkStatistics.Count == 0) {
+                return;
+            }
+
+            var allMarkCount = this.NumberMarkStatistics.Select(statistics => statistics.Occurrences).Sum();
+            var sum = this.NumberMarkStatistics.Select(statistics => statistics.MarkAsNumber * statistics.Occurrences).Sum();
+            this.AverageMark = (double) sum / allMarkCount;
         }
 
         public List<ButtonConfig> GetControls() {
@@ -518,6 +508,7 @@ namespace TeacherAssistant.StudentViewPage {
             if (lesson == null) {
                 return;
             }
+
             var registrationPageToken = new RegistrationPageToken("Регистрация", lesson);
             _host.AddPageAsync(registrationPageToken);
         }

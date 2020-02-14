@@ -37,10 +37,10 @@ namespace Model.Models
 
         [Column("registration_type")] public string RegistrationType { get; set; }
 
-        [Column("mark")] public string Mark { get; set; }
+        [Column("mark")] [CanBeNull] public string Mark { get; set; }
 
 
-        [Column("mark_time")] public string _MarkTime { get; set; }
+        [Column("mark_time")] [CanBeNull] public string _MarkTime { get; set; }
 
         [NotMapped]
         public DateTime? RegistrationTime

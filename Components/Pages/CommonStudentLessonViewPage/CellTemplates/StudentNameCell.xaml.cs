@@ -48,7 +48,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates
             }
 
             var tabPageHost = view.ServiceLocator.Locate<TabPageHost>();
-            tabPageHost.AddPageAsync(new StudentViewPageToken("Student", view.Model));
+            tabPageHost.AddPageAsync(new StudentViewPageToken("Студент", view.Model));
         }
     }
 }
