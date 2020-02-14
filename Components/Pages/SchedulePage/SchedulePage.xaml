@@ -13,28 +13,8 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary>
-                    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
-                        <Setter Property="FontSize" Value="14"></Setter>
-                    </Style>
-                    <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
-                        <Setter Property="Margin" Value="5" />
-                        <Setter Property="Height" Value="30" />
-                        <Setter Property="VerticalAlignment" Value="Center" />
-                        <Setter Property="HorizontalAlignment" Value="Stretch" />
-                        <Setter Property="FontSize" Value="16" />
-                        <Setter Property="ContentWidth" Value="2*" />
-                        <Style.Resources>
-                            <Style TargetType="TextBox">
-                                <Setter Property="VerticalContentAlignment" Value="Center" />
-                            </Style>
-                        </Style.Resources>
-                    </Style>
-                    <Style TargetType="{x:Type GridViewColumnHeader}">
-                        <Setter Property="MinWidth" Value="100" />
-                    </Style>
-                </ResourceDictionary>
                 <ResourceDictionary Source="CellTemplates.xaml" />
+                <ResourceDictionary Source="SchedulePageStyles.xaml" />
                 <ResourceDictionary Source="../../Components/TableFilter/TableStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
@@ -82,75 +62,61 @@
                     Command="{Binding Path=Show}" />
 
         </Grid>
+        <!--This is the hidden helper Grid which does the resizing -->
+        <Grid Grid.Row="1" Visibility="Hidden">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{Binding ElementName=DateColumn, Path=ActualWidth}" />
+                <ColumnDefinition Width="{Binding ElementName=TimeColumn, Path=ActualWidth}" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="2" x:Name="StreamNameColumnWidthHelper" />
+            <Grid Grid.Column="3" x:Name="GroupNamesColumnWidthHelper" />
+            <Grid Grid.Column="4" x:Name="LessonTypeColumnWidthHelper" />
+        </Grid>
         <ListView Grid.Row="1" Name="LessonList" Margin="10" ItemsSource="{Binding Path=Lessons}"
                   SelectedItem="{Binding Path=SelectedLesson}"
+                  ItemContainerStyle="{StaticResource ItemWithContextMenu}"
                   FontSize="14">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="MouseDoubleClick">
                     <i:InvokeCommandAction Command="{Binding OpenRegistrationHandler}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem" BasedOn="{StaticResource TableItemStyle}">
-                    <Style.Setters>
-                        <Setter Property="ContextMenu">
-                            <Setter.Value>
-                                <ContextMenu x:Name="Menu">
-                                    <ContextMenu.Items>
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Регистрация]}"
-                                            Command="{Binding Path=Model.OpenRegistrationHandler}" />
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Занятие 1]}"
-                                            Command="{Binding Path=Model.OpenStudentLessonTableHandler}" />
-                                        <Separator />
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Редактировать]}"
-                                            Command="{Binding Path=Model.EditMenuHandler}" />
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Удалить]}"
-                                            Command="{Binding Path=Model.DeleteMenuHandler}" />
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Заметки]}"
-                                            Command="{Binding Path=Model.OpenLessonNotesHandler}" />
-                                        <MenuItem
-                                            Header="{Binding Model.Localization[Журнал проверен]}"
-                                            Command="{Binding Path=Model.ToggleLessonCheckedHandler}" />
-                                    </ContextMenu.Items>
-                                </ContextMenu>
-                            </Setter.Value>
-                        </Setter>
-                    </Style.Setters>
-                </Style>
-            </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Width="120"
+                    <GridViewColumn Width="120" x:Name="DateColumn"
                                     CellTemplate="{StaticResource DateColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Дата" Tag="Lesson.Date" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="120" CellTemplate="{StaticResource TimeColumn}">
+                    <GridViewColumn Width="120" x:Name="TimeColumn" CellTemplate="{StaticResource TimeColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center"
                                                   Content="Время"
                                                   Tag="Lesson.Schedule" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="150" CellTemplate="{StaticResource StreamNameColumn}">
+                    <GridViewColumn Width="{Binding ElementName=StreamNameColumnWidthHelper, Path=ActualWidth}"
+                                    x:Name="StreamNameColumn" CellTemplate="{StaticResource StreamNameColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Поток" Tag="Stream.Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="300"
+                    <GridViewColumn Width="{Binding ElementName=GroupNamesColumnWidthHelper, Path=ActualWidth}"
+                                    x:Name="GroupNamesColumn"
                                     CellTemplate="{StaticResource GroupNamesColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Группы"
                                                   Tag="GroupsNames" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="150" CellTemplate="{StaticResource LessonTypeColumn}">
+                    <GridViewColumn Width="{Binding ElementName=LessonTypeColumnWidthHelper, Path=ActualWidth}"
+                                    x:Name="LessonTypeColumn"
+                                    CellTemplate="{StaticResource LessonTypeColumn}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader HorizontalContentAlignment="Center" Content="Тип"
                                                   Tag="LessonType.name" />

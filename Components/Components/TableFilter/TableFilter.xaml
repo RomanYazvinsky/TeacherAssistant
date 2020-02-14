@@ -22,10 +22,11 @@
             FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}}"
             VerticalContentAlignment="Center"
             FontWeight="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=FontWeight}" />
+        <Grid Grid.Row="1" Visibility="Hidden" x:Name="ColumnWidthHelper" />
         <ListView Name="LView" Margin="4px" Grid.Row="1"
                   SelectionChanged="LView_OnSelectionChanged"
                   Drop="LView_OnDrop"
-                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=TableConfig.TableItems}" >
+                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, Path=TableConfig.TableItems}">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <EventSetter Event="MouseMove" Handler="ListViewItemDragStart" />

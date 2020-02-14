@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Containers;
 using DynamicData;
@@ -37,11 +38,17 @@ namespace TeacherAssistant.Forms.StreamForm {
             this.RemoveGroupsHandler = ReactiveCommand.Create(DeselectGroups);
             this.AvailableGroupTableConfig = new TableConfig {
                 Filter = GroupFilter,
-                Sorts = GroupSorts
+                Sorts = GroupSorts,
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                }
             };
             this.ChosenGroupTableConfig = new TableConfig {
                 Filter = GroupFilter,
-                Sorts = GroupSorts
+                Sorts = GroupSorts,
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                }
             };
             Initialize(token.Stream);
         }

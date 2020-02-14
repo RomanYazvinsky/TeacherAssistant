@@ -70,7 +70,8 @@
             </DataTemplate>
             <DataTemplate x:Key="GroupNamesColumn" DataType="schedulePage:LessonScheduleView">
                 <Border Style="{StaticResource BorderStyle}">
-                    <TextBlock Style="{StaticResource StyledTextBlock}" Text="{Binding GroupNames}" />
+                    <TextBlock Style="{StaticResource StyledTextBlock}" HorizontalAlignment="Stretch"
+                               TextAlignment="Left" Text="{Binding GroupNames}" />
                 </Border>
             </DataTemplate>
         </ResourceDictionary>

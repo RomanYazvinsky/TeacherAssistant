@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using DynamicData;
 using Grace.DependencyInjection;
+using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -25,6 +26,13 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
         private readonly TabPageHost _host;
+
+        [NotNull] private static readonly ResourceDictionary DataGridCellResources
+            = new ResourceDictionary {
+                Source = new Uri(
+                    "/TeacherAssistant.Components;component/Pages/CommonStudentLessonViewPage/CellStyles/CellStyles.xaml",
+                    UriKind.RelativeOrAbsolute)
+            };
 
         private readonly ObservableCollection<StudentLessonViewModel> _items =
             new ObservableCollection<StudentLessonViewModel>();
@@ -125,7 +133,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")},
                     CanUserSort = false
                 };
-            var cellStyle = new Style();
+            var cellStyle = new Style {
+                BasedOn = DataGridCellResources["StudentLessonMarkCell"] as Style,
+                TargetType = typeof(DataGridCell)
+            };
             var backGround = new Setter(Control.BackgroundProperty, new Binding($"LessonToLessonMark[{id}].Color"));
             var menu = new Setter(FrameworkElement.ContextMenuProperty, BuildLessonCellContextMenu(id));
             cellStyle.Setters.Add(backGround);

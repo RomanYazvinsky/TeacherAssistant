@@ -79,23 +79,22 @@
                                  TableItemContainerStyle="{StaticResource CustomItemContainerStyle}"
                                  x:Name="RegisteredStudents">
             <GridView>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.LastName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.LastName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Фамилия" Tag="Student.LastName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.FirstName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.FirstName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Имя" Tag="Student.FirstName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.SecondName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.SecondName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100"
-                                DisplayMemberBinding="{Binding Path=RegistrationTime, StringFormat=HH:mm:ss}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=RegistrationTime, StringFormat=HH:mm:ss}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Время" Tag="RegistrationTime" />
                     </GridViewColumn.Header>
@@ -108,17 +107,17 @@
                                  x:Name="LessonStudents"
                                  Visibility="{Binding Path=AllStudentsMode, Converter={StaticResource InverseB2VConverter}}">
             <GridView>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.LastName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.LastName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Фамилия" Tag="Student.LastName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.FirstName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.FirstName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Имя" Tag="Student.FirstName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.SecondName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.SecondName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
                     </GridViewColumn.Header>
@@ -130,24 +129,25 @@
                                  x:Name="AllStudents"
                                  Visibility="{Binding Path=AllStudentsMode, Converter={StaticResource B2VConverter}}">
             <GridView>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.CardUid}">
-                    <GridViewColumn.Header>
-                        <GridViewColumnHeader Content="Карта" Tag="Student.CardUid" />
-                    </GridViewColumn.Header>
-                </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.LastName}">
+
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.LastName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Фамилия" Tag="Student.LastName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="100" DisplayMemberBinding="{Binding Path=Student.FirstName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.FirstName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Имя" Tag="Student.FirstName" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
-                <GridViewColumn Width="150" DisplayMemberBinding="{Binding Path=Student.SecondName}">
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.SecondName}">
                     <GridViewColumn.Header>
                         <GridViewColumnHeader Content="Отчество" Tag="Student.SecondName" />
+                    </GridViewColumn.Header>
+                </GridViewColumn>
+                <GridViewColumn DisplayMemberBinding="{Binding Path=Student.CardUid}">
+                    <GridViewColumn.Header>
+                        <GridViewColumnHeader Content="Карта" Tag="Student.CardUid" />
                     </GridViewColumn.Header>
                 </GridViewColumn>
             </GridView>

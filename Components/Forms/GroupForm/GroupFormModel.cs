@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -50,12 +51,14 @@ namespace TeacherAssistant.Forms.GroupForm
             this.StudentsTableConfig = new TableConfig
             {
                 Filter = FilterStudentNames,
-                Sorts = Sorts
+                Sorts = Sorts,
+                ColumnWidths = new []{new GridLength(1, GridUnitType.Star),new GridLength(1, GridUnitType.Star) }
             };
             this.GroupStudentsTableConfig = new TableConfig
             {
                 Filter = FilterStudentNames,
-                Sorts = Sorts
+                Sorts = Sorts,
+                ColumnWidths = new []{new GridLength(1, GridUnitType.Star),new GridLength(1, GridUnitType.Star) }
             };
             this.Students = this.StudentsTableConfig.TableItems;
             this.SelectedStudents = this.StudentsTableConfig.SelectedItems;

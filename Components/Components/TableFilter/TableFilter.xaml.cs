@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using Containers;
 using DynamicData;
+using JetBrains.Annotations;
 using TeacherAssistant.ComponentsImpl;
 
 namespace TeacherAssistant.Components.TableFilter {
@@ -33,9 +34,14 @@ namespace TeacherAssistant.Components.TableFilter {
         public ObservableCollection<object> SelectedItems { get; set; } =
             new ObservableCollection<object>();
 
-        public BehaviorSubject<object> SelectedItem { get; set; } = new BehaviorSubject<object>(null);
+        [NotNull] public BehaviorSubject<object> SelectedItem { get; set; } = new BehaviorSubject<object>(null);
+
+        [NotNull]
         public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection>();
-        public Func<object, string, bool> Filter { get; set; } = (o, s) => true;
+
+        [CanBeNull] public Func<object, string, bool> Filter { get; set; } = (o, s) => true;
+
+        [CanBeNull] public IEnumerable<GridLength> ColumnWidths { get; set; }
 
         public bool IsFilterDependsOnlyOnFilterValue { get; set; } = true;
     }
@@ -109,7 +115,7 @@ namespace TeacherAssistant.Components.TableFilter {
                 new FrameworkPropertyMetadata(defaultValue: new TableConfig())
             );
 
-        private static Point? _dragStartPoint;
+        private Point? _dragStartPoint;
         private readonly List<object> _selectedItems = new List<object>();
         private DragConfig DragConfig => this.TableConfig.DragConfig;
 
@@ -168,6 +174,42 @@ namespace TeacherAssistant.Components.TableFilter {
             }
         }
 
+        private void BuildColumnWidthHelpers([CanBeNull] IEnumerable<GridLength> widths) {
+            ColumnWidthHelper.ColumnDefinitions.Clear();
+            if (widths == null || !widths.Any()) {
+                return;
+            }
+
+            var columnDefinitions = widths.Select(length => new ColumnDefinition {Width = length}).ToList();
+
+
+            ColumnWidthHelper.ColumnDefinitions.Add(columnDefinitions);
+            var gridColumns = (LView.View as GridView)?.Columns ?? new GridViewColumnCollection();
+            if (gridColumns.Count == 0) {
+                return;
+            }
+
+            var gridViewColumn = gridColumns[0];
+            gridViewColumn.Width = double.NaN;
+            BindingOperations.SetBinding(columnDefinitions[0], ColumnDefinition.WidthProperty, new Binding {
+                Path = new PropertyPath(nameof(GridViewColumn.ActualWidth)),
+                Source = gridViewColumn
+            });
+            for (var i = 1; i < gridColumns.Count; i++) {
+                if (columnDefinitions.Count >= i) {
+                    break;
+                }
+
+                var columnDefinition = columnDefinitions[i];
+                BindingOperations.SetBinding(gridColumns[i], GridViewColumn.WidthProperty, new Binding {
+                    Path = new PropertyPath(nameof(ColumnDefinition.ActualWidth)),
+                    Source = columnDefinition
+                });
+            }
+
+            ColumnWidthHelper.ColumnDefinitions.Add(new ColumnDefinition {Width = new GridLength(20)});
+        }
+
         private void SetSelectedItems(IEnumerable items) {
             LView.SelectedItems.Clear();
             foreach (var item in items) {
@@ -198,6 +240,7 @@ namespace TeacherAssistant.Components.TableFilter {
                 SortHelper.AddColumnSorting(LView, config.Sorts);
                 SetSelectedItems(config.SelectedItems);
                 UpdateFilter("");
+                BuildColumnWidthHelpers(config.ColumnWidths);
             }
         }
 
@@ -207,11 +250,11 @@ namespace TeacherAssistant.Components.TableFilter {
             this.TableConfig.SelectedItem.OnNext(LView.SelectedItem);
         }
 
-        private async void LView_OnDrop(object sender, DragEventArgs e) {
+        private void LView_OnDrop(object sender, DragEventArgs e) {
             this.DragConfig?.Drop.Invoke();
         }
 
-        private static bool IsDrag(MouseEventArgs e) {
+        private bool IsDrag(MouseEventArgs e) {
             if (e.LeftButton != MouseButtonState.Pressed || _dragStartPoint == null) {
                 return false;
             }

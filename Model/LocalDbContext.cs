@@ -51,9 +51,11 @@ namespace TeacherAssistant.Dao {
         ) {
             Path = dataSource;
             this._delayedUpdateStart = new Subject<object>();
-            this._delayedUpdateStart.AsObservable()
-                .Throttle(TimeSpan.FromMilliseconds(1000))
-                .Subscribe(o => { SaveChanges(); });
+            this._delayedUpdateStart
+                .Throttle(TimeSpan.FromMilliseconds(5000))
+                .Subscribe(_ => {
+                    SaveChanges();
+                });
         }
 
         public static LocalDbContext Instance {

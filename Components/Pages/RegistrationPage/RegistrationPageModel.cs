@@ -186,7 +186,13 @@ namespace TeacherAssistant.RegistrationPage {
                     DragValuePath = "Student",
                     DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
                 },
-                IsFilterDependsOnlyOnFilterValue = false
+                IsFilterDependsOnlyOnFilterValue = false,
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(100),
+                }
             };
             this.RegisteredStudentsTableConfig = new TableConfig {
                 Sorts = RegisteredStudentsSorts,
@@ -216,7 +222,13 @@ namespace TeacherAssistant.RegistrationPage {
 
                         dragData.Accept();
                     },
-                    DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
+                    DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data),
+                },
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
                 }
             };
             this.LessonStudentsTableConfig = new TableConfig {
@@ -234,6 +246,11 @@ namespace TeacherAssistant.RegistrationPage {
                         dragData.Accept();
                     },
                     DragStart = data => mainReducer.DispatchSetValueAction(state => state.DragData, data)
+                },
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
+                    new GridLength(1, GridUnitType.Star),
                 }
             };
             Init(token.Lesson);

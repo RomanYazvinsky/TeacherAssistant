@@ -365,6 +365,7 @@
     <Page Include="PageHostProviders\Tabs\TabController.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\CommonStudentLessonViewPage\CellStyles\CellStyles.xaml" />
     <Page Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -402,6 +403,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\SchedulePage\CellTemplates.xaml" />
+    <Page Include="Pages\SchedulePage\SchedulePageStyles.xaml" />
     <Page Include="Pages\SettingsPage\SettingsPage.xaml" />
     <Page Include="Pages\SettingsPage\Views\AlarmSettingView.xaml" />
     <Page Include="Pages\StreamTablePage\StreamTable.xaml">

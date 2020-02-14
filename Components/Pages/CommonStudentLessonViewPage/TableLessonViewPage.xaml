@@ -5,14 +5,38 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.Pages.CommonStudentLessonViewPage"
-    xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-    xmlns:reactiveUi="http://reactiveui.net"
     xmlns:cellTemplates="clr-namespace:TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates"
     mc:Ignorable="d"
+    x:Name="LessonTable"
     d:DataContext="{d:DesignInstance local:TableLessonViewPageModel}"
-    d:DesignHeight="450" d:DesignWidth="800" x:Name="View">
+    d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource MaterialDesignDataGridCell}">
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Margin" Value="-1"/>
+            <Setter Property="BorderBrush" Value="Black"></Setter>
+            <Setter Property="BorderThickness" Value="0, 0, 1, 0"></Setter>
+        </Style>
+        <Grid x:Key="StudentNameColumnHeader">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="30" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBox Grid.Column="1" Grid.Row="1"
+                     Text="{ Binding Path= DataContext.FilterText, RelativeSource={RelativeSource FindAncestor, AncestorType=local:TableLessonViewPageBase},
+                                     UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+
+    </UserControl.Resources>
     <Grid>
-        <DataGrid x:Name="Table" VirtualizingStackPanel.VirtualizationMode="Recycling"
+        <DataGrid x:Name="Table"
+                  VirtualizingStackPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"
                   VirtualizingPanel.CacheLength="15"
                   VirtualizingPanel.CacheLengthUnit="Item"
@@ -26,27 +50,10 @@
                   RowHeight="30"
                   RowHeaderWidth="0">
             <DataGrid.Columns>
-                <local:NameColumn Width="300">
-                    <DataGridTemplateColumn.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition />
-                                <ColumnDefinition Width="200" />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition Height="30" />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <TextBox Grid.Column="1" Grid.Row="1"
-                                     Text="{ Binding Path= DataContext.FilterText, RelativeSource={RelativeSource FindAncestor, AncestorType=local:TableLessonViewPage, AncestorLevel=1},
-                                     UpdateSourceTrigger=PropertyChanged}" />
-                        </Grid>
-                    </DataGridTemplateColumn.Header>
+                <local:NameColumn Width="300" Header="{StaticResource StudentNameColumnHeader}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="{x:Type cellTemplates:StudentNameCell}">
-                            <cellTemplates:StudentNameCell />
+                            <cellTemplates:StudentNameCell Margin="0"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </local:NameColumn>

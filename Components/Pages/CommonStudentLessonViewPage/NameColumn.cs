@@ -9,10 +9,9 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem) {
             var contentPresenter = new ContentPresenter();
             this.Dispatcher?.BeginInvoke(
-                DispatcherPriority.Loaded,
+                DispatcherPriority.Background,
                 new Action<ContentPresenter>(x => {
-                    BindingOperations.SetBinding(x, ContentPresenter.ContentProperty,
-                        new Binding());
+                    BindingOperations.SetBinding(x, ContentPresenter.ContentProperty, new Binding());
                     x.ContentTemplate = this.CellTemplate;
                     x.ContentTemplateSelector = this.CellTemplateSelector;
                 }),

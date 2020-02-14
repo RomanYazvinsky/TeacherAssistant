@@ -7,7 +7,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class TextColumn : DataGridTextColumn {
 
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem) {
-            var textBlock = new TextBlock();
+            var textBlock = new TextBlock {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                TextAlignment = TextAlignment.Center
+            };
 
             this.Dispatcher?.BeginInvoke(
                 DispatcherPriority.Background,

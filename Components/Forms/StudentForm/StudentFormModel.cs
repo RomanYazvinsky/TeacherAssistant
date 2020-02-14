@@ -10,6 +10,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -49,36 +50,42 @@ namespace TeacherAssistant.StudentForm {
             _context = context;
             this.ChosenGroupTableConfig = new TableConfig {
                 Filter = (o, s) => ((ChoseGroupModel) o).Group.Name.ToUpperInvariant().Contains(s),
-                Sorts = ChosenGroupSorts
+                Sorts = ChosenGroupSorts,
+                ColumnWidths = new[] {
+                    new GridLength(40),
+                    new GridLength(1, GridUnitType.Star),
+                }
             };
             this.AvailableGroupTableConfig = new TableConfig {
                 Filter = (o, s) => ((GroupEntity) o).Name.ToUpperInvariant().Contains(s),
-                Sorts = AvailableGroupSorts
+                Sorts = AvailableGroupSorts,
+                ColumnWidths = new[] {
+                    new GridLength(1, GridUnitType.Star),
+                }
             };
             this.SelectGroupsHandler = ReactiveCommand.Create(SelectGroups);
             this.DeselectGroupsHandler = ReactiveCommand.Create(DeselectGroups);
             this.SelectStudentCardHandler = ReactiveCommand.Create(ReadCard);
             this.ValidationRule(model => model.CardUid,
-                s => {
-                    return s == null || s.Equals(string.Empty) || StudentEntity.IsCardUidValid(s);
-                }, s => Localization["Неверный Uid"]);
+                s => { return s == null || s.Equals(string.Empty) || StudentEntity.IsCardUidValid(s); },
+                s => Localization["Неверный Uid"]);
             this.ValidationRule(model => model.FirstName, s => !string.IsNullOrWhiteSpace(s),
                 Localization["Имя не может быть пустым"]);
             this.ValidationRule(model => model.LastName, s => !string.IsNullOrWhiteSpace(s),
                 Localization["Имя не может быть пустым"]);
             this.SaveHandler = ReactiveCommand.Create(Save);
             this.WhenActivated(disposable => {
-                    this.IsValid().Subscribe(b => this.IsValid = b);
-                    this.WhenAnyValue(model => model.Student)
-                        .Where(LambdaHelper.NotNull)
-                        .Subscribe(entity => {
-                            this.FirstName = entity.FirstName;
-                            this.SecondName = entity.SecondName;
-                            this.LastName = entity.LastName;
-                            this.CardUid = entity.CardUid;
-                            this.Email = entity.Email;
-                            this.PhoneNumber = entity.PhoneNumber;
-                        })
+                this.IsValid().Subscribe(b => this.IsValid = b);
+                this.WhenAnyValue(model => model.Student)
+                    .Where(LambdaHelper.NotNull)
+                    .Subscribe(entity => {
+                        this.FirstName = entity.FirstName;
+                        this.SecondName = entity.SecondName;
+                        this.LastName = entity.LastName;
+                        this.CardUid = entity.CardUid;
+                        this.Email = entity.Email;
+                        this.PhoneNumber = entity.PhoneNumber;
+                    })
                     .DisposeWith(disposable);
                 studentCardService.ReadStudentCards.ToObservableChangeSet()
                     .ToCollection()
@@ -99,6 +106,7 @@ namespace TeacherAssistant.StudentForm {
                             ShowPhotoAsync(s);
                             this.IsShowPhoto = true;
                         }
+
                         this.Student.CardUid = s;
                     })
                     .DisposeWith(disposable);
@@ -126,7 +134,7 @@ namespace TeacherAssistant.StudentForm {
                 .Where
                 (
                     group => group._IsActive > 0
-                                  && (entity.Groups?.All(studentGroup => studentGroup.Id != group.Id) ?? true)
+                             && (entity.Groups?.All(studentGroup => studentGroup.Id != group.Id) ?? true)
                 )
                 .ToList();
             this.AvailableGroups.Clear();
