@@ -49,7 +49,7 @@
         </label:Label>
         <label:Label Text="{Binding Localization[Староста]}" LabelWidth="2*" ContentWidth="3*" Grid.Row="4">
             <ComboBox IsTextSearchEnabled="True" IsEditable="True" VerticalContentAlignment="Center"
-                      ItemsSource="{Binding ChiefStudents}"
+                      ItemsSource="{Binding GroupStudents}"
                       DisplayMemberPath="Name"
                       SelectedValue="{Binding SelectedChiefStudent}" />
         </label:Label>

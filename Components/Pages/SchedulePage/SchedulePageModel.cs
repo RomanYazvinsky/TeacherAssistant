@@ -16,6 +16,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
@@ -122,7 +123,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
                         }
                         else
                         {
-                            groups = stream.Groups.ToList();
+                            groups = stream.Groups?.ToList() ?? new List<GroupEntity>();
                         }
 
                         groups.Insert(0, EmptyGroup);

@@ -21,6 +21,7 @@ using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Pages;
 using TeacherAssistant.RegistrationPage;
@@ -182,7 +183,7 @@ namespace TeacherAssistant.StudentViewPage {
                 .ToArray(); // to init lazy sequence
             var studentLessonViewBoxes = lessons
                 .Where(view => view.Lesson.LessonType < LessonType.Attestation)
-                .Select(model => new StudentLessonViewBox(model, this))
+                .Select(model => new StudentLessonViewBox(model, this, _context))
                 .ToList();
             this.StudentLessons.Clear();
             this.StudentLessons.AddRange(studentLessonViewBoxes);
@@ -500,7 +501,7 @@ namespace TeacherAssistant.StudentViewPage {
 
         public async Task ToggleRegistration(StudentLessonViewBox box) {
             await ToggleRegistration(box.StudentLesson);
-            var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this);
+            var studentLessonViewBox = new StudentLessonViewBox(box.StudentLesson, this, _context);
             this.StudentLessons.Replace(box, studentLessonViewBox);
         }
 

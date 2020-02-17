@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using EntityFramework.Rx;
 using Grace.DependencyInjection;
 using Model;
 using Model.Models;
@@ -13,7 +17,7 @@ using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
-using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Pages;
 using TeacherAssistant.ReaderPlugin;
 using ToastNotifications;
@@ -26,6 +30,7 @@ namespace TeacherAssistant.Modules.MainModule
 
     public class MainModule : SimpleModule, IDisposable
     {
+        private readonly Subject<Unit> _destroySubject = new Subject<Unit>();
         public MainModule()
             : base(typeof(WindowPageHost))
         {
@@ -65,7 +70,7 @@ namespace TeacherAssistant.Modules.MainModule
             block.ExportModuleScope<ModuleActivator>();
             block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
             block.ExportModuleScope<TimerService<LessonInterval, AlarmEvent>>();
-            block.ExportFactory(() => LocalDbContext.Instance).As<LocalDbContext>().ExternallyOwned();
+            block.ExportModuleScope<DatabaseBackupService>();
             var notifier = new Notifier(configuration =>
             {
                 configuration.PositionProvider = new PrimaryScreenPositionProvider(Corner.BottomRight, 10, 10);
@@ -80,16 +85,28 @@ namespace TeacherAssistant.Modules.MainModule
 
         private void ConfigureServices()
         {
-            var generalDbContext = Injector.Locate<LocalDbContext>();
-            generalDbContext
-                .ChangeListener<AlarmEntity>()
-                .Select(_ => 0)
-                .Merge(generalDbContext.ChangeListener<LessonEntity>().Select(_ => 1))
+            DbObservable<LocalDbContext>.FromInserted<AlarmEntity>()
+                .Merge( DbObservable<LocalDbContext>.FromDeleted<AlarmEntity>())
+                .Merge( DbObservable<LocalDbContext>.FromUpdated<AlarmEntity>())
+                .Cast<object>()
+                .Merge(DbObservable<LocalDbContext>.FromInserted<LessonEntity>())
+                .Merge(DbObservable<LocalDbContext>.FromUpdated<LessonEntity>())
+                .Merge(DbObservable<LocalDbContext>.FromDeleted<LessonEntity>())
+                .TakeUntil(_destroySubject)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => StartTimer());
             StartTimer();
+            StartBackupService();
         }
 
+        private void StartBackupService() {
+            var databaseBackupService = this.Injector.Locate<DatabaseBackupService>();
+            databaseBackupService.BackupDatabase();
+            Observable.Interval(TimeSpan.FromMinutes(5))
+                .TakeUntil(_destroySubject)
+                .Subscribe(_ => databaseBackupService.BackupDatabase());
+        }
+        
         private void StartTimer()
         {
             var db = Injector.Locate<LocalDbContext>();
@@ -125,6 +142,8 @@ namespace TeacherAssistant.Modules.MainModule
 
         public void Dispose()
         {
+            _destroySubject.OnNext(Unit.Default);
+            _destroySubject.Dispose();
             Application.Current.Shutdown();
         }
     }

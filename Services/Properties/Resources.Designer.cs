@@ -22,7 +22,7 @@ namespace TeacherAssistant.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace TeacherAssistant.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TeacherAssistant.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace TeacherAssistant.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,11 +61,11 @@ namespace TeacherAssistant.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ./db.s3db.
+        ///   Looks up a localized string similar to ./backups.
         /// </summary>
-        internal static string DatabasePath {
+        public static string DatabaseBackupDir {
             get {
-                return ResourceManager.GetString("DatabasePath", resourceCulture);
+                return ResourceManager.GetString("DatabaseBackupDir", resourceCulture);
             }
         }
     }

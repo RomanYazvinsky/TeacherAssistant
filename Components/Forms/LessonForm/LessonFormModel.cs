@@ -15,6 +15,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.Utils;

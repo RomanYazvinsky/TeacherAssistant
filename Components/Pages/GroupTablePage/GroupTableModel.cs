@@ -11,6 +11,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Forms.GroupForm;
 
 namespace TeacherAssistant.GroupTable {

@@ -4,7 +4,6 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:local="clr-namespace:TeacherAssistant.Pages.LessonForm"
-                      xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
                       xmlns:label="clr-namespace:TeacherAssistant.Label"
                       xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
                       xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
@@ -14,12 +13,10 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Styles.xaml" />
                 <ResourceDictionary>
                     <BooleanToVisibilityConverter x:Key="b2v" />
                     <teacherAssistant:IsCollectionNotEmptyConverter x:Key="SelectionEn" />
-                </ResourceDictionary>
-                <ResourceDictionary Source="../../Styles.xaml" />
-                <ResourceDictionary>
                     <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">
                         <Setter Property="Margin" Value="5" />
                         <Setter Property="Height" Value="30" />
@@ -111,23 +108,16 @@
         <label:Label Grid.Row="9" Text="Отметить всех как присутствующих">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding SetAllPresent}" />
         </label:Label>
-        <Grid Grid.Row="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <xctk:SplitButton HorizontalContentAlignment="Stretch">
-                <xctk:SplitButton.Content>
-                    <Button Content="Сохранить" Command="{Binding SaveHandler}" Style="{StaticResource RaisedButton}"/>
-                </xctk:SplitButton.Content>
-                <xctk:SplitButton.DropDownContent>
-                    <StackPanel Orientation="Vertical">
-                        <Button Command="{Binding SaveAndRegisterHandler}" Content="Сохранить и открыть регистрацию" Style="{StaticResource FlatButton}" />
-                        <Button Command="{Binding CreateNewOneHandler}" Content="Сохранить и создать новое занятие" Style="{StaticResource FlatButton}" />
-                    </StackPanel>
-                </xctk:SplitButton.DropDownContent>
-            </xctk:SplitButton>
-        </Grid>
+        <xctk:SplitButton Grid.Row="10" HorizontalContentAlignment="Stretch" DropDownPosition="Bottom">
+            <xctk:SplitButton.Content>
+                <Button Content="Сохранить" Command="{Binding SaveHandler}" Style="{StaticResource RaisedButton}"/>
+            </xctk:SplitButton.Content>
+            <xctk:SplitButton.DropDownContent>
+                <StackPanel Orientation="Vertical">
+                    <Button Command="{Binding SaveAndRegisterHandler}" Content="Сохранить и открыть регистрацию" Style="{StaticResource FlatButton}" />
+                    <Button Command="{Binding CreateNewOneHandler}" Content="Сохранить и создать новое занятие" Style="{StaticResource FlatButton}" />
+                </StackPanel>
+            </xctk:SplitButton.DropDownContent>
+        </xctk:SplitButton>
     </Grid>
 </local:LessonFormBase>

@@ -11,16 +11,15 @@ using Model;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel<SettingsPageModel> {
-        private readonly AudioService _service;
 
         public SettingsPageModel(AudioService service, LocalDbContext context) {
-            _service = service;
             this.RefreshSubject.AsObservable().Subscribe(_ => {
                 this.Alarms.Clear();
-                this.Alarms.AddRange(LocalDbContext.Instance.Alarms
+                this.Alarms.AddRange(context.Alarms
                     .Select(alarm => new AlarmSettingsViewModel(alarm, service, context)).ToList());
             });
         }
@@ -85,7 +84,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
                         alarm.Sound = File.ReadAllBytes(file.FullName);
                     }
 
-                    LocalDbContext.Instance.SaveChangesAsync();
+                    context.SaveChangesAsync();
                 }),
                 Text = LocalizationContainer.Localization["Выбрать файл"]
             };

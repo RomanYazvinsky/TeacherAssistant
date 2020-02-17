@@ -43,8 +43,9 @@
                 <MenuItem Header="Файл">
                     <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
                     <MenuItem Header="{Binding ReaderMenuText}" Command="{Binding Path=ToggleCardReaderHandler}" />
-                    <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" />
-                    <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" />
+                    <MenuItem Header="Сделать резервную копию" Command="{Binding Path=CreateBackupHandler}" />
+                    <!-- <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" /> -->
+                    <!-- <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" /> -->
                 </MenuItem>
                 <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
                 <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />

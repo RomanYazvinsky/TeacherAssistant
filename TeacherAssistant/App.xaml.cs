@@ -3,65 +3,100 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Grace.DependencyInjection;
+using Grace.DependencyInjection.Impl;
 using Grace.DependencyInjection.Lifestyle;
 using Model;
 using Model.Models;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using ReactiveUI;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Properties;
 using ToastNotifications;
 
-namespace TeacherAssistant
-{
+namespace TeacherAssistant {
     using GlobalState = ImmutableDictionary<string, object>;
 
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
-    {
+    public partial class App : Application {
         private IInjectionScope _container;
 
-        protected override void OnStartup(StartupEventArgs e)
-        {
+        protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
+            ConfigureLogger();
             ConfigureContainer();
-            LoadDatabase();
         }
 
-        private async void ConfigureContainer()
-        {
-            var containerBuilder = new DependencyInjectionContainer(configuration =>
-            {
+        private async void ConfigureContainer() {
+            var containerBuilder = new DependencyInjectionContainer(configuration => {
                 configuration.AutoRegisterUnknown = false;
                 configuration.Behaviors.AllowInjectionScopeLocation = true;
                 configuration.SingletonPerScopeShareContext = true;
             });
             _container = containerBuilder;
-            _container.Configure(block =>
-            {
+            _container.Configure(block => {
+                block.AddModule(new DatabaseModule());
                 block.ExportModuleScope<ModuleActivator>();
             });
+            var isConnected = await ConnectDatabase(_container, Settings.Default.DatabasePath);
+            if (!isConnected) {
+                var isConnectedToNew = CreateDatabase(_container);
+                if (!isConnectedToNew) {
+                    throw new Exception("Cannot create new database!");
+                }
+            }
             var rootModuleLoader = _container.Locate<ModuleActivator>();
             var mainModuleToken = new MainModuleToken("TeacherAssistant");
             var mainModule = await rootModuleLoader.ActivateAsync(mainModuleToken);
             mainModule.GetEntryComponent();
         }
 
-        private void LoadDatabase()
-        {
-            var defaultDatabasePath = Settings.Default.DatabasePath;
-            if (File.Exists(defaultDatabasePath))
-            {
-                LocalDbContext.Reconnect(defaultDatabasePath);
+        private async Task<bool> ConnectDatabase(IInjectionScope scope, string path) {
+            var databaseManager = scope.Locate<DatabaseManager>();
+            try {
+                await databaseManager.Connect(path);
+                scope.Configure(block => block.ExportFactory(() => databaseManager.Context).ExternallyOwned());
+                return true;
             }
+            catch (Exception) {
+                return false;
+            }
+        }
+
+        private bool CreateDatabase(IInjectionScope scope) {
+            var databaseManager = scope.Locate<DatabaseManager>();
+            try {
+                databaseManager.CreateAndConnectNewDatabase("./db.s3db");
+                scope.Configure(block => block.ExportFactory(() => databaseManager.Context).ExternallyOwned());
+                return true;
+            }
+            catch (Exception) {
+                return false;
+            }
+        }
+
+        private void ConfigureLogger() {
+            var config = new LoggingConfiguration();
+
+            var logfile = new FileTarget("logfile") {FileName = $"logs/log-{DateTime.Now:G}.log"};
+            var logconsole = new ConsoleTarget("logconsole");
+
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+
+            LogManager.Configuration = config;
         }
     }
 }

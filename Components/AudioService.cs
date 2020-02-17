@@ -10,13 +10,12 @@ using ToastNotifications;
 namespace TeacherAssistant {
     public class AudioService {
         private readonly Notifier _notifier;
-        private static readonly string CurrentDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         public AudioService(Notifier notifier) {
             _notifier = notifier;
         }
         public void AddResource(FileInfo file) {
-            var absolutePath = Path.Combine(CurrentDir, "resources", "sounds", file.Name);
+            var absolutePath = Path.Combine("resources", "sounds", file.Name);
             if (file.FullName.Equals(absolutePath)) {
                 return;
             }
@@ -42,7 +41,7 @@ namespace TeacherAssistant {
                 stream = new MemoryStream(alarm.Sound);
             }
             else {
-                stream = File.OpenRead(Path.Combine(CurrentDir, "resources", "sounds", alarm.ResourceName));
+                stream = File.OpenRead(Path.Combine("resources", "sounds", alarm.ResourceName));
             }
             switch (alarm.Discriminator) {
                 case ".mp3": {

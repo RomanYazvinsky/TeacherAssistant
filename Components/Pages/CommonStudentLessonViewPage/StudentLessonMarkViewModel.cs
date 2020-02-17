@@ -5,6 +5,7 @@ using Model.Models;
 using ReactiveUI;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.RegistrationPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {

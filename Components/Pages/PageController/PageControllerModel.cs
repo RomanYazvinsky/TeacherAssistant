@@ -13,6 +13,7 @@ using System.Windows.Threading;
 using Containers;
 using DynamicData;
 using Model.Models;
+using NLog;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.Tabs;
@@ -20,6 +21,7 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Forms.GroupForm;
 using TeacherAssistant.Forms.StreamForm;
 using TeacherAssistant.GroupTable;
@@ -41,8 +43,11 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace TeacherAssistant.Pages {
     public class PageControllerModel : AbstractModel<PageControllerModel> {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModuleActivator _activator;
         private readonly WindowPageHost _windowPageHost;
+        private readonly DatabaseManager _databaseManager;
+        private readonly DatabaseBackupService _databaseBackupService;
         private readonly SerialUtil _serialUtil;
         private TabPageHost _host;
 
@@ -52,10 +57,14 @@ namespace TeacherAssistant.Pages {
             PageControllerReducer reducer,
             SerialUtil serialUtil,
             MainReducer mainReducer,
-            WindowPageHost windowPageHost
+            WindowPageHost windowPageHost,
+            DatabaseManager databaseManager,
+            DatabaseBackupService databaseBackupService
         ) {
             _activator = activator;
             _windowPageHost = windowPageHost;
+            _databaseManager = databaseManager;
+            _databaseBackupService = databaseBackupService;
             this._serialUtil = serialUtil;
             InitHandlers();
             ActivateContent(token);
@@ -102,6 +111,7 @@ namespace TeacherAssistant.Pages {
             this.OpenAddGroupForm = new CommandHandler(AddGroup_Click);
             this.OpenAddStreamForm = new CommandHandler(AddStreamHandler);
             this.ToggleCardReaderHandler = ReactiveCommand.Create(ToggleCardReader);
+            this.CreateBackupHandler = ReactiveCommand.Create(() => _databaseBackupService.BackupDatabase());
         }
 
         private void SetActionButtons(List<ButtonConfig> buttons) {
@@ -168,6 +178,7 @@ namespace TeacherAssistant.Pages {
         public ICommand OpenSelectPhotoDirectoryDialog { get; set; }
         public ICommand OpenSelectDatabaseDialog { get; set; }
         public ICommand ToggleCardReaderHandler { get; set; }
+        public ICommand CreateBackupHandler { get; set; }
         public ICommand OpenSettings { get; set; }
         public ICommand OpenAddStudentForm { get; set; }
         public ICommand OpenAddLessonForm { get; set; }
@@ -178,17 +189,26 @@ namespace TeacherAssistant.Pages {
         public ObservableCollection<MenuItem> CurrentControls { get; set; } =
             new ObservableCollection<MenuItem>();
 
-        private void SelectDatabase_Click() {
+        private async void SelectDatabase_Click() {
             var dialog = new OpenFileDialog();
             var result = dialog.ShowDialog();
 
             if (result != true)
                 return;
 
-            LocalDbContext.Reconnect(dialog.FileName);
-
+            try {
+                await _databaseManager.Connect(dialog.FileName);
+            }
+            catch (Exception e) {
+                Logger.Log(LogLevel.Error, "Cannot connect selected database");
+                Logger.Log(LogLevel.Error, e);
+                return;
+            }
             Settings.Default.DatabasePath = dialog.FileName;
             Settings.Default.Save();
+            foreach (var page in _host.Pages.ToList()) {
+                _host.ClosePage(page.Key);
+            }
         }
 
         private void ToggleCardReader() {

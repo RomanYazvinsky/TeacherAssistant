@@ -1,19 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Containers;
 using DynamicData;
 using Model.Models;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.StudentViewPage;
@@ -21,13 +25,16 @@ using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.StudentTable {
     public class StudentTableModel : AbstractModel<StudentTableModel> {
+        private readonly LocalDbContext _context;
         private static readonly string LocalizationKey = "page.student.table";
 
-        public StudentTableModel(StudentTableToken token,
+        public StudentTableModel(
+            StudentTableToken token,
             PageControllerReducer reducer,
             PhotoService photoService,
             TabPageHost pageHost,
             LocalDbContext context) {
+            _context = context;
             this.PhotoService = photoService;
             this.StudentTableConfig = new TableConfig {
                 Sorts = this.Sorts,
@@ -40,9 +47,7 @@ namespace TeacherAssistant.StudentTable {
                 .AsObservable()
                 .Where(LambdaHelper.NotNull)
                 .Subscribe(model => UpdatePhoto(((StudentViewModel) model).Student));
-            this.ShowStudent = new CommandHandler
-            (
-                () => {
+            this.ShowStudent = new CommandHandler(() => {
                     var selectedItem = this.StudentTableConfig.SelectedItem.Value;
                     if (selectedItem == null) {
                         return;
@@ -52,7 +57,7 @@ namespace TeacherAssistant.StudentTable {
                     pageHost.AddPageAsync(new StudentViewPageToken(studentEntity.LastName, studentEntity));
                 }
             );
-            this.DeleteStudent = new CommandHandler
+            this.DeleteStudent = ReactiveCommand.Create
             (
                 () => {
                     var selectedItem = this.StudentTableConfig.SelectedItem.Value;
@@ -60,9 +65,15 @@ namespace TeacherAssistant.StudentTable {
                         return;
                     }
 
-                    context.Students.Remove(((StudentViewModel) selectedItem).Student);
-                    context.SaveChangesAsync();
-                    this.StudentTableConfig.TableItems.Remove(selectedItem);
+                    var student = ((StudentViewModel) selectedItem).Student;
+                    var persistentEntity = context.Students.Find(student.Id);
+                    if (persistentEntity != null) {
+                        context.Students.Remove(persistentEntity);
+                        context.SaveChanges();
+                    }
+                    RunInUiThread(() => {
+                        this.StudentTableConfig.TableItems.Remove(selectedItem);
+                    });
                 }
             );
             this.RefreshSubject
@@ -83,14 +94,9 @@ namespace TeacherAssistant.StudentTable {
             var buttonConfigs = new List<ButtonConfig> {
                 GetRefreshButtonConfig(),
                 new ButtonConfig {
-                    Command = new CommandHandler(() => {
-                        // todo load images
-                        // var items = this.Students.Select(model => ((StudentViewModel) model).Model).ToList();
-                        // foreach (var studentModel in items) {
-                        //    await this.PhotoService.DownloadPhoto
-                        //             (StudentModel.CardUidToId(studentModel.CardUid))
-                        //         .ConfigureAwait(false);
-                        // }
+                    Command = ReactiveCommand.Create(async () => {
+                        var items = await _context.Students.ToListAsync();
+                        await LoadImages(items);
                     }),
                     Text = "Загрузить фото"
                 }
@@ -107,8 +113,8 @@ namespace TeacherAssistant.StudentTable {
 
 
         public TableConfig StudentTableConfig { get; set; }
-        public CommandHandler ShowStudent { get; set; }
-        public CommandHandler DeleteStudent { get; set; }
+        public ICommand ShowStudent { get; set; }
+        public ICommand DeleteStudent { get; set; }
 
         public Dictionary<string, ListSortDirection> Sorts { get; set; } = new Dictionary<string, ListSortDirection> {
             {"Student.LastName", ListSortDirection.Ascending},
@@ -137,21 +143,16 @@ namespace TeacherAssistant.StudentTable {
             }
 
             this.StudentPhoto = null;
-            Task.Run
-                (
-                    async () => {
-                        var photoPath = await this.PhotoService.DownloadPhoto
-                                (StudentEntity.CardUidToId(entity.CardUid))
-                            .ConfigureAwait(false);
-                        if (photoPath == null) {
-                            return;
-                        }
-
-                        var image = this.PhotoService.GetImage(photoPath);
-                        RunInUiThread(() => this.StudentPhoto = image);
+            Task.Run(async () => {
+                    var photoPath = await this.PhotoService.DownloadPhoto(StudentEntity.CardUidToId(entity.CardUid));
+                    if (photoPath == null) {
+                        return;
                     }
-                )
-                .ConfigureAwait(false);
+
+                    var image = this.PhotoService.GetImage(photoPath);
+                    RunInUiThread(() => this.StudentPhoto = image);
+                }
+            );
         }
     }
 }

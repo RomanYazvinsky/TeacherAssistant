@@ -13,7 +13,7 @@ using EntityFramework.Rx;
 using FontAwesome5;
 using ReactiveUI;
 using ReactiveUI.Validation.Helpers;
-using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.ComponentsImpl {

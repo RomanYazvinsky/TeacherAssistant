@@ -18,6 +18,7 @@
         <TextBox
             Grid.Row="0" TextWrapping="Wrap"
             Margin="4px"
+            BorderThickness="1"
             Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
             FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}}"
             VerticalContentAlignment="Center"

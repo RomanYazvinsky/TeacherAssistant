@@ -15,19 +15,17 @@ using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 
-namespace TeacherAssistant.Forms.NoteForm
-{
-    public class NoteViewModel : ReactiveValidationObject<NoteViewModel>
-    {
+namespace TeacherAssistant.Forms.NoteForm {
+    public class NoteViewModel : ReactiveValidationObject<NoteViewModel> {
         public NoteEntity Note { get; }
 
         [Reactive] public string Description { get; set; }
 
         [Reactive] public bool IsSelected { get; set; }
 
-        public NoteViewModel(NoteEntity note)
-        {
+        public NoteViewModel(NoteEntity note) {
             Note = note;
             Description = note.Description ?? "";
             this.ValidationRule(
@@ -38,28 +36,25 @@ namespace TeacherAssistant.Forms.NoteForm
         }
     }
 
-    public class NoteFormModel : AbstractModel<NoteFormModel>
-    {
+    public class NoteFormModel : AbstractModel<NoteFormModel> {
         private readonly NoteListFormToken _token;
         private readonly LocalDbContext _context;
         private const string LocalizationKey = "note.form";
 
-        public NoteFormModel(NoteListFormToken token, LocalDbContext context)
-        {
+        public NoteFormModel(NoteListFormToken token, LocalDbContext context) {
             _token = token;
             _context = context;
-            this.SaveButtonConfig = new ButtonConfig
-            {
+            this.SaveButtonConfig = new ButtonConfig {
                 Command = ReactiveCommand.Create(Save, this.WhenAnyValue(model => model.IsValid)),
                 Text = Localization["Сохранить"]
             };
-            this.AddNoteButtonConfig = new ButtonConfig
-            {
-                Command = ReactiveCommand.Create(AddNote),
+            this.AddNoteButtonConfig = new ButtonConfig {
+                Command = ReactiveCommand.Create(AddNote,
+                    this.WhenAnyValue(model => model.SelectedNote)
+                        .Select(model => model == null || model.ValidationContext.GetIsValid())),
                 Text = Localization["Добавить"]
             };
-            this.RemoveNoteButtonConfig = new ButtonConfig
-            {
+            this.RemoveNoteButtonConfig = new ButtonConfig {
                 Command = ReactiveCommand.Create(RemoveNote,
                     this.WhenAnyValue(model => model.SelectedNote).Select(model => model != null)
                 ),
@@ -70,22 +65,18 @@ namespace TeacherAssistant.Forms.NoteForm
             this.SelectedNote = token.SelectedNote == null
                 ? (Notes.Count > 0 ? Notes[0] : null)
                 : Notes.FirstOrDefault(noteModel => noteModel.Note.Id.Equals(token.SelectedNote.Id));
-            this.WhenActivated(disp =>
-            {
+            this.WhenActivated(disp => {
                 IDisposable subscription = null;
                 NoteViewModel prevSelectedVm = null;
                 this.WhenAnyValue(model => model.SelectedNote)
-                    .Subscribe(noteVm =>
-                    {
+                    .Subscribe(noteVm => {
                         subscription?.Dispose();
-                        if (prevSelectedVm != null)
-                        {
+                        if (prevSelectedVm != null) {
                             prevSelectedVm.IsSelected = false;
                         }
 
                         prevSelectedVm = noteVm;
-                        if (noteVm == null)
-                        {
+                        if (noteVm == null) {
                             return;
                         }
 
@@ -99,8 +90,7 @@ namespace TeacherAssistant.Forms.NoteForm
             });
         }
 
-        protected override string GetLocalizationKey()
-        {
+        protected override string GetLocalizationKey() {
             return LocalizationKey;
         }
 
@@ -116,8 +106,7 @@ namespace TeacherAssistant.Forms.NoteForm
         [Reactive] [CanBeNull] public NoteViewModel SelectedNote { get; set; }
 
 
-        private void AddNote()
-        {
+        private void AddNote() {
             var note = _token.NoteFactory();
             note.CreationDate = DateTime.Now;
             var noteViewModel = new NoteViewModel(note);
@@ -125,22 +114,18 @@ namespace TeacherAssistant.Forms.NoteForm
             this.SelectedNote = noteViewModel;
         }
 
-        private void RemoveNote()
-        {
+        private void RemoveNote() {
             var index = Notes.IndexOf(this.SelectedNote);
             Notes.Remove(this.SelectedNote);
-            if (index == 0)
-            {
+            if (index == 0) {
                 return;
             }
 
             this.SelectedNote = Notes.Count > index ? Notes[index] : Notes[index - 1];
         }
 
-        private async Task Save()
-        {
-            foreach (var noteViewModel in this.Notes)
-            {
+        private async Task Save() {
+            foreach (var noteViewModel in this.Notes) {
                 noteViewModel.Note.Description = noteViewModel.Description;
             }
 

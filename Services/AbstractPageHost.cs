@@ -4,22 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using JetBrains.Annotations;
+using NLog;
 using TeacherAssistant.Components;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant
-{
-    public class PageInfo<T> where T : Control
-    {
+namespace TeacherAssistant {
+    public class PageInfo<T> where T : Control {
         public PageInfo(PageInfo<T> info, T container, Control page, IModuleToken token, SimpleModule module) :
-            this(info.Id, container, page, token, module)
-        {
+            this(info.Id, container, page, token, module) {
             info.Next = this;
             this.Previous = info;
         }
 
-        public PageInfo(string id, T container, Control page, IModuleToken token, SimpleModule module)
-        {
+        public PageInfo(string id, T container, Control page, IModuleToken token, SimpleModule module) {
             this.Id = id;
             this.Page = page;
             this.Token = token;
@@ -37,15 +34,14 @@ namespace TeacherAssistant
         public PageInfo<T> Next { get; set; }
     }
 
-    public abstract class AbstractPageHost<TContainer> : IPageHost where TContainer : Control
-    {
+    public abstract class AbstractPageHost<TContainer> : IPageHost where TContainer : Control {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModuleActivator _activator;
 
         public Dictionary<string, PageInfo<TContainer>> Pages { get; } =
             new Dictionary<string, PageInfo<TContainer>>();
 
-        protected AbstractPageHost(ModuleActivator activator)
-        {
+        protected AbstractPageHost(ModuleActivator activator) {
             _activator = activator;
         }
 
@@ -54,8 +50,7 @@ namespace TeacherAssistant
 
         public virtual async Task<TModule> AddPageAsync<TModule, TActivation>(TActivation activation)
             where TActivation : PageModuleToken<TModule>
-            where TModule : SimpleModule
-        {
+            where TModule : SimpleModule {
             var module = await _activator.ActivateAsync(activation);
             Attach(module, activation);
             return (TModule) module;
@@ -68,20 +63,19 @@ namespace TeacherAssistant
         }
 
         public async Task<SimpleModule> AddPageAsync<TActivation>(TActivation activation)
-            where TActivation : IModuleToken
-        {
+            where TActivation : IModuleToken {
             var module = await _activator.ActivateAsync(activation);
             Attach(module, activation);
             return module;
         }
 
         public abstract void ClosePage(string id);
+
         public bool ContainsPage(string id) {
             return this.Pages.ContainsKey(id);
         }
 
-        public virtual Control Attach([NotNull] SimpleModule module)
-        {
+        public virtual Control Attach([NotNull] SimpleModule module) {
             return Attach(module, module.GetToken());
         }
 
@@ -90,6 +84,7 @@ namespace TeacherAssistant
             if (id == null) {
                 throw new ArgumentException("id is null");
             }
+
             var pageInfo = this.Pages[id];
             UnregisterHandlers(token);
             this.Pages.Remove(id);
@@ -98,9 +93,17 @@ namespace TeacherAssistant
 
         protected virtual TContainer Attach<TModule, TToken>(TModule module, TToken token)
             where TModule : SimpleModule
-            where TToken : IModuleToken
-        {
-            var control = module.GetEntryComponent();
+            where TToken : IModuleToken {
+            Control control;
+            try {
+                control = module.GetEntryComponent();
+            }
+            catch (Exception e) {
+                Logger.Log(LogLevel.Error, "Cannot create page");
+                Logger.Log(LogLevel.Error, e);
+                throw;
+            }
+
             var pageInfo = new PageInfo<TContainer>(token.Id,
                 BuildContainer(token, control), control, token, module);
             this.Pages.Add(token.Id, pageInfo);

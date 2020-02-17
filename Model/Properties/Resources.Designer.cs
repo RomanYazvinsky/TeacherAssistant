@@ -61,11 +61,11 @@ namespace TeacherAssistant.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ./db.s3db.
+        ///   Looks up a localized string similar to 1.
         /// </summary>
-        internal static string DatabasePath {
+        internal static string DatabaseVersion {
             get {
-                return ResourceManager.GetString("DatabasePath", resourceCulture);
+                return ResourceManager.GetString("DatabaseVersion", resourceCulture);
             }
         }
     }

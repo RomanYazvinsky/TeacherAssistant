@@ -23,6 +23,7 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Dao.ViewModels;
+using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Pages;

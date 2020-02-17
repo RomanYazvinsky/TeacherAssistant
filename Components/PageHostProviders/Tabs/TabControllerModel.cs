@@ -14,6 +14,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Pages;
+using TeacherAssistant.State;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant {
@@ -90,6 +91,9 @@ namespace TeacherAssistant {
                 .Subscribe(tab => {
                     this.Tabs.Add(tab);
                     this.ActiveTab = tab;
+                    if (this.ActiveTab == null) {
+                        return;
+                    }
                     this.ActiveTab.AllowDrop = true;
                 });
             host.WhenTabClosed
@@ -101,8 +105,12 @@ namespace TeacherAssistant {
                 .Subscribe(tab => {
                     tab.IsSelected = true;
                     var activeTabUid = tab.Uid;
+                    var hostPage = host.Pages.GetOrDefault(activeTabUid);
+                    if (hostPage == default) {
+                        return;
+                    }
                     controllerReducer.DispatchSetValueAction(state => state.SelectedPage,
-                        host.Pages[activeTabUid].Token);
+                        hostPage.Token);
                 });
         }
 

@@ -28,6 +28,7 @@ using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Utils;
 
@@ -107,10 +108,7 @@ namespace TeacherAssistant.Forms.GroupForm
             this.GroupName = this.Group.Name;
             SetupDepartmentsAsync();
             SetupGroupStudents();
-            SetupAvailableStudentsAsync()
-                .ToObservable()
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(_ => SetupChiefStudents());
+            SetupAvailableStudentsAsync();
         }
 
         private void SetupGroupStudents()
@@ -137,18 +135,6 @@ namespace TeacherAssistant.Forms.GroupForm
             });
         }
 
-        private void SetupChiefStudents()
-        {
-            var studentListItems = this.Group.Students ?? _students;
-            var studentAvailableToChief = studentListItems
-                .Select(student => new StudentDropdownItem(student))
-                .ToList();
-            this.ChiefStudents.Clear();
-            this.ChiefStudents.AddRange(studentAvailableToChief);
-            this.SelectedChiefStudent =
-                studentAvailableToChief.FirstOrDefault(o => o.Student.Id == this.Group.Chief?.Id);
-        }
-
         private async Task SetupDepartmentsAsync()
         {
             var departments = await _db.Departments.ToListAsync();
@@ -160,7 +146,7 @@ namespace TeacherAssistant.Forms.GroupForm
                     0,
                     new DepartmentEntity
                     {
-                        Id = -1, Name = Localization["dropdown.empty"]
+                        Id = -1, Name = Localization["(Пусто)"]
                     }
                 );
                 this.Departments.Clear();
@@ -206,9 +192,6 @@ namespace TeacherAssistant.Forms.GroupForm
         [Reactive] public bool IsGroupActive { get; set; }
         [Reactive] [CanBeNull] public string GroupName { get; set; }
         [Reactive] public bool IsValid { get; set; } = true;
-
-        public ObservableCollection<object> ChiefStudents { get; set; } =
-            new ObservableCollection<object>();
 
         public ObservableCollection<object> SelectedStudents { get; }
 

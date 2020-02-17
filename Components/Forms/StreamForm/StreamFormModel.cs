@@ -16,6 +16,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Database;
 
 namespace TeacherAssistant.Forms.StreamForm {
     public class StreamFormModel : AbstractModel<StreamFormModel> {
