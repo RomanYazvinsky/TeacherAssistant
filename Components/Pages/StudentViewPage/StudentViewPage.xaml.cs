@@ -1,7 +1,7 @@
 ﻿using Grace.DependencyInjection;
 using Model.Models;
-using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageToken : PageModuleToken<StudentViewPageModule> {

@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using JetBrains.Annotations;
 using NLog;
-using TeacherAssistant.Components;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.Services.Paging {
     public class PageInfo<T> where T : Control {
         public PageInfo(PageInfo<T> info, T container, Control page, IModuleToken token, SimpleModule module) :
             this(info.Id, container, page, token, module) {

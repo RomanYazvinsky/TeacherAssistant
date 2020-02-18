@@ -1,22 +1,22 @@
-﻿<groupTable:GroupTableBase x:Class="TeacherAssistant.GroupTable.GroupTable"
+﻿<groupTablePage:GroupTableBase x:Class="TeacherAssistant.Pages.GroupTablePage.GroupTable"
                            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                           xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-                           xmlns:groupTable="clr-namespace:TeacherAssistant.GroupTable"
+                           xmlns:groupTablePage="clr-namespace:TeacherAssistant.Pages.GroupTablePage"
+                           xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
                            mc:Ignorable="d"
                            d:DesignHeight="450" d:DesignWidth="800"
-                           d:DataContext="{d:DesignInstance groupTable:GroupTableModel}">
+                           d:DataContext="{d:DesignInstance groupTablePage:GroupTableModel}">
     <UserControl.Resources>
         <ContextMenu x:Key="lwMenu">
             <ContextMenu.Items>
                 <MenuItem
-                    Header="{Binding DataContext.Localization[Открыть], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
-                    Command="{Binding Path=DataContext.ShowMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}" />
+                    Header="{Binding DataContext.Localization[Открыть], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTablePage:GroupTable, AncestorLevel=1}}"
+                    Command="{Binding Path=DataContext.ShowMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTablePage:GroupTable, AncestorLevel=1}}" />
                 <MenuItem
-                    Header="{Binding DataContext.Localization[Удалить], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}"
-                    Command="{Binding Path=DataContext.DeleteMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTable:GroupTable, AncestorLevel=1}}" />
+                    Header="{Binding DataContext.Localization[Удалить], RelativeSource={RelativeSource FindAncestor, AncestorType=groupTablePage:GroupTable, AncestorLevel=1}}"
+                    Command="{Binding Path=DataContext.DeleteMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=groupTablePage:GroupTable, AncestorLevel=1}}" />
             </ContextMenu.Items>
         </ContextMenu>
         <Style x:Key="AddContextMenu" TargetType="{x:Type ListViewItem}">
@@ -24,17 +24,15 @@
         </Style>
     </UserControl.Resources>
     <Grid>
-        <Grid Name="ResizeHandler" Visibility="Hidden">
+        <Grid Visibility="Hidden">
             <Grid.ColumnDefinitions>
-                <!--Width is bound to width of the first GridViewColumn -->
                 <ColumnDefinition Width="{Binding ElementName=NameColumn, Path=ActualWidth}" />
-                <!--Width is set to "Fill"-->
                 <ColumnDefinition Width="*" />
-                <!--Correction Width-->
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="10" />
             </Grid.ColumnDefinitions>
-            <!--This is the hidden helper Field which is used to bind to, using the "Fill" column of the helper grid-->
-            <Grid Grid.Column="1" x:Name="HelperField" />
+            <Grid Grid.Column="1" x:Name="DepartmentNameColumn" />
+            <Grid Grid.Column="2" x:Name="PraepostorColumn" />
         </Grid>
         <ListView ItemContainerStyle="{StaticResource AddContextMenu}" Name="Groups"
                   ItemsSource="{Binding Path=Groups}" SelectedItem="{Binding Path=SelectedGroupEntity}">
@@ -45,17 +43,18 @@
                             <GridViewColumnHeader Content="Имя" Tag="Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn DisplayMemberBinding="{Binding Path=Department.Name}">
+                    <GridViewColumn Width="{Binding ElementName=DepartmentNameColumn, Path=ActualWidth}"
+                                    DisplayMemberBinding="{Binding Path=Department.Name}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Факультет" Tag="Department.Name" />
                         </GridViewColumn.Header>
                     </GridViewColumn>
-                    <GridViewColumn Width="{Binding ElementName=HelperField, Path=ActualWidth}">
+                    <GridViewColumn Width="{Binding ElementName=PraepostorColumn, Path=ActualWidth}">
                         <GridViewColumn.Header>
                             <GridViewColumnHeader Content="Староста" Tag="Praepostor" />
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
-                            <DataTemplate>
+                            <DataTemplate DataType="models:GroupEntity">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Path=Chief.FirstName}" />
                                     <TextBlock Text=" " />
@@ -68,4 +67,4 @@
             </ListView.View>
         </ListView>
     </Grid>
-</groupTable:GroupTableBase>
+</groupTablePage:GroupTableBase>

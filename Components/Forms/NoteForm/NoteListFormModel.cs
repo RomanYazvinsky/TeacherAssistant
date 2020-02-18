@@ -16,6 +16,7 @@ using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.NoteForm {
     public class NoteViewModel : ReactiveValidationObject<NoteViewModel> {

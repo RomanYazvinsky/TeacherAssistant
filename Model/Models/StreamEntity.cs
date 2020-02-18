@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Models;
 
 namespace Model.Models {
     [Table("STREAM")]

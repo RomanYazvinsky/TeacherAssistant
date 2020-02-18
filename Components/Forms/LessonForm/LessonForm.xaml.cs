@@ -3,6 +3,8 @@ using Model.Models;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormToken : PageModuleToken<LessonFormModule> {

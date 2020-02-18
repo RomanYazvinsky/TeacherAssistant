@@ -8,13 +8,14 @@ using Containers;
 using DynamicData;
 using Model.Models;
 using ReactiveUI.Fody.Helpers;
-using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.GroupForm;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Services.Paging;
 
-namespace TeacherAssistant.GroupTable {
+namespace TeacherAssistant.Pages.GroupTablePage {
     public class GroupTableModel : AbstractModel<GroupTableModel> {
         private readonly LocalDbContext _db;
         private readonly IPageHost _host;

@@ -29,7 +29,9 @@ using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Forms.GroupForm
@@ -77,7 +79,7 @@ namespace TeacherAssistant.Forms.GroupForm
                 this.IsValid().Subscribe(b => this.IsValid = b);
                 this.WhenAnyValue(model => model.SelectedDepartment)
                     .Skip(1)
-                    .Subscribe(department => this.Group.Department = department?.Id > 0 ? department : null)
+                    .Subscribe(department => this.Group.Department = department?.Id != default ? department : null)
                     .DisposeWith(disposable);
                 this.WhenAnyValue(model => model.ExpirationDate)
                     .Skip(1)

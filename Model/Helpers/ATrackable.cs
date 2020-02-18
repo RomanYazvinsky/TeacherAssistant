@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using EntityFramework.Triggers;
+using JetBrains.Annotations;
 
 namespace TeacherAssistant.Dao {
     public abstract class ATrackable<T> where T: class {
@@ -14,7 +15,7 @@ namespace TeacherAssistant.Dao {
             Triggers<T>.Deleted += e => (e.Entity as ATrackable<T>).Deleted = DateTime.Now;
         }
 
-        public abstract void Apply(T trackable);
+        public abstract void Apply([NotNull] T trackable);
 
         public abstract T Clone();
     }

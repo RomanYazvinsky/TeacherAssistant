@@ -1,6 +1,7 @@
 ﻿using Grace.DependencyInjection;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.StudentTable {
     public class StudentTableToken : PageModuleToken<StudentTableModule> {

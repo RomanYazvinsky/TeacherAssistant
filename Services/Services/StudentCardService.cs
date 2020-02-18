@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using TeacherAssistant.ReaderPlugin;
 
-namespace TeacherAssistant.Components {
+namespace TeacherAssistant.Services {
     public class StudentCardService : IDisposable {
         private IDisposable _subscription;
         public ObservableCollection<StudentCard> ReadStudentCards { get; } = new ObservableCollection<StudentCard>();

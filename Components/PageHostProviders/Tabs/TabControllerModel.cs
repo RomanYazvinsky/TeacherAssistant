@@ -13,6 +13,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.Pages;
 using TeacherAssistant.State;
 using TeacherAssistant.Utils;

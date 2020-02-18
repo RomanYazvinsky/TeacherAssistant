@@ -17,6 +17,8 @@ using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.StreamForm {
     public class StreamFormModel : AbstractModel<StreamFormModel> {

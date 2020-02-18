@@ -8,7 +8,7 @@ using TeacherAssistant.ComponentsImpl;
 using ToastNotifications;
 using ToastNotifications.Core;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.Notifications {
     public static class TimerNotificationProvider {
         public static void ShowTimerNotification(this Notifier notifier, DateTime date) {
             notifier.Notify(() => new TimerNotificationModel(date));

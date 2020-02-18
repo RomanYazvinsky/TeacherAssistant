@@ -14,7 +14,7 @@
             get {
                 if (!int.TryParse(this.Mark, out var markAsNumber))
                     return -1;
-                if (markAsNumber >= 0 && markAsNumber <= 10)
+                if (markAsNumber >= StudentViewPageModel.MinAcceptableMark && markAsNumber <= StudentViewPageModel.MaxAcceptableMark)
                     return markAsNumber;
 
                 return -1;

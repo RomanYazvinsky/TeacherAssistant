@@ -3,7 +3,7 @@ using System.IO;
 using TeacherAssistant.Database;
 using TeacherAssistant.Properties;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.Services {
     public class DatabaseBackupService {
         private readonly DatabaseManager _databaseManager;
         private readonly Random _random = new Random();

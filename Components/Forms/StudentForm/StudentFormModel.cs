@@ -29,7 +29,9 @@ using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.Services;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.StudentForm {
@@ -127,7 +129,7 @@ namespace TeacherAssistant.StudentForm {
             this.ChosenGroups.Clear();
             var choseGroupModels = entity.Groups?.Select(group => new ChoseGroupModel(group) {
                 IsPraepostor = group.Chief != null && group.Chief.Id == entity.Id,
-                IsPraepostorAlreadySet = group.Chief != null && group.Chief.Id > 0
+                IsPraepostorAlreadySet = group.Chief != null && group.Chief.Id != default
             }).ToList() ?? new List<ChoseGroupModel>();
             this.ChosenGroups.AddRange(choseGroupModels);
             var groupModels = _context.Groups.Include(group => group.Students)

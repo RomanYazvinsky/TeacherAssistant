@@ -4,6 +4,7 @@ using Model.Models;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.RegistrationPage {
     public class RegistrationPageToken : PageModuleToken<RegistrationPageModule> {

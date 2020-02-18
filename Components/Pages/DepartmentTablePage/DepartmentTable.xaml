@@ -1,0 +1,57 @@
+﻿<departmentTablePage:DepartmentTableBase x:Class="TeacherAssistant.Pages.DepartmentTablePage.DepartmentTable"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                     xmlns:departmentTablePage="clr-namespace:TeacherAssistant.Pages.DepartmentTablePage"
+                     mc:Ignorable="d"
+                     d:DesignHeight="450" d:DesignWidth="800"
+                     d:DataContext="{d:DesignInstance departmentTablePage:DepartmentTableModel}">
+    <UserControl.Resources>
+        <ContextMenu x:Key="lwMenu">
+            <ContextMenu.Items>
+                <MenuItem
+                    Header="{Binding DataContext.Localization[Открыть], RelativeSource={RelativeSource FindAncestor, AncestorType=departmentTablePage:DepartmentTable, AncestorLevel=1}}"
+                    Command="{Binding Path=DataContext.ShowMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=departmentTablePage:DepartmentTable, AncestorLevel=1}}" />
+                <MenuItem
+                    Header="{Binding DataContext.Localization[Удалить], RelativeSource={RelativeSource FindAncestor, AncestorType=departmentTablePage:DepartmentTable, AncestorLevel=1}}"
+                    Command="{Binding Path=DataContext.DeleteMenuButtonConfig.Command, RelativeSource={RelativeSource FindAncestor, AncestorType=departmentTablePage:DepartmentTable, AncestorLevel=1}}" />
+            </ContextMenu.Items>
+        </ContextMenu>
+        <Style x:Key="AddContextMenu" TargetType="{x:Type ListViewItem}">
+            <Setter Property="ContextMenu" Value="{StaticResource lwMenu}" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid Name="ResizeHandler" Visibility="Hidden">
+            <Grid.ColumnDefinitions>
+                <!--Width is bound to width of the first GridViewColumn -->
+                <ColumnDefinition Width="{Binding ElementName=NameColumn, Path=ActualWidth}" />
+                <!--Width is set to "Fill"-->
+                <ColumnDefinition Width="*" />
+                <!--Correction Width-->
+                <ColumnDefinition Width="10" />
+            </Grid.ColumnDefinitions>
+            <!--This is the hidden helper Field which is used to bind to, using the "Fill" column of the helper grid-->
+            <Grid Grid.Column="1" x:Name="DescriptionColumn" />
+        </Grid>
+        <ListView ItemContainerStyle="{StaticResource AddContextMenu}" Name="Departments"
+                  ItemsSource="{Binding Path=Departments}" SelectedItem="{Binding Path=SelectedDepartment}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn x:Name="NameColumn" DisplayMemberBinding="{Binding Path=Name}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Имя" Tag="Name" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="{Binding Path=ActualWidth, ElementName=DescriptionColumn}"
+                                    DisplayMemberBinding="{Binding Path=Abbreviation}">
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Аббревиатура" Tag="Abbreviation" />
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</departmentTablePage:DepartmentTableBase>

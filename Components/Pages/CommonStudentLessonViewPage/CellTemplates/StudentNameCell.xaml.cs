@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using Model.Models;
 using TeacherAssistant.Components;
+using TeacherAssistant.Services;
 using TeacherAssistant.StudentViewPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates

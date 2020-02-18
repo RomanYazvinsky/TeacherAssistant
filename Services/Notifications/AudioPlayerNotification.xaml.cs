@@ -7,7 +7,7 @@ using TeacherAssistant.ComponentsImpl;
 using ToastNotifications;
 using ToastNotifications.Core;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.Notifications {
     public static class AudioNotificationProvider {
         public static void ShowAudioNotification(this Notifier notifier, IWavePlayer audio) {
             notifier.Notify(() => new AudioPlayerNotificationModel(audio));

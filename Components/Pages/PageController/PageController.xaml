@@ -1,24 +1,23 @@
 ﻿<local:PageControllerBase x:Class="TeacherAssistant.Pages.PageController"
-          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-          xmlns:local="clr-namespace:TeacherAssistant.Pages"
-          xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
-          xmlns:pages="clr-namespace:TeacherAssistant.Pages"
-          mc:Ignorable="d"
-          d:DesignHeight="450" d:DesignWidth="800"
-          d:DataContext="{d:DesignInstance local:PageControllerModel}">
+                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                          xmlns:local="clr-namespace:TeacherAssistant.Pages"
+                          xmlns:pages="clr-namespace:TeacherAssistant.Pages"
+                          mc:Ignorable="d"
+                          d:DesignHeight="450" d:DesignWidth="800"
+                          d:DataContext="{d:DesignInstance local:PageControllerModel}">
     <pages:PageControllerBase.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
         <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MaterialDesignMenuItem}">
-            <Setter Property="FontSize" Value="12"></Setter>
+            <Setter Property="FontSize" Value="12" />
             <Style.Triggers>
                 <Trigger Property="Role" Value="TopLevelHeader">
-                    <Setter Property="Height" Value="20"></Setter>
+                    <Setter Property="Height" Value="20" />
                 </Trigger>
                 <Trigger Property="Role" Value="TopLevelItem">
-                    <Setter Property="Height" Value="20"></Setter>
+                    <Setter Property="Height" Value="20" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -35,33 +34,35 @@
                    Grid.Row="0"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Top"
-                   Visibility="{Binding Path=MenuVisibility, Converter={StaticResource BooleanToVisibility}}"
-                   >
+                   Visibility="{Binding Path=MenuVisibility, Converter={StaticResource BooleanToVisibility}}">
             <Menu DockPanel.Dock="Left">
                 <Menu.Resources>
                 </Menu.Resources>
                 <MenuItem Header="Файл">
-                    <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialog}" />
+                    <MenuItem Header="Выбрать базу данных" Command="{Binding Path=OpenSelectDatabaseDialogHandler}" />
                     <MenuItem Header="{Binding ReaderMenuText}" Command="{Binding Path=ToggleCardReaderHandler}" />
                     <MenuItem Header="Сделать резервную копию" Command="{Binding Path=CreateBackupHandler}" />
                     <!-- <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" /> -->
                     <!-- <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" /> -->
                 </MenuItem>
-                <MenuItem Header="Расписание" Command="{Binding Path=OpenSchedule}" />
-                <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTable}" />
-                <MenuItem Header="Группы" Command="{Binding Path=OpenGroupsTable}" />
-                <MenuItem Header="Потоки" Command="{Binding Path=OpenStreamsTable}" >
-                     </MenuItem>
+                <MenuItem Header="Показать">
+                    <MenuItem Header="Дисциплины" Command="{Binding Path=OpenDisciplinesTableHandler}" />
+                    <MenuItem Header="Факультеты" Command="{Binding Path=OpenDepartmentsTableHandler}" />
+                    <MenuItem Header="Расписание" Command="{Binding Path=OpenScheduleHandler}" />
+                    <MenuItem Header="Студенты" Command="{Binding Path=OpenStudentsTableHandler}" />
+                    <MenuItem Header="Группы" Command="{Binding Path=OpenGroupsTableHandler}" />
+                    <MenuItem Header="Потоки" Command="{Binding Path=OpenStreamsTableHandler}" />
+                </MenuItem>
                 <MenuItem Header="Добавить">
-                    <MenuItem Header="Студент" Command="{Binding Path=OpenAddStudentForm}" />
-                    <MenuItem Header="Группа" Command="{Binding Path=OpenAddGroupForm}" />
-                    <MenuItem Header="Поток" Command="{Binding Path=OpenAddStreamForm}" />
-                    <MenuItem Header="Дисциплина" />
-                    <MenuItem Header="Факультет" />
-                    <MenuItem Header="Занятие" Command="{Binding Path=OpenAddLessonForm}" />
+                    <MenuItem Header="Студент" Command="{Binding Path=OpenAddStudentFormHandler}" />
+                    <MenuItem Header="Группа" Command="{Binding Path=OpenAddGroupFormHandler}" />
+                    <MenuItem Header="Поток" Command="{Binding Path=OpenAddStreamFormHandler}" />
+                    <MenuItem Header="Дисциплина" Command="{Binding Path=OpenAddDisciplineFormHandler}"/>
+                    <MenuItem Header="Факультет" Command="{Binding Path=OpenAddDepartmentFormHandler}"/>
+                    <MenuItem Header="Занятие" Command="{Binding Path=OpenAddLessonFormHandler}" />
                 </MenuItem>
             </Menu>
-            <Menu DockPanel.Dock="Right" ItemsSource="{Binding Path=CurrentControls}"></Menu>
+            <Menu DockPanel.Dock="Right" ItemsSource="{Binding Path=CurrentControls}" />
         </DockPanel>
         <ContentPresenter Grid.Row="1" Content="{Binding CentralControl}" />
     </Grid>

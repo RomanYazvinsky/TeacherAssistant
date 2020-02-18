@@ -2,6 +2,7 @@
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.StreamForm {
     public class StreamFormToken : PageModuleToken<StreamFromModule> {

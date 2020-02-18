@@ -2,6 +2,8 @@
 using Grace.DependencyInjection;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Components.Tabs {
     public class TabControllerToken : PageModuleToken<TabControllerModule> {

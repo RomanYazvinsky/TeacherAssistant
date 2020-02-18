@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
@@ -13,10 +14,11 @@ using EntityFramework.Rx;
 using FontAwesome5;
 using ReactiveUI;
 using ReactiveUI.Validation.Helpers;
+using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Database;
 using TeacherAssistant.State;
 
-namespace TeacherAssistant.ComponentsImpl {
+namespace TeacherAssistant.PageBase {
 
     public abstract class AbstractModel<TSelf> : ReactiveValidationObject<TSelf>, IDisposable, IActivatableViewModel
     {
@@ -24,6 +26,7 @@ namespace TeacherAssistant.ComponentsImpl {
 
         public static LocalizationContainer Localization { get; } = LocalizationContainer.Localization;
         protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
+        protected Subject<Unit> DestroySubject { get; } = new Subject<Unit>();
 
         public ViewModelActivator Activator { get; }
         private readonly string _uniqueKey = IdGenerator.GenerateId();
@@ -63,7 +66,7 @@ namespace TeacherAssistant.ComponentsImpl {
 
         protected IObservable<IEnumerable<T>> WhenAdded<T>() where T : class
         {
-            var observable = DbObservable<LocalDbContext>.FromInserted<T>()
+            var observable = DbObservable<T, LocalDbContext>.FromInserted()
                 .TakeUntil(this.Activator.Deactivated)
                 .Select(entry => entry.Entity);
             var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
@@ -71,7 +74,7 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         protected IObservable<IEnumerable<T>> WhenRemoved<T>() where T : class {
-            var observable = DbObservable<LocalDbContext>.FromDeleted<T>()
+            var observable = DbObservable<T, LocalDbContext>.FromDeleted()
                 .TakeUntil(this.Activator.Deactivated)
                 .Select(entry => entry.Entity);
             var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
@@ -79,7 +82,7 @@ namespace TeacherAssistant.ComponentsImpl {
         }
 
         protected IObservable<IEnumerable<T>> WhenUpdated<T>() where T : class {
-            var observable = DbObservable<LocalDbContext>.FromUpdated<T>()
+            var observable = DbObservable<T, LocalDbContext>.FromUpdated()
                 .TakeUntil(this.Activator.Deactivated)
                 .Select(entry => entry.Entity);
             var throttle = observable.Throttle(TimeSpan.FromMilliseconds(BufferizationTime));
@@ -95,6 +98,8 @@ namespace TeacherAssistant.ComponentsImpl {
 
         public virtual void Dispose() {
             RefreshSubject.OnCompleted();
+            this.DestroySubject.OnNext(Unit.Default);
+            this.DestroySubject.Dispose();
             this.Activator.Dispose();
             foreach (var keyValuePair in Localization.Where(pair => pair.Key.EndsWith(_uniqueKey))) {
                 Localization.Remove(keyValuePair.Key);

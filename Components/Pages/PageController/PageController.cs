@@ -1,4 +1,5 @@
 ﻿using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Pages {
     public class PageControllerBase : View<PageControllerToken, PageControllerModel> {

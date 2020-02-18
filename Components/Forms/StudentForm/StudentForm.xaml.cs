@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.StudentForm {
     public class StudentFormToken : PageModuleToken<StudentFormModule> {

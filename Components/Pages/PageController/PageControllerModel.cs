@@ -22,14 +22,21 @@ using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Forms.DepartmentForm;
+using TeacherAssistant.Forms.DisciplineForm;
 using TeacherAssistant.Forms.GroupForm;
 using TeacherAssistant.Forms.StreamForm;
-using TeacherAssistant.GroupTable;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Pages.DepartmentTablePage;
+using TeacherAssistant.Pages.DisciplineTablePage;
+using TeacherAssistant.Pages.GroupTablePage;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.Pages.SettingsPage;
 using TeacherAssistant.Properties;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.Services;
 using TeacherAssistant.State;
 using TeacherAssistant.StreamTable;
 using TeacherAssistant.StudentForm;
@@ -99,18 +106,22 @@ namespace TeacherAssistant.Pages {
         }
 
         private void InitHandlers() {
-            this.OpenSchedule = new CommandHandler(OpenSchedulePage);
-            this.OpenStudentsTable = new CommandHandler(Students_Click);
-            this.OpenGroupsTable = new CommandHandler(Groups_Click);
-            this.OpenStreamsTable = new CommandHandler(OpenStreams);
-            this.OpenSelectPhotoDirectoryDialog = new CommandHandler(SelectPhotoDir_Click);
-            this.OpenSelectDatabaseDialog = new CommandHandler(SelectDatabase_Click);
-            this.OpenSettings = new CommandHandler(OpenSettingsClick);
-            this.OpenAddStudentForm = new CommandHandler(AddStudent_Click);
-            this.OpenAddLessonForm = new CommandHandler(AddLesson_Click);
-            this.OpenAddGroupForm = new CommandHandler(AddGroup_Click);
-            this.OpenAddStreamForm = new CommandHandler(AddStreamHandler);
+            this.OpenScheduleHandler = new CommandHandler(OpenSchedulePage);
+            this.OpenStudentsTableHandler = new CommandHandler(Students_Click);
+            this.OpenGroupsTableHandler = new CommandHandler(Groups_Click);
+            this.OpenStreamsTableHandler = new CommandHandler(OpenStreams);
+            this.OpenDepartmentsTableHandler = new CommandHandler(OpenDepartments);
+            this.OpenSelectPhotoDirectoryDialogHandler = new CommandHandler(SelectPhotoDir_Click);
+            this.OpenSelectDatabaseDialogHandler = new CommandHandler(SelectDatabase_Click);
+            this.OpenSettingsHandler = new CommandHandler(OpenSettingsClick);
+            this.OpenAddStudentFormHandler = new CommandHandler(AddStudent_Click);
+            this.OpenAddLessonFormHandler = new CommandHandler(AddLesson_Click);
+            this.OpenAddGroupFormHandler = new CommandHandler(AddGroup_Click);
+            this.OpenAddStreamFormHandler = new CommandHandler(AddStream);
+            this.OpenAddDisciplineFormHandler = new CommandHandler(AddDiscipline);
+            this.OpenAddDepartmentFormHandler = new CommandHandler(AddDepartment);
             this.ToggleCardReaderHandler = ReactiveCommand.Create(ToggleCardReader);
+            this.OpenDisciplinesTableHandler = ReactiveCommand.Create(OpenDisciplines);
             this.CreateBackupHandler = ReactiveCommand.Create(() => _databaseBackupService.BackupDatabase());
         }
 
@@ -171,19 +182,23 @@ namespace TeacherAssistant.Pages {
 
         [Reactive] public string ReaderMenuText { get; set; }
 
-        public ICommand OpenSchedule { get; set; }
-        public ICommand OpenStudentsTable { get; set; }
-        public ICommand OpenGroupsTable { get; set; }
-        public ICommand OpenStreamsTable { get; set; }
-        public ICommand OpenSelectPhotoDirectoryDialog { get; set; }
-        public ICommand OpenSelectDatabaseDialog { get; set; }
+        public ICommand OpenScheduleHandler { get; set; }
+        public ICommand OpenStudentsTableHandler { get; set; }
+        public ICommand OpenGroupsTableHandler { get; set; }
+        public ICommand OpenStreamsTableHandler { get; set; }
+        public ICommand OpenDisciplinesTableHandler { get; set; }
+        public ICommand OpenDepartmentsTableHandler { get; set; }
+        public ICommand OpenSelectPhotoDirectoryDialogHandler { get; set; }
+        public ICommand OpenSelectDatabaseDialogHandler { get; set; }
         public ICommand ToggleCardReaderHandler { get; set; }
         public ICommand CreateBackupHandler { get; set; }
-        public ICommand OpenSettings { get; set; }
-        public ICommand OpenAddStudentForm { get; set; }
-        public ICommand OpenAddLessonForm { get; set; }
-        public ICommand OpenAddStreamForm { get; set; }
-        public ICommand OpenAddGroupForm { get; set; }
+        public ICommand OpenSettingsHandler { get; set; }
+        public ICommand OpenAddStudentFormHandler { get; set; }
+        public ICommand OpenAddLessonFormHandler { get; set; }
+        public ICommand OpenAddStreamFormHandler { get; set; }
+        public ICommand OpenAddDisciplineFormHandler { get; set; }
+        public ICommand OpenAddDepartmentFormHandler { get; set; }
+        public ICommand OpenAddGroupFormHandler { get; set; }
         [Reactive] public bool MenuVisibility { get; set; }
 
         public ObservableCollection<MenuItem> CurrentControls { get; set; } =
@@ -235,6 +250,12 @@ namespace TeacherAssistant.Pages {
         private void OpenStreams() {
             _host.AddPageAsync(new StreamTableToken("Потоки"));
         }
+        private void OpenDisciplines() {
+            _host.AddPageAsync(new DisciplineTableToken("Дисциплины"));
+        }
+        private void OpenDepartments() {
+            _host.AddPageAsync(new DepartmentTableToken("Дисциплины"));
+        }
 
         private void SelectPhotoDir_Click() {
             using (var dlg = new FolderBrowserDialog()) {
@@ -259,8 +280,14 @@ namespace TeacherAssistant.Pages {
             _windowPageHost.AddPageAsync(new GroupFormToken("Добавить группу", new GroupEntity()));
         }
 
-        private void AddStreamHandler() {
+        private void AddStream() {
             _windowPageHost.AddPageAsync(new StreamFormToken("Добавить поток", new StreamEntity()));
+        }
+        private void AddDiscipline() {
+            _windowPageHost.AddPageAsync(new DisciplineFormToken("Дисциплина"));
+        }
+        private void AddDepartment() {
+            _windowPageHost.AddPageAsync(new DepartmentFormToken("Дисциплина"));
         }
 
         private void OpenSettingsClick() {

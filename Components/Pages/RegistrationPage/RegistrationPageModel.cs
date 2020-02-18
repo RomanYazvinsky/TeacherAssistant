@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -17,19 +18,19 @@ using DynamicData;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
-using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Dao.ViewModels;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.Services;
 using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
 
@@ -255,7 +256,13 @@ namespace TeacherAssistant.RegistrationPage {
                 }
             };
             Init(token.Lesson);
-            reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
+            GetControls()
+                .ToObservable()
+                .TakeUntil(DestroySubject)
+                .Subscribe(controls =>
+            {
+                reducer.Dispatch(new RegisterControlsAction(token, controls));
+            });
         }
 
         private async void Init(LessonEntity lesson) {
@@ -373,12 +380,29 @@ namespace TeacherAssistant.RegistrationPage {
         [Reactive] public string TimerString { get; set; }
 
 
-        private List<ButtonConfig> GetControls() {
-            var buttonConfigs = new List<ButtonConfig> {
-                GetRefreshButtonConfig()
-            };
-            buttonConfigs.Add(new ButtonConfig {
-                Command = new CommandHandler(() => {
+        private async Task<List<ButtonConfig>> GetControls() {
+            var buttonConfigs = new List<ButtonConfig>();
+            var nextLesson = (await _db.Lessons.Where(lesson => lesson._Date != null
+                                                               && lesson.Schedule != null
+                                                               && lesson._Date.Equals(this.Lesson._Date))
+                .ToListAsync())
+                .OrderBy(lesson => lesson.Schedule.Begin)
+                .FirstOrDefault(lesson => lesson.Schedule.Begin > this.Lesson.Schedule.Begin);
+            if (nextLesson != null)
+            {
+                buttonConfigs.Add(new ButtonConfig
+                {
+                    Command = ReactiveCommand.Create(() =>
+                    {
+                        _tabPageHost.AddPageAsync(new RegistrationPageToken("Регистрация", nextLesson));
+                    }),
+                    Text = "Следующее занятие",
+                });
+            }
+            buttonConfigs.Add(new ButtonConfig
+            {
+                Command = ReactiveCommand.Create(() =>
+                {
                     var title = this.Lesson.Group == null
                         ? this.Lesson.Stream.Name
                         : this.Lesson.Group.Name + " " +
@@ -389,14 +413,12 @@ namespace TeacherAssistant.RegistrationPage {
                 }),
                 Text = "Занятие 1"
             });
-            buttonConfigs.Add(new ButtonConfig {
+            buttonConfigs.Add(new ButtonConfig
+            {
                 Command = ReactiveCommand.Create(() =>
                     _windowPageHost.AddPageAsync(new NoteListFormToken(
                         "Заметки",
-                        () => new LessonNote {
-                            Lesson = Lesson,
-                            EntityId = Lesson.Id
-                        },
+                        () => new LessonNote {Lesson = Lesson, EntityId = Lesson.Id},
                         Lesson.Notes
                     ))
                 ),

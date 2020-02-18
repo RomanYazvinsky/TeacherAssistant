@@ -20,6 +20,7 @@ using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.State;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {

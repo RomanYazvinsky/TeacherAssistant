@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Reactive.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Model;
 using NAudio.Wave;
+using TeacherAssistant.Notifications;
 using ToastNotifications;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.Services {
     public class AudioService {
         private readonly Notifier _notifier;
 

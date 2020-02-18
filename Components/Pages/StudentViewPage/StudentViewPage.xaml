@@ -8,6 +8,7 @@
     xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
     xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     mc:Ignorable="d"
     d:DesignHeight="450" d:DesignWidth="800"
     d:DataContext="{d:DesignInstance local:StudentViewPageModel }"
@@ -22,6 +23,10 @@
                         <Setter Property="VerticalAlignment" Value="Top" />
                         <Setter Property="HorizontalAlignment" Value="Left" />
                         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+                    </Style>
+                    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+                        <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush"
+                                Value="{DynamicResource SecondaryAccentBrush}" />
                     </Style>
                     <Style x:Key="StudentName" TargetType="TextBox" BasedOn="{StaticResource StudentData}">
                         <Setter Property="FontSize" Value="25" />
@@ -49,7 +54,7 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />

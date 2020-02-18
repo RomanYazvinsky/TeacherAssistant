@@ -114,6 +114,7 @@ namespace Model.Models {
         public sealed override void Apply(LessonEntity trackable) {
             this.Id = trackable.Id;
             this.Group = trackable.Group;
+            this._GroupId = trackable._GroupId;
             this.Checked = trackable.Checked;
             this.CreationDate = trackable.CreationDate;
             this.Date = trackable.Date;
@@ -122,7 +123,9 @@ namespace Model.Models {
             this.StudentLessons = trackable.StudentLessons;
             this.Name = trackable.Name;
             this.Schedule = trackable.Schedule;
+            this._ScheduleId = trackable._ScheduleId;
             this.Stream = trackable.Stream;
+            this._StreamId = trackable._StreamId;
             this._Order = trackable._Order;
             this.Notes = trackable.Notes;
         }

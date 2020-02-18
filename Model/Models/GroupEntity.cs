@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using JetBrains.Annotations;
 using TeacherAssistant.Dao;
+using TeacherAssistant.Models;
 
 namespace Model.Models {
     [Table("GROUP")]

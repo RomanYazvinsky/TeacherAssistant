@@ -19,9 +19,12 @@ using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.ComponentsImpl.SchedulePage
 {

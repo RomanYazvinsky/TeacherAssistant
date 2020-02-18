@@ -2,24 +2,27 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using EntityFramework.Rx;
+using EntityFramework.Triggers;
 using Grace.DependencyInjection;
 using Model;
 using Model.Models;
-using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
 using TeacherAssistant.Database;
+using TeacherAssistant.Notifications;
+using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages;
 using TeacherAssistant.ReaderPlugin;
+using TeacherAssistant.Services;
+using TeacherAssistant.Services.Paging;
 using ToastNotifications;
 using ToastNotifications.Lifetime;
 using ToastNotifications.Position;
@@ -31,6 +34,7 @@ namespace TeacherAssistant.Modules.MainModule
     public class MainModule : SimpleModule, IDisposable
     {
         private readonly Subject<Unit> _destroySubject = new Subject<Unit>();
+
         public MainModule()
             : base(typeof(WindowPageHost))
         {
@@ -85,13 +89,13 @@ namespace TeacherAssistant.Modules.MainModule
 
         private void ConfigureServices()
         {
-            DbObservable<LocalDbContext>.FromInserted<AlarmEntity>()
-                .Merge( DbObservable<LocalDbContext>.FromDeleted<AlarmEntity>())
-                .Merge( DbObservable<LocalDbContext>.FromUpdated<AlarmEntity>())
+            DbObservable<AlarmEntity, LocalDbContext>.FromInserted()
+                .Merge<IEntry>(DbObservable<AlarmEntity, LocalDbContext>.FromDeleted())
+                .Merge(DbObservable<AlarmEntity, LocalDbContext>.FromUpdated())
                 .Cast<object>()
-                .Merge(DbObservable<LocalDbContext>.FromInserted<LessonEntity>())
-                .Merge(DbObservable<LocalDbContext>.FromUpdated<LessonEntity>())
-                .Merge(DbObservable<LocalDbContext>.FromDeleted<LessonEntity>())
+                .Merge(DbObservable<LessonEntity, LocalDbContext>.FromInserted())
+                .Merge(DbObservable<LessonEntity, LocalDbContext>.FromUpdated())
+                .Merge(DbObservable<LessonEntity, LocalDbContext>.FromDeleted())
                 .TakeUntil(_destroySubject)
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => StartTimer());
@@ -99,14 +103,15 @@ namespace TeacherAssistant.Modules.MainModule
             StartBackupService();
         }
 
-        private void StartBackupService() {
+        private void StartBackupService()
+        {
             var databaseBackupService = this.Injector.Locate<DatabaseBackupService>();
             databaseBackupService.BackupDatabase();
             Observable.Interval(TimeSpan.FromMinutes(5))
                 .TakeUntil(_destroySubject)
                 .Subscribe(_ => databaseBackupService.BackupDatabase());
         }
-        
+
         private void StartTimer()
         {
             var db = Injector.Locate<LocalDbContext>();
@@ -126,8 +131,10 @@ namespace TeacherAssistant.Modules.MainModule
                 .Where(entity => entity.Date?.Date >= now.Date)
                 .Select(entity => new LessonInterval(entity));
             lessonTimerService.CreateSchedule(lessons, alarms);
-            lessonTimerService.OnScheduled.Subscribe(async list => {
-                foreach (var tuple in list) {
+            lessonTimerService.OnScheduled.Subscribe(async list =>
+            {
+                foreach (var tuple in list)
+                {
                     var (lessonInterval, alarmEvent) = tuple;
                     await util.PlayAlarm(alarmEvent.Alarm);
                 }
@@ -146,33 +153,6 @@ namespace TeacherAssistant.Modules.MainModule
             _destroySubject.Dispose();
             Application.Current.Shutdown();
         }
-    }
-
-    public class LessonInterval : IInterval
-    {
-        public LessonInterval(LessonEntity lesson)
-        {
-            Lesson = lesson;
-            this.StartDateTime = (lesson.Date ?? default) + lesson.Schedule?.Begin ?? default;
-            this.EndDateTime = (lesson.Date ?? default) + lesson.Schedule?.End ?? default;
-        }
-
-        public LessonEntity Lesson { get; }
-        public DateTime StartDateTime { get; }
-        public DateTime EndDateTime { get; }
-    }
-
-    public class AlarmEvent : IIntervalEvent
-    {
-        public AlarmEvent(AlarmEntity alarm)
-        {
-            this.Alarm = alarm;
-            this.TimeDiff = alarm.SinceLessonStart ?? default;
-        }
-
-        public AlarmEntity Alarm { get; }
-        public StartPoint RelativelyTo { get; } = StartPoint.Start;
-        public TimeSpan TimeDiff { get; }
     }
 
     public class SetFullscreenModeAction : ModuleScopeAction

@@ -23,14 +23,21 @@ using TeacherAssistant.Dao;
 using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages;
 using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Services;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageModel : AbstractModel<StudentViewPageModel> {
         private const string LocalizationKey = "page.student.view";
+        public const int MinAcceptableMark = 0;
+        public const int MaxAcceptableMark = 10;
+        public const double AttestationCoeff = 0.4;
+        public const double ExamCoeff = 0.6;
         private readonly TabPageHost _host;
         private readonly WindowPageHost _windowPageHost;
         private readonly PhotoService _photoService;
@@ -207,7 +214,11 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         private void Initialize([NotNull] StudentEntity student) {
-            this.Student = _context.Students.Find(student.Id) ?? student;
+            this.Student = _context.Students
+                               .Include(st => st.Groups)
+                               .Include(st => st.Notes)
+                               .Include(st => st.StudentLessons)
+                               .FirstOrDefault(s => s.Id == student.Id) ?? student;
             this.Groups = string.Join(", ", student.Groups?.Select(group => group.Name) ?? new string[] { });
             this.StudentGroups.Clear();
             this.StudentGroups.AddRange(student.Groups);
@@ -280,10 +291,10 @@ namespace TeacherAssistant.StudentViewPage {
         public ICommand OpenStudentLessonHandler { get; set; }
 
         private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student) {
-            var studentGroupsIds = student.Groups?.Select(group => group.Id).AsEnumerable() ?? new List<long>();
+            var studentGroupsIds = student.Groups?.Select(group => group.Id).ToList() ?? new List<long>();
             return _context.StudentLessons
                 .Where(studentLesson => studentLesson.Student.Id == student.Id)
-                .Where(studentLesson => studentLesson.Lesson._GroupId > 0
+                .Where(studentLesson => studentLesson.Lesson._GroupId != default
                     ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
                     : studentLesson.Lesson.Stream.Groups.All(
                         group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
@@ -353,33 +364,32 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         public void UpdateExamMark() {
-            var attestationClearCount = 0;
-            var attestationSum = this.StudentAttestations.Aggregate
-            (
-                0.0,
-                (markSum, view) => {
-                    if (!int.TryParse(view.Mark, out var i))
-                        return markSum;
-                    attestationClearCount++;
-                    return markSum + i;
+            var attestationAvg = this.StudentAttestations.Select(view =>
+            {
+                if (!int.TryParse(view.Mark, out var i) || i < MinAcceptableMark || i > MaxAcceptableMark)
+                {
+                    return -1;
                 }
-            );
-            this.ResultAttestationMark = attestationClearCount > 0
-                ? (attestationSum / attestationClearCount).ToString
-                (
-                    CultureInfo.InvariantCulture
-                )
+
+                return i;
+            })
+                .Where(i => i != -1)
+                .DefaultIfEmpty(-1)
+                .Average();
+            this.ResultAttestationMark = attestationAvg >= 0 ? attestationAvg.ToString()
                 : "";
 
             var exam = this.StudentExams.FirstOrDefault();
             if (exam == null)
                 return;
             if (int.TryParse(exam.Mark, out var mark))
+            {
                 this.ResultMark =
-                    (attestationClearCount > 0
-                        ? Math.Round(mark * 0.6 + attestationSum * 0.4 / attestationClearCount)
+                    (attestationAvg >= 0
+                        ? Math.Round(mark * ExamCoeff + attestationAvg * AttestationCoeff)
                         : mark)
                     .ToString(CultureInfo.InvariantCulture);
+            }
             else
                 this.ResultMark = exam.Mark;
         }

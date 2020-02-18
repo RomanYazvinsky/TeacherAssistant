@@ -10,6 +10,7 @@ using Grace.DependencyInjection;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class TableLessonViewToken : PageModuleToken<TableLessonViewModule> {

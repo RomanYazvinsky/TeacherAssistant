@@ -4,6 +4,7 @@ using ReactiveUI;
 using Splat;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.Pages.SettingsPage.Views;
 
 namespace TeacherAssistant.Pages.SettingsPage {

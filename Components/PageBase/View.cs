@@ -2,7 +2,7 @@
 using ReactiveUI;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant.ComponentsImpl {
+namespace TeacherAssistant.PageBase {
     public interface IView : IViewFor {
         IModuleToken ModuleToken { get; }
     }

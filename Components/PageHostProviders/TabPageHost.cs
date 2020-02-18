@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
-using TeacherAssistant.Components;
+using System.Windows.Threading;
 using TeacherAssistant.Core.Module;
-using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
+using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant {
     class TabSubscriptionContainer : IDisposable {

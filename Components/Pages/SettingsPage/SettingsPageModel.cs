@@ -12,6 +12,8 @@ using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.Services;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel<SettingsPageModel> {

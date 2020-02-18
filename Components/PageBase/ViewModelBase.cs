@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace TeacherAssistant
+namespace TeacherAssistant.PageBase
 {
     public abstract class ViewModelBase: INotifyPropertyChanged
     {

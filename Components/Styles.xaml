@@ -2,44 +2,28 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:markup="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
-    <Style x:Key="Placeholder" TargetType="{markup:Type TextBox}" BasedOn="{StaticResource {markup:Type TextBox}}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{markup:Type TextBox}">
-                    <Grid>
-                        <TextBox
-                            Text="{Binding Path=Text,
-                                                RelativeSource={RelativeSource TemplatedParent},
-                                                Mode=TwoWay,
-                                                UpdateSourceTrigger=PropertyChanged}"
-                            x:Name="textSource"
-                            Background="Transparent"
-                            Panel.ZIndex="2" />
-                        <TextBox Text="{TemplateBinding Tag}" Background="{TemplateBinding Background}"
-                                 Panel.ZIndex="1">
-                            <TextBox.Style>
-                                <Style TargetType="{markup:Type TextBox}">
-                                    <Setter Property="Foreground" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger
-                                            Binding="{Binding Path=Text, Source={markup:Reference textSource}}"
-                                            Value="">
-                                            <Setter Property="Foreground" Value="LightGray" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-                    </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
+        <Setter Property="materialDesign:ValidationAssist.Background" Value="Transparent" />
+        <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderThickness" Value="1, 1, 1, 0"/>
+            </Trigger>
+        </Style.Triggers>
+        <Style.Resources>
+            <Style TargetType="{x:Type Border}">
+                <Setter Property="Margin" Value="0, -2" />
+            </Style>
+            <Style TargetType="{x:Type materialDesign:Underline}">
+                <Setter Property="Margin" Value="0, 0, 0, -2" />
+            </Style>
+        </Style.Resources>
     </Style>
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
     </Style>
     <Style x:Key="LabelLike" TargetType="TextBox" BasedOn="{x:Null}">
         <Setter Property="IsReadOnly" Value="True" />

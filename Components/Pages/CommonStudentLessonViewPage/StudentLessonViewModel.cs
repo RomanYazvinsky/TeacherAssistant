@@ -8,6 +8,9 @@ using ReactiveUI;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.Services;
+using TeacherAssistant.Services.Paging;
 using TeacherAssistant.StudentViewPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {

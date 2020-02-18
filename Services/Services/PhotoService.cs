@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using System.Linq;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json.Linq;
 using static System.IO.Directory;
 
-namespace TeacherAssistant.Components
+namespace TeacherAssistant.Services
 {
     public class PhotoService
     {

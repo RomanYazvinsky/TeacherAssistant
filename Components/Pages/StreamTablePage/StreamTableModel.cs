@@ -15,6 +15,9 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.StreamForm;
+using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.StreamTable {
     public class StreamTableModel : AbstractModel<StreamTableModel> {

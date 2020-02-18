@@ -13,10 +13,9 @@ using JetBrains.Annotations;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.Utils;
 
@@ -171,11 +170,10 @@ namespace TeacherAssistant.Pages.LessonForm {
             if (!this.IsGroupsAvailable) {
                 this.Lesson.Group = null;
             }
-
             _originalEntity.Apply(this.Lesson);
+            _db.SetLessonOrder(_originalEntity);
             if (this.Lesson.Id == default) {
                 _originalEntity.CreationDate = DateTime.Now;
-                _db.SetLessonOrder(_originalEntity);
                 _db.Lessons.Add(_originalEntity);
             }
 

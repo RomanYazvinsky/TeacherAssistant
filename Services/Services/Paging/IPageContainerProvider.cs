@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant.Components {
+namespace TeacherAssistant.Services.Paging {
 
     public enum PageHostType {
         Tab,

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using TeacherAssistant.Components;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Modules.MainModule;
+using TeacherAssistant.Services.Paging;
 
-namespace TeacherAssistant {
+namespace TeacherAssistant.PageHostProviders {
     class ModuleDestroyEventArgs : EventArgs {
         public ModuleDestroyEventArgs(Control container, IModuleToken token) {
             Container = container;

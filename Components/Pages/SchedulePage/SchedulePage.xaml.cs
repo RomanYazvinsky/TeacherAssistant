@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.ComponentsImpl.SchedulePage {
     public class ScheduleToken : PageModuleToken<ScheduleModule> {

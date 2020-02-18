@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using Grace.DependencyInjection;
-using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
-namespace TeacherAssistant.GroupTable {
+namespace TeacherAssistant.Pages.GroupTablePage {
     public class GroupTableToken : PageModuleToken<GroupTableModule> {
         public GroupTableToken(string title) :
             base(title) {

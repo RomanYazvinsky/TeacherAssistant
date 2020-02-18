@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.NoteForm {
     public class NoteListFormToken : PageModuleToken<NoteListFormModule> {

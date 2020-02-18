@@ -6,7 +6,9 @@ using ReactiveUI;
 using TeacherAssistant.Components;
 using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.PageBase;
 using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class StudentLessonMarkViewModel : ViewModelBase {

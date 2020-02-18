@@ -32,6 +32,7 @@ namespace TeacherAssistant {
     /// </summary>
     public partial class App : Application {
         private IInjectionScope _container;
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         protected override void OnStartup(StartupEventArgs e) {
             base.OnStartup(e);
@@ -63,11 +64,10 @@ namespace TeacherAssistant {
             mainModule.GetEntryComponent();
         }
 
-        private async Task<bool> ConnectDatabase(IInjectionScope scope, string path) {
+        private async Task<bool> ConnectDatabase(ILocatorService scope, string path) {
             var databaseManager = scope.Locate<DatabaseManager>();
             try {
                 await databaseManager.Connect(path);
-                scope.Configure(block => block.ExportFactory(() => databaseManager.Context).ExternallyOwned());
                 return true;
             }
             catch (Exception) {
@@ -75,14 +75,14 @@ namespace TeacherAssistant {
             }
         }
 
-        private bool CreateDatabase(IInjectionScope scope) {
+        private bool CreateDatabase(ILocatorService scope) {
             var databaseManager = scope.Locate<DatabaseManager>();
             try {
                 databaseManager.CreateAndConnectNewDatabase("./db.s3db");
-                scope.Configure(block => block.ExportFactory(() => databaseManager.Context).ExternallyOwned());
                 return true;
             }
-            catch (Exception) {
+            catch (Exception e) {
+                Logger.Log(LogLevel.Error, e);
                 return false;
             }
         }

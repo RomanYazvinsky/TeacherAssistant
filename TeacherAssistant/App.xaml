@@ -22,9 +22,8 @@
                 <ResourceDictionary>
                     <ResourceDictionary.MergedDictionaries>
                         <ResourceDictionary
-                            Source="pack://application:,,,/MaterialDesignColors;component/Themes/materialdesigncolor.red.accent.xaml" />
+                            Source="pack://application:,,,/MaterialDesignColors;component/Themes/materialdesigncolor.orange.accent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
-
                     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource Accent200}" />
                     <SolidColorBrush x:Key="SecondaryAccentForegroundBrush"
                                      Color="{StaticResource Accent200Foreground}" />
@@ -38,7 +37,6 @@
                 <ResourceDictionary Source="pack://application:,,,/Dragablz;component/Themes/materialdesign.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/TeacherAssistant.Components;component/Styles.xaml" />
-                <!-- <ResourceDictionary Source="pack://application:,,,/Dragablz;component/Themes/Generic.xaml" /> -->
                 <ResourceDictionary
                     Source="pack://application:,,,/TeacherAssistant.Components;component/Components/Label/LabelTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
