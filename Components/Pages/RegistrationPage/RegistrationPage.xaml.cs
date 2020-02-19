@@ -60,17 +60,14 @@ namespace TeacherAssistant.RegistrationPage {
                 this.OneWayBind(this.ViewModel, model => model.ActiveStudentInfoVisibility,
                         page => page.StudentPhoto.Visibility)
                     .DisposeWith(action);
-                this.OneWayBind(this.ViewModel, model => model.StudentDescription.LastName,
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.FullName,
                         page => page.LastNameText.Text)
-                    .DisposeWith(action);
-                this.OneWayBind(this.ViewModel, model => model.StudentDescription.FirstName,
-                        page => page.FirstNameText.Text)
-                    .DisposeWith(action);
-                this.OneWayBind(this.ViewModel, model => model.StudentDescription.SecondName,
-                        page => page.SecondNameText.Text)
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.StudentDescription.LessonStat,
                         page => page.LessonStatText.Text)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription.AdditionalLessonsInfo,
+                        page => page.AdditionalLessonCount.Text)
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.StudentDescription.GroupName,
                         page => page.GroupNamesText.Text)

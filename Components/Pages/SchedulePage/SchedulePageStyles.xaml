@@ -4,7 +4,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="../../Components/TableFilter/TableStyle.xaml" />
         <ResourceDictionary>
-            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource CommonComboBoxStyle}">
                 <Setter Property="FontSize" Value="14"></Setter>
             </Style>
             <Style TargetType="label:Label" BasedOn="{StaticResource LabelStyle}">

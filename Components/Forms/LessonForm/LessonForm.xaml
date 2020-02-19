@@ -103,7 +103,7 @@
                       SelectedItem="{Binding SelectedSchedule}" />
         </label:Label>
         <label:Label Grid.Row="8" Text="Описание" Height="60">
-            <TextBox Text="{Binding Description}" AcceptsReturn="True" />
+            <TextBox Text="{Binding Description}" AcceptsReturn="True" Style="{StaticResource CommonTextBoxStyle}"/>
         </label:Label>
         <label:Label Grid.Row="9" Text="Отметить всех как присутствующих">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding SetAllPresent}" />

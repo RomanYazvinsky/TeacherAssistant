@@ -4,7 +4,6 @@
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                 xmlns:local="clr-namespace:TeacherAssistant.Components.TableFilter"
-                xmlns:dd="urn:gong-wpf-dragdrop"
                 mc:Ignorable="d"
                 d:DesignHeight="450" d:DataContext="{d:DesignInstance local:TableFilter}"
                 d:DesignWidth="800" HorizontalAlignment="Stretch">
@@ -18,6 +17,7 @@
         <TextBox
             Grid.Row="0" TextWrapping="Wrap"
             Margin="4px"
+            BorderBrush="{DynamicResource SecondaryAccentBrush}"
             BorderThickness="1"
             Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
             FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}}"

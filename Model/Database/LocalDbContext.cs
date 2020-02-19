@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using EntityFramework.Triggers;
+using JetBrains.Annotations;
 using Model;
 using Model.Models;
 using SQLite.CodeFirst;
@@ -15,10 +17,10 @@ using TeacherAssistant.Models;
 namespace TeacherAssistant.Database {
     public class LocalDbContext : DbContextWithTriggers {
         public const string DatabaseExtension = ".s3db";
-        private readonly Subject<object> _delayedUpdateStart;
+        private readonly Subject<Unit> _delayedUpdateStart;
 
         public LocalDbContext(DbConnection connection) : base(connection,true) {
-            this._delayedUpdateStart = new Subject<object>();
+            this._delayedUpdateStart = new Subject<Unit>();
             this._delayedUpdateStart
                 .Throttle(TimeSpan.FromMilliseconds(5000))
                 .Subscribe(_ => { SaveChanges(); });
@@ -45,7 +47,7 @@ namespace TeacherAssistant.Database {
         public DbSet<ScheduleEntity> Schedules { get; set; }
 
         public void ThrottleSave() {
-            this._delayedUpdateStart.OnNext(0);
+            this._delayedUpdateStart.OnNext(Unit.Default);
         }
 
         public long GetDatabaseVersion() {
@@ -72,6 +74,10 @@ namespace TeacherAssistant.Database {
             StreamEntity stream,
             DateTime until
         ) {
+            if (student.Id == default)
+            {
+                return new List<StudentLessonEntity>();
+            }
             var lessonModels = stream.StreamLessons?.Where
             (
                 lesson =>
@@ -82,7 +88,7 @@ namespace TeacherAssistant.Database {
                     ) ?? false)
                     && lesson.LessonType < LessonType.Attestation
                     && lesson.Date < until
-            ) ??  new List<LessonEntity>();
+            ) ?? new List<LessonEntity>();
             return lessonModels
                 .Select
                 (
@@ -93,6 +99,52 @@ namespace TeacherAssistant.Database {
                 )
                 .Where(studentLesson => studentLesson?.IsLessonMissed ?? false)
                 .ToList();
+        }
+
+        public IQueryable<StudentLessonEntity> GetAdditionalLessonsByGroup([NotNull] StudentEntity student, [NotNull] GroupEntity currentGroup)
+        {
+            if (student.Id == default)
+            {
+                return new List<StudentLessonEntity>().AsQueryable();
+            }
+            return StudentLessons
+                .Where(studentLesson => studentLesson.Student.Id == student.Id)
+                .Where(studentLesson => studentLesson.Lesson._GroupId != default
+                    ? currentGroup.Id != studentLesson.Lesson.Group.Id
+                    : studentLesson.Lesson.Stream.Groups.All(
+                        group => currentGroup.Id != group.Id
+                    ));
+        }
+
+        public IQueryable<StudentLessonEntity> GetAllAdditionalLessons([NotNull] StudentEntity student) {
+            if (student.Id == default)
+            {
+                return new List<StudentLessonEntity>().AsQueryable();
+            }
+            var studentGroupsIds = student.Groups?.Select(group => group.Id).ToList() ?? new List<long>();
+            return StudentLessons
+                .Where(studentLesson => studentLesson.Student.Id == student.Id)
+                .Where(studentLesson => studentLesson.Lesson._GroupId != default
+                    ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
+                    : studentLesson.Lesson.Stream.Groups.All(
+                        group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
+                    ));
+        }
+
+        public IQueryable<StudentLessonEntity> GetAdditionalLessonsByDiscipline([NotNull] StudentEntity student, [NotNull] DisciplineEntity discipline) {
+            if (student.Id == default)
+            {
+                return new List<StudentLessonEntity>().AsQueryable();
+            }
+            var studentGroupsIds = student.Groups?.Select(group => group.Id).ToList() ?? new List<long>();
+            return StudentLessons
+                .Where(studentLesson => studentLesson.Student.Id == student.Id)
+                .Where(studentLesson => studentLesson.Lesson.Stream.Discipline.Id == discipline.Id)
+                .Where(studentLesson => studentLesson.Lesson._GroupId != default
+                    ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
+                    : studentLesson.Lesson.Stream.Groups.All(
+                        group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
+                    ));
         }
 
         public void SetLessonOrder(LessonEntity entity) {

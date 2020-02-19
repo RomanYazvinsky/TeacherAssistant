@@ -2,7 +2,7 @@
 using Model.Models;
 using TeacherAssistant.Services;
 
-namespace TeacherAssistant.Modules.MainModule
+namespace TeacherAssistant
 {
     public class LessonInterval : IInterval
     {

@@ -358,7 +358,6 @@
     <Compile Include="Pages\StudentTablePage\ViewModels\StudentViewModel.cs" />
     <Compile Include="Pages\StudentViewPage\Models\MarkStatistics.cs" />
     <Compile Include="Pages\StudentViewPage\Models\StudentAttestationExamView.cs" />
-    <Compile Include="Pages\StudentViewPage\Models\StudentLessonNoteViewModel.cs" />
     <Compile Include="Pages\StudentViewPage\Models\StudentLessonViewBox.cs" />
     <Compile Include="TemplateBuilder.cs" />
     <Compile Include="Pages\RegistrationPage\RegistrationPage.xaml.cs">
@@ -386,6 +385,7 @@
     <Compile Include="Converters\TypedBooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\TypedValueConverter.cs" />
     <Compile Include="Utils\LambdaHelper.cs" />
+    <Compile Include="ViewModels\StudentLessonNoteViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

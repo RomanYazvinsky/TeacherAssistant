@@ -30,6 +30,7 @@ using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.Services;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.Utils;
+using TeacherAssistant.ViewModels;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageModel : AbstractModel<StudentViewPageModel> {
@@ -100,7 +101,7 @@ namespace TeacherAssistant.StudentViewPage {
                         OnSelectedGroupUpdate(this.SelectedGroup);
                         UpdateExternalLessons(this.Student);
                         UpdateStudentLessonNotes(this.Student);
-                    });
+                    }).DisposeWith(c);
                 this.WhenAdded<StudentNote>()
                     .Merge(this.WhenRemoved<StudentNote>())
                     .Merge(WhenUpdated<StudentNote>())
@@ -290,16 +291,13 @@ namespace TeacherAssistant.StudentViewPage {
         public ICommand OpenExternalLessonHandler { get; set; }
         public ICommand OpenStudentLessonHandler { get; set; }
 
-        private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student) {
-            var studentGroupsIds = student.Groups?.Select(group => group.Id).ToList() ?? new List<long>();
-            return _context.StudentLessons
-                .Where(studentLesson => studentLesson.Student.Id == student.Id)
-                .Where(studentLesson => studentLesson.Lesson._GroupId != default
-                    ? studentGroupsIds.All(studentGroupId => studentGroupId != studentLesson.Lesson.Group.Id)
-                    : studentLesson.Lesson.Stream.Groups.All(
-                        group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
-                    ))
-                .ToList();
+        private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student)
+        {
+            if (SelectedGroup == default)
+            {
+                return _context.GetAllAdditionalLessons(student).ToList();
+            }
+            return _context.GetAdditionalLessonsByGroup(student, SelectedGroup).ToList();
         }
 
         protected override string GetLocalizationKey() {
@@ -339,7 +337,7 @@ namespace TeacherAssistant.StudentViewPage {
             this.AverageMark = (double) sum / allMarkCount;
         }
 
-        public List<ButtonConfig> GetControls() {
+        private List<ButtonConfig> GetControls() {
             var buttonConfigs = new List<ButtonConfig> {
                 GetRefreshButtonConfig(),
                 new ButtonConfig {

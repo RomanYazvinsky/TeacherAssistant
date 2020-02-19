@@ -7,6 +7,7 @@ using System.Reactive.Subjects;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using Containers;
 using EntityFramework.Rx;
 using EntityFramework.Triggers;
 using Grace.DependencyInjection;

@@ -2,14 +2,14 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:markup="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
-    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
+    <Style x:Key="CommonTextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
         <Setter Property="materialDesign:ValidationAssist.Background" Value="Transparent" />
         <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource SecondaryAccentBrush}" />
         <Style.Triggers>
             <Trigger Property="IsKeyboardFocused" Value="True">
-                <Setter Property="BorderThickness" Value="1, 1, 1, 0"/>
+                <Setter Property="BorderThickness" Value="1, 1, 1, 0" />
             </Trigger>
         </Style.Triggers>
         <Style.Resources>
@@ -21,9 +21,20 @@
             </Style>
         </Style.Resources>
     </Style>
-    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
+    <Style x:Key="CommonComboBoxStyle" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
+        <Setter Property="Padding" Value="5, 2" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
+        <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource SecondaryAccentBrush}" />
+        <Style.Resources>
+            <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource MaterialDesignComboBoxItemStyle}">
+                <Setter Property="Margin" Value="10, 2" />
+            </Style>
+        </Style.Resources>
+    </Style>
+    <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource MaterialDesignAccentCheckBox}" />
+    <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource MaterialDesignDatePicker}">
+        <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{DynamicResource SecondaryAccentBrush}" />
     </Style>
     <Style x:Key="LabelLike" TargetType="TextBox" BasedOn="{x:Null}">
         <Setter Property="IsReadOnly" Value="True" />

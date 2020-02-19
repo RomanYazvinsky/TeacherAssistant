@@ -1,4 +1,4 @@
-﻿<Application x:Class="TeacherAssistant.App"
+<Application x:Class="TeacherAssistant.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
@@ -24,6 +24,8 @@
                         <ResourceDictionary
                             Source="pack://application:,,,/MaterialDesignColors;component/Themes/materialdesigncolor.orange.accent.xaml" />
                     </ResourceDictionary.MergedDictionaries>
+                    <SolidColorBrush x:Key="HoverColor" Color="{StaticResource Accent200}" Opacity="0.3" />
+                    <SolidColorBrush x:Key="SelectionColor" Color="{StaticResource Accent700}"  Opacity="0.3"/>
                     <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{StaticResource Accent200}" />
                     <SolidColorBrush x:Key="SecondaryAccentForegroundBrush"
                                      Color="{StaticResource Accent200Foreground}" />

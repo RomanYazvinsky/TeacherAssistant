@@ -2,7 +2,7 @@
 using Model;
 using TeacherAssistant.Services;
 
-namespace TeacherAssistant.Modules.MainModule
+namespace TeacherAssistant
 {
     public class AlarmEvent : IIntervalEvent
     {

@@ -1,6 +1,6 @@
 ﻿using TeacherAssistant.Dao.Notes;
 
-namespace TeacherAssistant.StudentViewPage {
+namespace TeacherAssistant.ViewModels {
     public class StudentLessonNoteViewModel {
         public StudentLessonNote Note { get; set; }
 

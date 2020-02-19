@@ -3,9 +3,7 @@
                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                        xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
                         xmlns:local="clr-namespace:TeacherAssistant.Forms.NoteForm"
-                        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
                         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
                         xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
                         mc:Ignorable="d"
@@ -13,15 +11,22 @@
                         d:DataContext="{d:DesignInstance local:NoteFormModel}"
                         Padding="5">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="B2V" />
-        <teacherAssistant:BooleanToVisibilityConverter x:Key="InverseB2V"
-                                                       True="Collapsed"
-                                                       False="Visible"/>
-        <CollectionViewSource x:Key="SortedList" Source="{Binding Notes}">
-            <CollectionViewSource.SortDescriptions>
-                <componentModel:SortDescription PropertyName="Note.CreationDate" Direction="Descending" />
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../../Styles.xaml" />
+                <ResourceDictionary>
+                    <BooleanToVisibilityConverter x:Key="B2V" />
+                    <teacherAssistant:BooleanToVisibilityConverter x:Key="InverseB2V"
+                                                                   True="Collapsed"
+                                                                   False="Visible" />
+                    <CollectionViewSource x:Key="SortedList" Source="{Binding Notes}">
+                        <CollectionViewSource.SortDescriptions>
+                            <componentModel:SortDescription PropertyName="Note.CreationDate" Direction="Descending" />
+                        </CollectionViewSource.SortDescriptions>
+                    </CollectionViewSource>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -49,12 +54,12 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0"
-                                Margin="5"
                                 x:Name="Border"
                                 Visibility="{Binding Path=IsSelected, Converter={StaticResource B2V}}" />
                         <TextBox Grid.Column="0"
                                  AcceptsReturn="True"
                                  AcceptsTab="True"
+                                 Style="{StaticResource CommonTextBoxStyle}"
                                  TextWrapping="Wrap"
                                  Text="{Binding Path=Description, ValidatesOnDataErrors=True,
                                             ValidatesOnNotifyDataErrors=True, UpdateSourceTrigger=PropertyChanged}"

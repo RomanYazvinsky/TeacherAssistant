@@ -43,7 +43,7 @@
                     <MenuItem Header="{Binding ReaderMenuText}" Command="{Binding Path=ToggleCardReaderHandler}" />
                     <MenuItem Header="Сделать резервную копию" Command="{Binding Path=CreateBackupHandler}" />
                     <!-- <MenuItem Header="Выбрать папку с фото" Command="{Binding Path=OpenSelectPhotoDirectoryDialog}" /> -->
-                    <!-- <MenuItem Header="Настройки" Command="{Binding Path=OpenSettings}" /> -->
+                    <MenuItem Header="Настройки" Command="{Binding Path=OpenSettingsHandler}" />
                 </MenuItem>
                 <MenuItem Header="Показать">
                     <MenuItem Header="Дисциплины" Command="{Binding Path=OpenDisciplinesTableHandler}" />

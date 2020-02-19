@@ -6,6 +6,7 @@
                             xmlns:local="clr-namespace:TeacherAssistant.RegistrationPage"
                             xmlns:ta="clr-namespace:TeacherAssistant"
                             xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                            xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
                             mc:Ignorable="d"
                             d:DesignHeight="680" d:DesignWidth="1280"
                             d:DataContext="{d:DesignInstance local:RegistrationPageModel}">
@@ -25,8 +26,7 @@
                     </ContextMenu>
                     <Style x:Key="CustomItemContainerStyle" TargetType="{x:Type ListViewItem}"
                            BasedOn="{StaticResource TableItemStyle}">
-                        <Setter Property="ContextMenu" Value="{StaticResource Menu}">
-                        </Setter>
+                        <Setter Property="ContextMenu" Value="{StaticResource Menu}" />
                         <Setter Property="Height" Value="30" />
                         <Setter Property="FontSize" Value="12" />
                         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -70,11 +70,12 @@
                     <Setter Property="TextWrapping" Value="Wrap" />
                 </Style>
             </StackPanel.Resources>
-            <TextBox x:Name="LastNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
-            <TextBox x:Name="FirstNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
-            <TextBox x:Name="SecondNameText" Foreground="Blue" FontWeight="Bold" FontSize="28" />
+            <TextBox x:Name="LastNameText" Foreground="Blue" AcceptsReturn="True" FontWeight="Bold" FontSize="28" />
             <TextBox x:Name="GroupNamesText" FontWeight="Normal" FontSize="20" />
-            <TextBox x:Name="LessonStatText" Foreground="DarkRed" FontWeight="Bold" FontSize="23" />
+            <WrapPanel Orientation="Horizontal">
+                <TextBox x:Name="LessonStatText" Foreground="DarkRed" TextWrapping="Wrap" FontSize="23" />
+                <TextBox x:Name="AdditionalLessonCount" Foreground="Red" FontSize="23" />
+            </WrapPanel>
         </StackPanel>
         <tableFilter:TableFilter Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Grid.RowSpan="2"
                                  TableItemContainerStyle="{StaticResource CustomItemContainerStyle}"
@@ -162,7 +163,8 @@
             <Button Content="&lt;" x:Name="RegisterButton" DockPanel.Dock="Left"
                     HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="50" />
             <Button Margin="5, 0, 0, 0"
-                    x:Name="ToggleAllStudentsMode" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" DockPanel.Dock="Left" />
+                    x:Name="ToggleAllStudentsMode" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                    DockPanel.Dock="Left" />
         </DockPanel>
 
         <Grid Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="5">
@@ -197,8 +199,56 @@
             <TextBox Text="{Binding Path=LessonInfoState.Time, Mode=OneWay}" Grid.Row="4" Grid.Column="1"
                      Style="{StaticResource Info}" />
         </Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30" x:Name="TimeBox"
-                   Grid.Column="4" Grid.ColumnSpan="2" Grid.Row="2" />
+        <Grid Grid.Column="4" Grid.ColumnSpan="2" Grid.Row="2" Grid.RowSpan="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="30"
+                       x:Name="TimeBox" />
+            <ListView Grid.Row="1" ItemsSource="{Binding Path=StudentLessonNotes}"
+                      SelectedItem="{Binding Path=SelectedStudentLessonNote}"
+                      VerticalAlignment="Stretch"
+                      HorizontalAlignment="Stretch">
+                <ListView.Style>
+                    <Style TargetType="ListView" BasedOn="{StaticResource MaterialDesignListView}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding StudentLessonNotes.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListView.Style>
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDoubleClick">
+                        <i:InvokeCommandAction Command="{Binding OpenStudentLessonHandler}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn
+                            DisplayMemberBinding="{Binding Path=Note.CreationDate, StringFormat=yyyy-MM-dd HH:mm}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader
+                                    Content="{Binding Path=Localization[page.student.view.student.notes.date]}" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=Note.Description}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader
+                                    Content="{Binding Path=Localization[page.student.view.student.notes.description]}" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=LessonTime}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader
+                                    Content="{Binding Path=Localization[Время занятия]}" />
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
 
     </Grid>
 </local:RegistrationPageBase>

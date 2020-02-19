@@ -7,8 +7,8 @@
     <ProjectGuid>{0B04B309-E379-45E6-85E8-0A2D03299184}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Containers</RootNamespace>
-    <AssemblyName>Containers</AssemblyName>
+    <RootNamespace>TeacherAssistant</RootNamespace>
+    <AssemblyName>TeacherAssistant.Containers</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

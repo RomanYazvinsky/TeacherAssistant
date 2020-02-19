@@ -52,7 +52,7 @@ namespace TeacherAssistant.Forms.NoteForm {
             this.AddNoteButtonConfig = new ButtonConfig {
                 Command = ReactiveCommand.Create(AddNote,
                     this.WhenAnyValue(model => model.SelectedNote)
-                        .Select(model => model == null || model.ValidationContext.GetIsValid())),
+                        .Select(model => model == null ? Observable.Return(true) : model.IsValid()).Switch()),
                 Text = Localization["Добавить"]
             };
             this.RemoveNoteButtonConfig = new ButtonConfig {

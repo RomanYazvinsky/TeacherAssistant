@@ -3,78 +3,62 @@
                     xmlns:fa5="http://schemas.fontawesome.com/icons/"
                     xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
                     xmlns:schedulePage="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage">
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="../../Components/TableFilter/TableStyle.xaml" />
-        <ResourceDictionary>
-            <teacherAssistant:IsCollectionVisible x:Key="IsCollectionVisible" />
-            <DataTemplate x:Key="LessonTypeColumn" DataType="schedulePage:LessonScheduleView">
-                <Border Style="{StaticResource ResourceKey=BorderStyle}">
-                    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0, 2, 7, 2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="20" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding LocalizedType}" />
-                        <fa5:FontAwesome
-                            Grid.Column="1"
-                            Icon="Solid_Info"
-                            FontSize="14"
-                            Foreground="{Binding IconColor}"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center">
-                            <fa5:FontAwesome.ToolTip>
-                                <ToolTip
-                                    Visibility="{Binding Lesson.Notes.Count, Converter={StaticResource IsCollectionVisible}}">
-                                    <ItemsControl ItemsSource="{Binding Lesson.Notes}"
-                                                  Name="LessonNotesTooltip">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid HorizontalAlignment="Stretch">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock
-                                                        Grid.Column="0"
-                                                        Text="{Binding Description}"
-                                                        Margin="0, 0, 5, 0" />
-                                                    <TextBlock
-                                                        Grid.Column="1"
-                                                        Text="{Binding CreationDate, StringFormat=dd.MM.yyyy}" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ToolTip>
-                            </fa5:FontAwesome.ToolTip>
-                        </fa5:FontAwesome>
-                    </Grid>
 
-                </Border>
-            </DataTemplate>
-            <DataTemplate x:Key="DateColumn" DataType="schedulePage:LessonScheduleView">
-                <Border Style="{StaticResource BorderStyle}">
-                    <TextBlock Style="{StaticResource StyledTextBlock}"
-                               Text="{Binding Lesson.Date, StringFormat=dd-MM-yyyy}" />
-                </Border>
-            </DataTemplate>
-            <DataTemplate x:Key="TimeColumn" DataType="schedulePage:LessonScheduleView">
-                <Border Style="{StaticResource BorderStyle}">
-                    <TextBlock Style="{StaticResource StyledTextBlock}" Text="{Binding Date}" />
-                </Border>
-            </DataTemplate>
-            <DataTemplate x:Key="StreamNameColumn" DataType="schedulePage:LessonScheduleView">
-                <Border Style="{StaticResource BorderStyle}">
-                    <TextBlock Style="{StaticResource StyledTextBlock}" Text="{Binding Lesson.Stream.Name}" />
-                </Border>
-            </DataTemplate>
-            <DataTemplate x:Key="GroupNamesColumn" DataType="schedulePage:LessonScheduleView">
-                <Border Style="{StaticResource BorderStyle}">
-                    <TextBlock Style="{StaticResource StyledTextBlock}" HorizontalAlignment="Stretch"
-                               TextAlignment="Left" Text="{Binding GroupNames}" />
-                </Border>
-            </DataTemplate>
-        </ResourceDictionary>
-    </ResourceDictionary.MergedDictionaries>
-
+    <teacherAssistant:IsCollectionVisible x:Key="IsCollectionVisible" />
+    <DataTemplate x:Key="LessonTypeColumn" DataType="schedulePage:LessonScheduleView">
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0, 2, 7, 2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="20" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding LocalizedType}" />
+            <fa5:FontAwesome
+                Grid.Column="1"
+                Icon="Solid_Info"
+                FontSize="14"
+                Foreground="{Binding IconColor}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+                <fa5:FontAwesome.ToolTip>
+                    <ToolTip
+                        Visibility="{Binding Lesson.Notes.Count, Converter={StaticResource IsCollectionVisible}}">
+                        <ItemsControl ItemsSource="{Binding Lesson.Notes}"
+                                      Name="LessonNotesTooltip">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="{Binding Description}"
+                                            Margin="0, 0, 5, 0" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            Text="{Binding CreationDate, StringFormat=dd.MM.yyyy}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ToolTip>
+                </fa5:FontAwesome.ToolTip>
+            </fa5:FontAwesome>
+        </Grid>
+    </DataTemplate>
+    <DataTemplate x:Key="DateColumn" DataType="schedulePage:LessonScheduleView">
+        <TextBlock
+            Text="{Binding Lesson.Date, StringFormat=dd-MM-yyyy}" />
+    </DataTemplate>
+    <DataTemplate x:Key="TimeColumn" DataType="schedulePage:LessonScheduleView">
+        <TextBlock Text="{Binding Date}" />
+    </DataTemplate>
+    <DataTemplate x:Key="StreamNameColumn" DataType="schedulePage:LessonScheduleView">
+        <TextBlock Text="{Binding Lesson.Stream.Name}" />
+    </DataTemplate>
+    <DataTemplate x:Key="GroupNamesColumn" DataType="schedulePage:LessonScheduleView">
+        <TextBlock HorizontalAlignment="Stretch"
+                   TextAlignment="Left" Text="{Binding GroupNames}" />
+    </DataTemplate>
 </ResourceDictionary>
