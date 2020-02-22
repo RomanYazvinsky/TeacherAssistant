@@ -62,7 +62,6 @@
                     Command="{Binding Path=Show}" />
 
         </Grid>
-        <!--This is the hidden helper Grid which does the resizing -->
         <Grid Grid.Row="1" Visibility="Hidden">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="{Binding ElementName=DateColumn, Path=ActualWidth}" />
@@ -70,7 +69,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="30" />
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="2" x:Name="StreamNameColumnWidthHelper" />
             <Grid Grid.Column="3" x:Name="GroupNamesColumnWidthHelper" />

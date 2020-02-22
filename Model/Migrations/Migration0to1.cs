@@ -3,7 +3,6 @@ using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
 using Model.Models;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 
 namespace TeacherAssistant.Migrations {

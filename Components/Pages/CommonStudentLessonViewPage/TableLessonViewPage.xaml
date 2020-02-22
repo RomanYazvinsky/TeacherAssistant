@@ -29,6 +29,7 @@
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   EnableColumnVirtualization="False"
+                  FrozenColumnCount="1"
                   ItemsSource="{Binding Path=Items.View, IsAsync=True}"
                   FontSize="18"
                   AutoGenerateColumns="False"

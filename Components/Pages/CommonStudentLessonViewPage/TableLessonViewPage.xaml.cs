@@ -35,8 +35,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             block.ExportModuleScope<TableLessonViewPageModel>();
             block.ExportModuleScope<TableLessonViewPage>()
                 .ImportProperty(v => v.ModuleToken)
-                .ImportProperty(v => v.ViewModel)
-                ;
+                .ImportProperty(v => v.ViewModel);
         }
     }
 

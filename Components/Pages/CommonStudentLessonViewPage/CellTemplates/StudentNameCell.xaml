@@ -21,8 +21,8 @@
         <Popup MaxWidth="200" IsOpen="False" MaxHeight="300" Grid.Column="0" StaysOpen="False" x:Name="Popup">
             <Image x:Name="Image" />
         </Popup>
-        <Button Grid.Column="1" Background="Transparent" BorderThickness="0" Click="ButtonBase_OnClick">
-            <fa5:ImageAwesome Icon="Solid_Portrait" />
+        <Button Grid.Column="1" Padding="0" Background="Transparent" BorderThickness="0" Click="ButtonBase_OnClick">
+            <fa5:ImageAwesome Icon="Solid_Portrait" Width="20" Height="20"/>
         </Button>
         <TextBlock Grid.Column="2" Text="{Binding Path=FullName}" />
     </Grid>

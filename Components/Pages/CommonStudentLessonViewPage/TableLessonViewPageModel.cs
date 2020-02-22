@@ -8,17 +8,15 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DynamicData;
 using Grace.DependencyInjection;
 using JetBrains.Annotations;
+using MaterialDesignThemes.Wpf;
 using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.State;
@@ -28,11 +26,13 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
         private readonly TabPageHost _host;
+        private readonly Style _studentLessonMarkCellStyle;
+        private readonly Style _columnHeaderStyle;
 
-        [NotNull] private static readonly ResourceDictionary DataGridCellResources
+        [NotNull] private static readonly ResourceDictionary DataGridResources
             = new ResourceDictionary {
                 Source = new Uri(
-                    "/TeacherAssistant.Components;component/Pages/CommonStudentLessonViewPage/CellStyles/CellStyles.xaml",
+                    "/TeacherAssistant.Components;component/Pages/CommonStudentLessonViewPage/Styles/Styles.xaml",
                     UriKind.RelativeOrAbsolute)
             };
 
@@ -48,7 +48,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             this.Items = new CollectionViewSource {
                 Source = _items
             };
-            this.Columns.Add(BuildMissedLessonsColumn());
+            _studentLessonMarkCellStyle = DataGridResources["StudentLessonMarkCell"] as Style;
+            _columnHeaderStyle = DataGridResources["ColumnHeaderStyle"] as Style;
             this.WhenActivated(c => {
                 this.WhenAnyValue(model => model.FilterText)
                     .Throttle(TimeSpan.FromMilliseconds(300))
@@ -71,6 +72,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private async void Init(LessonEntity lesson) {
             _items.Clear();
             this.Columns.Clear();
+            this.Columns.Add(BuildMissedLessonsColumn());
             _currentLesson = lesson;
             List<LessonEntity> lessonModels;
             lessonModels = lesson.Group == null
@@ -113,7 +115,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private DataGridColumn BuildMissedLessonsColumn() {
             var dataGridTemplateColumn =
                 new TextColumn {
-                    Width = new DataGridLength(80),
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
                     Header = new TextBlock {Text = Localization["Пропуски"]},
                     Binding = new Binding("MissedLessons"),
                     IsReadOnly = true,
@@ -122,21 +124,44 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             return dataGridTemplateColumn;
         }
 
-        private DataGridColumn BuildStudentLessonColumn(string id, LessonEntity entity) {
+        private SolidColorBrush GetLessonBackGroundColor([NotNull] LessonEntity lesson) {
+            switch (lesson.LessonType) {
+                case LessonType.Exam:
+                    return new SolidColorBrush(Color.FromArgb(20, 0, 200, 20));
+                case LessonType.Attestation:
+                    return new SolidColorBrush(Color.FromArgb(20, 200, 200, 20));
+                case LessonType.Laboratory:
+                    return new SolidColorBrush(Color.FromArgb(20, 200, 20, 150));
+                case LessonType.Practice:
+                    return new SolidColorBrush(Color.FromArgb(20, 0, 20, 200));
+                default:
+                    return Brushes.Transparent;
+            }
+        }
+
+        private DataGridColumn BuildStudentLessonColumn([NotNull] string id, [NotNull] LessonEntity entity) {
+            var header = new Grid {
+                Background = GetLessonBackGroundColor(entity),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            header.Children.Add(new TextBlock {
+                Text = Localization["common.lesson.type." + entity.LessonType] + "\n " +
+                       entity.Date?.ToString("dd.MM"),
+                Foreground = entity.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black,
+                TextAlignment = TextAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            });
             var dataGridTemplateColumn =
                 new TextColumn {
                     Width = new DataGridLength(90),
                     MinWidth = 50,
-                    Header = new TextBlock {
-                        Text = Localization["common.lesson.type." + entity.LessonType] + "\n " +
-                               entity.Date?.ToString("dd.MM"),
-                        Foreground = entity.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black
-                    },
+                    Header = header,
                     Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")},
                     CanUserSort = false
                 };
             var cellStyle = new Style {
-                BasedOn = DataGridCellResources["StudentLessonMarkCell"] as Style,
+                BasedOn = _studentLessonMarkCellStyle,
                 TargetType = typeof(DataGridCell)
             };
             var backGround = new Setter(Control.BackgroundProperty, new Binding($"LessonToLessonMark[{id}].Color"));
@@ -144,6 +169,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             cellStyle.Setters.Add(backGround);
             cellStyle.Setters.Add(menu);
             dataGridTemplateColumn.CellStyle = cellStyle;
+            dataGridTemplateColumn.HeaderStyle = _columnHeaderStyle;
             return dataGridTemplateColumn;
         }
 

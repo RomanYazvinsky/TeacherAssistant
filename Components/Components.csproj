@@ -416,7 +416,7 @@
     <Page Include="PageHostProviders\Tabs\TabController.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\CommonStudentLessonViewPage\CellStyles\CellStyles.xaml" />
+    <Page Include="Pages\CommonStudentLessonViewPage\Styles\Styles.xaml" />
     <Page Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

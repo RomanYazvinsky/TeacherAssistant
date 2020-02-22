@@ -3,8 +3,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Model.Models;
 using ReactiveUI;
-using TeacherAssistant.Components;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.RegistrationPage;
