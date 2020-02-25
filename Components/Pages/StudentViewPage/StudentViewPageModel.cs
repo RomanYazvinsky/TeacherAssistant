@@ -408,7 +408,7 @@ namespace TeacherAssistant.StudentViewPage {
             lesson.Date = now;
             lesson.LessonType = LessonType.Attestation;
             lesson.Stream = this.SelectedStream;
-            lesson.Group = this.SelectedGroup;
+            lesson._StreamId = this.SelectedStream.Id;
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
@@ -425,20 +425,10 @@ namespace TeacherAssistant.StudentViewPage {
                                             .ToList() ?? new List<StudentLessonEntity>();
                 _context.StudentLessons.AddRange(newStudentLessons);
 
-                this.StudentAttestations.Add
-                (
-                    new StudentAttestationExamView
-                    (
-                        newStudentLessons.FirstOrDefault
-                        (
-                            studentLesson =>
-                                studentLesson.Student == this.Student
-                                && studentLesson.Lesson == lesson
-                        ),
-                        this,
-                        this.StudentAttestations.Count + 1
-                    )
-                );
+                var studentLessonEntity = newStudentLessons
+                    .FirstOrDefault(studentLesson => studentLesson.Student == this.Student && studentLesson.Lesson == lesson);
+                var studentAttestationExamView = new StudentAttestationExamView(studentLessonEntity,this,this.StudentAttestations.Count + 1);
+                this.StudentAttestations.Add(studentAttestationExamView);
             }
 
             await _context.SaveChangesAsync();
@@ -503,7 +493,7 @@ namespace TeacherAssistant.StudentViewPage {
 
         private async Task ToggleRegistration(StudentLessonEntity studentLesson) {
             studentLesson.IsRegistered = studentLesson.IsLessonMissed;
-            studentLesson.RegistrationTime = DateTime.Now;
+            studentLesson.RegistrationTime = studentLesson.IsLessonMissed ? (DateTime?) null : DateTime.Now;
             await _context.SaveChangesAsync();
         }
 

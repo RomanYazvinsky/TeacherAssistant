@@ -7,6 +7,9 @@
                 mc:Ignorable="d"
                 d:DesignHeight="450" d:DataContext="{d:DesignInstance local:TableFilter}"
                 d:DesignWidth="800" HorizontalAlignment="Stretch">
+    <ContentControl.Resources>
+        <ResourceDictionary Source="../../Styles.xaml" />
+    </ContentControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition
@@ -17,8 +20,7 @@
         <TextBox
             Grid.Row="0" TextWrapping="Wrap"
             Margin="4px"
-            BorderBrush="{DynamicResource SecondaryAccentBrush}"
-            BorderThickness="1"
+            Style="{StaticResource CommonTextBoxStyle}"
             Text="{Binding Path=FilterText, RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}, UpdateSourceTrigger=PropertyChanged}"
             FontSize="{Binding Path=FontSize,RelativeSource={RelativeSource AncestorType=local:TableFilter, AncestorLevel=1}}"
             VerticalContentAlignment="Center"

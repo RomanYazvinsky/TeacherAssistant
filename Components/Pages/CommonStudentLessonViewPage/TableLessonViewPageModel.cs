@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DynamicData;
+using DynamicData.Kernel;
 using Grace.DependencyInjection;
 using JetBrains.Annotations;
 using MaterialDesignThemes.Wpf;
@@ -75,17 +76,23 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             this.Columns.Add(BuildMissedLessonsColumn());
             _currentLesson = lesson;
             List<LessonEntity> lessonModels;
-            lessonModels = lesson.Group == null
-                ? await _db.Lessons.Include("StudentLessons").Where(model =>
+            if (lesson.Group == null) {
+                lessonModels = await _db.Lessons
+                    .Include(ls => ls.StudentLessons)
+                    .Where(model =>
                         model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
-                    .ToListAsync()
-                : await _db.Lessons
-                    .Include("StudentLessons")
+                    .ToListAsync();
+            }
+
+            else {
+                lessonModels = await _db.Lessons
+                    .Include(ls => ls.StudentLessons)
                     .Where(model => model._GroupId == lesson._GroupId
                                     || (model._StreamId == lesson._StreamId
                                         && !model._GroupId.HasValue))
                     .ToListAsync();
-            lessonModels.Reverse();
+            }
+            lessonModels.Sort((lesson1, lesson2) => lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1);
             foreach (var lessonModel in lessonModels) {
                 var lessonId = IdGenerator.GenerateId();
                 this.Lessons.Add(lessonId, lessonModel);
@@ -93,8 +100,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
 
             var studentModels = ((lesson.Group == null
-                                     ? lesson.Stream.Groups?.SelectMany(group =>
-                                         group.Students ?? new List<StudentEntity>())
+                                     ? lesson.Stream.Groups?.SelectMany(group => group.Students ?? new List<StudentEntity>())
                                      : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
                 .Select(model => new StudentLessonViewModel(model, this.Lessons, _scope, _host, _db))
                 .OrderBy(view => view.FullName).ToList();
@@ -172,7 +178,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             dataGridTemplateColumn.HeaderStyle = _columnHeaderStyle;
             return dataGridTemplateColumn;
         }
-
+        
         private ContextMenu BuildLessonCellContextMenu(string id) {
             var menu = new ContextMenu();
             var toggleItem = new MenuItem();

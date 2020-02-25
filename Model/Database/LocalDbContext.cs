@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Windows.Threading;
 using EntityFramework.Triggers;
 using JetBrains.Annotations;
 using Model;
@@ -23,6 +24,7 @@ namespace TeacherAssistant.Database {
             this._delayedUpdateStart = new Subject<Unit>();
             this._delayedUpdateStart
                 .Throttle(TimeSpan.FromMilliseconds(5000))
+                .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => { SaveChanges(); });
         }
 
