@@ -4,7 +4,7 @@
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            xmlns:groupTablePage="clr-namespace:TeacherAssistant.Pages.GroupTablePage"
-                           xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
+                           xmlns:models1="clr-namespace:TeacherAssistant.Models;assembly=TeacherAssistant.Model"
                            mc:Ignorable="d"
                            d:DesignHeight="450" d:DesignWidth="800"
                            d:DataContext="{d:DesignInstance groupTablePage:GroupTableModel}">
@@ -54,7 +54,7 @@
                             <GridViewColumnHeader Content="Староста" Tag="Praepostor" />
                         </GridViewColumn.Header>
                         <GridViewColumn.CellTemplate>
-                            <DataTemplate DataType="models:GroupEntity">
+                            <DataTemplate DataType="models1:GroupEntity">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding Path=Chief.FirstName}" />
                                     <TextBlock Text=" " />

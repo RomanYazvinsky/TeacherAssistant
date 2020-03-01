@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TeacherAssistant.Dao;
+using TeacherAssistant.Helpers;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
     [Table("DISCIPLINE")]
     public class DisciplineEntity: ATrackable<DisciplineEntity>

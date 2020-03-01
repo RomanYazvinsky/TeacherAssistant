@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TeacherAssistant.Dao;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
     [Table("NOTIFICATION_SETTING")]
     public class NotificationSettingsModel

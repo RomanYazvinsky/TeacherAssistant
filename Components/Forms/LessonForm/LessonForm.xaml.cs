@@ -1,8 +1,8 @@
 ﻿using Grace.DependencyInjection;
-using Model.Models;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.Services.Paging;
 

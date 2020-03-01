@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
     // [Table("SCHEDULE_VERSION")]
     public class ScheduleVersionModel

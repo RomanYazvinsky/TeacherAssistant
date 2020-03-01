@@ -3,15 +3,13 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Windows.Data;
 using Containers;
 using DynamicData;
 using Microsoft.Win32;
-using Model;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.Services;
 

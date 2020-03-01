@@ -3,12 +3,12 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using JetBrains.Annotations;
-using Model.Models;
 using NLog;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.DisciplineForm

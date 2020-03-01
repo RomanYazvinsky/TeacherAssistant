@@ -1,28 +1,15 @@
 ﻿using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
 using Grace.DependencyInjection;
-using Grace.DependencyInjection.Impl;
-using Grace.DependencyInjection.Lifestyle;
-using Model;
-using Model.Models;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using ReactiveUI;
-using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
-using TeacherAssistant.Core.State;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Properties;
-using ToastNotifications;
 
 namespace TeacherAssistant {
     using GlobalState = ImmutableDictionary<string, object>;

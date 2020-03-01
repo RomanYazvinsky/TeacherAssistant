@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
-using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Helpers;
+using TeacherAssistant.Models.Notes;
 
-namespace Model.Models {
+namespace TeacherAssistant.Models {
     [Table("STUDENT")]
     public class StudentEntity : ATrackable<StudentEntity> {
         public StudentEntity() {

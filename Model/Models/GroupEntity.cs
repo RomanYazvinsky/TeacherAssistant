@@ -4,10 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
-using TeacherAssistant.Models;
+using TeacherAssistant.Helpers;
 
-namespace Model.Models {
+namespace TeacherAssistant.Models {
     [Table("GROUP")]
     public class GroupEntity : ATrackable<GroupEntity> {
         private DepartmentEntity _department;

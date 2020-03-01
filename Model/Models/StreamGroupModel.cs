@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
   //  [Table("STREAM_GROUP")]
     public class StreamGroupModel

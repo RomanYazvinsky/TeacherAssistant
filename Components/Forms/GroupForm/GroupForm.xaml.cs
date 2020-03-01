@@ -1,11 +1,11 @@
 ﻿using System.Reactive.Disposables;
 using Grace.DependencyInjection;
-using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Components;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.State;
 

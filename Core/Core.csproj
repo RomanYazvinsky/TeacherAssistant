@@ -118,6 +118,7 @@
     <Compile Include="Core\Module\SimpleModule.cs" />
     <Compile Include="Core\Reducers\AbstractReducer.cs" />
     <Compile Include="Core\State\Storage.cs" />
+    <Compile Include="Core\Utils\FloatComparison.cs" />
     <Compile Include="DictionaryExtension.cs" />
     <Compile Include="IdGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

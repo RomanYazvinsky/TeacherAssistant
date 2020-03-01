@@ -1,9 +1,10 @@
 ﻿using System.Reactive.Disposables;
+using System.Windows;
 using Grace.DependencyInjection;
-using Model.Models;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.RegistrationPage {
@@ -56,6 +57,17 @@ namespace TeacherAssistant.RegistrationPage {
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.StudentDescription.Photo,
                         page => page.StudentPhoto.Source)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription,
+                        page => page.StudentPhoto.Visibility,
+                        description => description?.Photo != null ? Visibility.Visible : Visibility.Collapsed)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.StudentDescription,
+                        page => page.StudentPhotoPlaceholder.Visibility,
+                        description => description?.Photo == null ? Visibility.Visible : Visibility.Collapsed)
+                    .DisposeWith(action);
+                this.OneWayBind(this.ViewModel, model => model.ActiveStudentInfoVisibility,
+                        page => page.StudentPhotoPlaceholder.Visibility)
                     .DisposeWith(action);
                 this.OneWayBind(this.ViewModel, model => model.ActiveStudentInfoVisibility,
                         page => page.StudentPhoto.Visibility)

@@ -1,10 +1,9 @@
 ﻿using System.Windows.Input;
 using System.Windows.Media;
-using Model.Models;
 using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentLessonViewBox {

@@ -9,11 +9,9 @@ using System.Reactive.Subjects;
 using System.Windows.Threading;
 using EntityFramework.Triggers;
 using JetBrains.Annotations;
-using Model;
-using Model.Models;
 using SQLite.CodeFirst;
-using TeacherAssistant.Dao.Notes;
 using TeacherAssistant.Models;
+using TeacherAssistant.Models.Notes;
 
 namespace TeacherAssistant.Database {
     public class LocalDbContext : DbContextWithTriggers {
@@ -21,8 +19,8 @@ namespace TeacherAssistant.Database {
         private readonly Subject<Unit> _delayedUpdateStart;
 
         public LocalDbContext(DbConnection connection) : base(connection,true) {
-            this._delayedUpdateStart = new Subject<Unit>();
-            this._delayedUpdateStart
+            _delayedUpdateStart = new Subject<Unit>();
+            _delayedUpdateStart
                 .Throttle(TimeSpan.FromMilliseconds(5000))
                 .ObserveOnDispatcher(DispatcherPriority.Background)
                 .Subscribe(_ => { SaveChanges(); });

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using TeacherAssistant.Models;
 
-namespace Model.Models {
+namespace TeacherAssistant.Helpers {
     public class StudentEqualityComparer : IEqualityComparer<StudentEntity> {
         public bool Equals(StudentEntity x, StudentEntity y) {
             if (x == null && y == null) {

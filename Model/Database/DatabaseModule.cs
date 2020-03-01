@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Grace.DependencyInjection;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Migrations;
 
 namespace TeacherAssistant.Database

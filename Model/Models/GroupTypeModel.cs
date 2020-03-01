@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
     [Table("GROUP_TYPE")]
     public class GroupTypeModel

@@ -1,4 +1,4 @@
-﻿using TeacherAssistant.Dao.Notes;
+﻿using TeacherAssistant.Models.Notes;
 
 namespace TeacherAssistant.ViewModels {
     public class StudentLessonNoteViewModel {

@@ -4,11 +4,10 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
-using TeacherAssistant.Dao.Notes;
-using TeacherAssistant.Models;
+using TeacherAssistant.Helpers;
+using TeacherAssistant.Models.Notes;
 
-namespace Model.Models {
+namespace TeacherAssistant.Models {
     [Table("LESSON")]
     public class LessonEntity : ATrackable<LessonEntity> {
         #region Database mapping
@@ -40,7 +39,7 @@ namespace Model.Models {
         [CanBeNull] public virtual ICollection<StudentLessonEntity> StudentLessons { get; set; } = new List<StudentLessonEntity>();
         [CanBeNull] public virtual ICollection<LessonNote> Notes { get; set; }
 
-        [ForeignKey(nameof(_ScheduleId))] public virtual ScheduleEntity Schedule { get; set; }
+        [ForeignKey(nameof(_ScheduleId))] [CanBeNull] public virtual ScheduleEntity Schedule { get; set; }
         [Column("group_id")] public long? _GroupId { get; set; }
         [ForeignKey(nameof(_GroupId))] public virtual GroupEntity Group { get; set; }
         [Column("stream_id")] public long? _StreamId { get; set; }

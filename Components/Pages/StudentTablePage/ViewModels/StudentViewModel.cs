@@ -1,6 +1,6 @@
 using System.Linq;
-using Model.Models;
-using TeacherAssistant.Dao.ViewModels;
+using TeacherAssistant.Helpers.ViewModels;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.Pages.StudentTablePage.ViewModels {
     public class StudentViewModel : IStudentViewModel {

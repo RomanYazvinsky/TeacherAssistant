@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
   // [Table("STUDENT_GROUP")]
     public class StudentGroupModel

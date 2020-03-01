@@ -1,6 +1,6 @@
 ﻿using Grace.DependencyInjection;
-using Model.Models;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.StudentViewPage {

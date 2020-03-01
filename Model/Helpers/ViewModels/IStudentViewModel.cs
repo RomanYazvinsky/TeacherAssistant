@@ -1,6 +1,6 @@
-using Model.Models;
+using TeacherAssistant.Models;
 
-namespace TeacherAssistant.Dao.ViewModels {
+namespace TeacherAssistant.Helpers.ViewModels {
     public interface IStudentViewModel {
         StudentEntity Student { get; set; }
     }

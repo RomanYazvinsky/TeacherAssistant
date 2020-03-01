@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using EntityFramework.Triggers;
 using JetBrains.Annotations;
 
-namespace TeacherAssistant.Dao {
+namespace TeacherAssistant.Helpers {
     public abstract class ATrackable<T> where T: class {
         [NotMapped] public DateTime Inserted { get; protected set; }
         [NotMapped] public DateTime Updated { get; protected set; }

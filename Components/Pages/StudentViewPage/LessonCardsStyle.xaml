@@ -2,9 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
                     xmlns:studentViewPage="clr-namespace:TeacherAssistant.StudentViewPage"
-                    xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model">
+                    xmlns:models1="clr-namespace:TeacherAssistant.Models;assembly=TeacherAssistant.Model">
     <BooleanToVisibilityConverter x:Key="B2V" />
-    <DataTemplate x:Key="NoteListItemTemplate" DataType="models:NoteEntity">
+    <DataTemplate x:Key="NoteListItemTemplate" DataType="models1:NoteEntity">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />

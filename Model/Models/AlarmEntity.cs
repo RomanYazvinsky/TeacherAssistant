@@ -2,9 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
+using TeacherAssistant.Helpers;
 
-namespace Model
+namespace TeacherAssistant.Models
 {
     [Table("ALARM")]
     public class AlarmEntity : ATrackable<AlarmEntity>
@@ -73,8 +73,8 @@ namespace Model
         [NotMapped]
         public TimeSpan? SinceLessonStart
         {
-            get => _Timer == null ? (TimeSpan?) null : TimeSpan.FromMinutes(_Timer.Value);
-            set => _Timer = value == null ? null : (long?) (long) value.Value.TotalMinutes;
+            get => this._Timer == null ? (TimeSpan?) null : TimeSpan.FromMinutes(this._Timer.Value);
+            set => this._Timer = value == null ? null : (long?) (long) value.Value.TotalMinutes;
         }
 
 

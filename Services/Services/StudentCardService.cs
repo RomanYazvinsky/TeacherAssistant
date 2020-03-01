@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
+using TeacherAssistant.Reader;
 using TeacherAssistant.ReaderPlugin;
 
 namespace TeacherAssistant.Services {

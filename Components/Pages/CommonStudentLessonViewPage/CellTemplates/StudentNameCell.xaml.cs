@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using Model.Models;
 using TeacherAssistant.Components;
+using TeacherAssistant.Models;
 using TeacherAssistant.Services;
 using TeacherAssistant.StudentViewPage;
 
@@ -31,7 +31,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates
             }
 
             var service = view.ServiceLocator.Locate<PhotoService>();
-            var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Model.CardUid));
+            var path = await service.DownloadPhoto(StudentEntity.CardUidToId(view.Student.CardUid));
             if (string.IsNullOrWhiteSpace(path))
             {
                 return;
@@ -49,7 +49,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates
             }
 
             var tabPageHost = view.ServiceLocator.Locate<TabPageHost>();
-            tabPageHost.AddPageAsync(new StudentViewPageToken("Студент", view.Model));
+            tabPageHost.AddPageAsync(new StudentViewPageToken("Студент", view.Student));
         }
     }
 }

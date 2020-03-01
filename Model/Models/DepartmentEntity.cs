@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using TeacherAssistant.Dao;
+using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models
 {

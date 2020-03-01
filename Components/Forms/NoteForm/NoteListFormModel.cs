@@ -8,14 +8,13 @@ using Containers;
 using DynamicData;
 using DynamicData.Binding;
 using JetBrains.Annotations;
-using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.NoteForm {

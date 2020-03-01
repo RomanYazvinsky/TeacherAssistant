@@ -1,5 +1,5 @@
-﻿using Model.Models;
-using TeacherAssistant.ComponentsImpl;
+﻿using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentAttestationExamView {

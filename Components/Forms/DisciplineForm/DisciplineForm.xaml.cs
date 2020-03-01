@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
-using Model.Models;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
 namespace TeacherAssistant.Forms.DisciplineForm

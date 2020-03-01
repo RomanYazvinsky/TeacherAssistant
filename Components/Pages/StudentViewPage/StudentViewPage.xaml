@@ -6,9 +6,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.StudentViewPage"
     xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
-    xmlns:models="clr-namespace:Model.Models;assembly=TeacherAssistant.Model"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:models1="clr-namespace:TeacherAssistant.Models;assembly=TeacherAssistant.Model"
     mc:Ignorable="d"
     d:DesignHeight="450" d:DesignWidth="800"
     d:DataContext="{d:DesignInstance local:StudentViewPageModel }"
@@ -147,7 +147,7 @@
                                                               Tag="Schedule" />
                                     </GridViewColumn.Header>
                                     <GridViewColumn.CellTemplate>
-                                        <DataTemplate DataType="models:StudentLessonEntity">
+                                        <DataTemplate DataType="models1:StudentLessonEntity">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock
                                                     Text="{Binding Path=Lesson.Schedule.Begin, StringFormat=hh\\:mm}" />

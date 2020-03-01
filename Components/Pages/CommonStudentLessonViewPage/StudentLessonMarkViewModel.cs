@@ -1,9 +1,11 @@
 using System;
+using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
-using Model.Models;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.RegistrationPage;
 using TeacherAssistant.Services.Paging;
@@ -14,35 +16,26 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private Brush _color;
         private StudentLessonEntity _studentLesson;
 
-        public StudentLessonEntity StudentLesson {
-            get => _studentLesson;
-            set {
-                if (Equals(value, _studentLesson)) return;
-                _studentLesson = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(this.Mark));
-            }
-        }
 
-        public StudentLessonMarkViewModel(StudentLessonEntity model, LocalDbContext context, IPageHost pageHost) {
+        public StudentLessonMarkViewModel(StudentLessonEntity studentLesson, LocalDbContext context, IPageHost pageHost) {
             _context = context;
-            this.StudentLesson = model;
-            this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;
+            this.StudentLesson = studentLesson;
+            this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : Brushes.White;
             this.ToggleRegistrationHandler = ReactiveCommand.Create(() => {
-                model.IsRegistered = model.IsLessonMissed;
-                model.RegistrationTime = model.IsLessonMissed ? (DateTime?) null : DateTime.Now;
-                this.Color = model.IsLessonMissed ? Brushes.LightPink : Brushes.White;
+                studentLesson.IsRegistered = studentLesson.IsLessonMissed;
+                studentLesson.RegistrationTime = studentLesson.IsLessonMissed ? (DateTime?) null : DateTime.Now;
+                this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : Brushes.White;
                 context.ThrottleSave();
             });
             this.OpenRegistrationHandler = ReactiveCommand.Create(() => {
-                pageHost.AddPageAsync(new RegistrationPageToken("Регистрация", model.Lesson));
+                pageHost.AddPageAsync(new RegistrationPageToken("Регистрация", studentLesson.Lesson));
             });
         }
 
         public string Mark {
             get => this.StudentLesson.Mark;
             set {
-                if (this.StudentLesson.Mark.Equals(value)) return;
+                if (this.StudentLesson.Mark?.Equals(value) ?? false) return;
                 this.StudentLesson.Mark = value;
                 _context.ThrottleSave();
                 OnPropertyChanged();
@@ -58,6 +51,15 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
         }
 
+        public StudentLessonEntity StudentLesson {
+            get => _studentLesson;
+            set {
+                if (Equals(value, _studentLesson)) return;
+                _studentLesson = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(this.Mark));
+            }
+        }
         public ICommand ToggleRegistrationHandler { get; set; }
         public ICommand OpenRegistrationHandler { get; set; }
     }

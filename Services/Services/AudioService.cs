@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Model;
 using NAudio.Wave;
+using TeacherAssistant.Models;
 using TeacherAssistant.Notifications;
 using ToastNotifications;
 

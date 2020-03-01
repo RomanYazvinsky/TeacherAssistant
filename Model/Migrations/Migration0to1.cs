@@ -2,8 +2,8 @@ using System;
 using System.Data.Entity;
 using System.Text;
 using System.Threading.Tasks;
-using Model.Models;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.Migrations {
     public class Migration0to1 : IMigration {

@@ -5,10 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
-using TeacherAssistant.Models;
+using TeacherAssistant.Helpers;
 
-namespace Model.Models {
+namespace TeacherAssistant.Models {
     [Table("STREAM")]
     public class StreamEntity : ATrackable<StreamEntity> {
         private const string ExpirationDateTemplate = "yyyy-MM-dd";

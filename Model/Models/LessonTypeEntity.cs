@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Model.Models {
+namespace TeacherAssistant.Models {
     public enum LessonType : long {
         Unknown = 0,
         Lecture = 1,

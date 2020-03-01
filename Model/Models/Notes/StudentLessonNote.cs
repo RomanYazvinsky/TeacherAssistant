@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Model.Models;
 
-namespace TeacherAssistant.Dao.Notes
+namespace TeacherAssistant.Models.Notes
 {
     public class StudentLessonNote: NoteEntity
     {

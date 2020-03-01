@@ -3,36 +3,22 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
-using Containers;
 using DynamicData;
 using JetBrains.Annotations;
-using Model;
-using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using ReactiveUI.Validation.Abstractions;
-using ReactiveUI.Validation.Contexts;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
-using TeacherAssistant.Components;
 using TeacherAssistant.Components.TableFilter;
-using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.Dao;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
-using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Forms.GroupForm
 {

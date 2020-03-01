@@ -7,6 +7,7 @@
                             xmlns:ta="clr-namespace:TeacherAssistant"
                             xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
                             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                            xmlns:fa5="http://schemas.fontawesome.com/icons/"
                             mc:Ignorable="d"
                             d:DesignHeight="680" d:DesignWidth="1280"
                             d:DataContext="{d:DesignInstance local:RegistrationPageModel}">
@@ -61,7 +62,14 @@
         </Grid.RowDefinitions>
 
         <Image x:Name="StudentPhoto" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="2" />
-
+        <fa5:FontAwesome
+            x:Name="StudentPhotoPlaceholder"
+            Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="2"
+            Icon="Regular_Image"
+            Foreground="DarkGray"
+            FontSize="120"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center" />
         <StackPanel Orientation="Vertical" x:Name="StudentDescription" Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"
                     Grid.ColumnSpan="2">
             <StackPanel.Resources>

@@ -1,7 +1,7 @@
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration.Conventions;
-using Model.Models;
-using TeacherAssistant.Dao.Notes;
+using TeacherAssistant.Models;
+using TeacherAssistant.Models.Notes;
 
 namespace TeacherAssistant.Database.ModelConfiguration {
     public static class ModelConfiguration {

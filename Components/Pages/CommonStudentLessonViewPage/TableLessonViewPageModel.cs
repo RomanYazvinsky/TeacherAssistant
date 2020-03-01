@@ -14,11 +14,10 @@ using DynamicData;
 using DynamicData.Kernel;
 using Grace.DependencyInjection;
 using JetBrains.Annotations;
-using MaterialDesignThemes.Wpf;
-using Model.Models;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Database;
+using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.State;
 
@@ -82,9 +81,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     .Where(model =>
                         model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
                     .ToListAsync();
-            }
-
-            else {
+            } else {
                 lessonModels = await _db.Lessons
                     .Include(ls => ls.StudentLessons)
                     .Where(model => model._GroupId == lesson._GroupId
@@ -92,7 +89,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                                         && !model._GroupId.HasValue))
                     .ToListAsync();
             }
-            lessonModels.Sort((lesson1, lesson2) => lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1);
+            lessonModels.Sort(SortLessons);
+            if (lessonModels.Count(ls => ls.LessonType == LessonType.Attestation) >= 2) {
+                this.Columns.Add(BuildAttestationSummaryColumn());
+            }
             foreach (var lessonModel in lessonModels) {
                 var lessonId = IdGenerator.GenerateId();
                 this.Lessons.Add(lessonId, lessonModel);
@@ -130,7 +130,21 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             return dataGridTemplateColumn;
         }
 
-        private SolidColorBrush GetLessonBackGroundColor([NotNull] LessonEntity lesson) {
+        private DataGridColumn BuildAttestationSummaryColumn() {
+            var dataGridTemplateColumn =
+                new TextColumn {
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
+                    Header = new TextBlock {
+                        Text = Localization["Аттестация\n(общ)"]
+                    },
+                    Binding = new Binding("AttestationSummary"),
+                    IsReadOnly = true,
+                    CanUserSort = false
+                };
+            return dataGridTemplateColumn;
+        }
+
+        private SolidColorBrush GetLessonColumnHeaderBackgroundColor([NotNull] LessonEntity lesson) {
             switch (lesson.LessonType) {
                 case LessonType.Exam:
                     return new SolidColorBrush(Color.FromArgb(20, 0, 200, 20));
@@ -147,7 +161,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         private DataGridColumn BuildStudentLessonColumn([NotNull] string id, [NotNull] LessonEntity entity) {
             var header = new Grid {
-                Background = GetLessonBackGroundColor(entity),
+                Background = GetLessonColumnHeaderBackgroundColor(entity),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch
             };
@@ -192,6 +206,34 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             menu.Items.Add(toggleItem);
             menu.Items.Add(openItem);
             return menu;
+        }
+
+        private int SortLessons(LessonEntity lesson1, LessonEntity lesson2) {
+            if (lesson1.LessonType == LessonType.Attestation
+                && lesson2.LessonType == LessonType.Attestation) {
+                return lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1;
+            }
+            if (lesson1.LessonType == LessonType.Attestation
+                && lesson2.LessonType == LessonType.Exam) {
+                return 1;
+            }
+            if (lesson1.LessonType == LessonType.Exam
+                && lesson2.LessonType == LessonType.Attestation) {
+                return -1;
+            }
+            if (lesson1.LessonType == LessonType.Attestation) {
+                return -1;
+            }
+            if (lesson1.LessonType == LessonType.Exam) {
+                return -1;
+            }
+            if (lesson2.LessonType == LessonType.Attestation) {
+                return 1;
+            }
+            if (lesson2.LessonType == LessonType.Exam) {
+                return 1;
+            }
+            return lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1;
         }
 
         protected override string GetLocalizationKey() {

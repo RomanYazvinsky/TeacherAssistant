@@ -1,5 +1,5 @@
 ﻿using System;
-using Model.Models;
+using TeacherAssistant.Models;
 using TeacherAssistant.Services;
 
 namespace TeacherAssistant

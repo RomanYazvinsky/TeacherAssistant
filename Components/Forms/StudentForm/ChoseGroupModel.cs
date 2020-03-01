@@ -1,4 +1,4 @@
-using Model.Models;
+using TeacherAssistant.Models;
 
 namespace TeacherAssistant.StudentForm {
     public class ChoseGroupModel {

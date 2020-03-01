@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using JetBrains.Annotations;
-using TeacherAssistant.Dao;
-using TeacherAssistant.Dao.Notes;
-using TeacherAssistant.Dao.ViewModels;
+using TeacherAssistant.Helpers;
+using TeacherAssistant.Helpers.ViewModels;
+using TeacherAssistant.Models.Notes;
 
-namespace Model.Models
+namespace TeacherAssistant.Models
 {
     [Table("STUDENT_LESSON")]
     public class StudentLessonEntity: ATrackable<StudentLessonEntity>, IStudentViewModel

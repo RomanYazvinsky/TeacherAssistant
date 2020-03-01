@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Reactive.Linq;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using SerialPortLib;
 
-namespace TeacherAssistant.ReaderPlugin
+namespace TeacherAssistant.Reader
 {
     public class SerialUtil : IDisposable
     {
@@ -80,7 +79,6 @@ namespace TeacherAssistant.ReaderPlugin
 
         public async void Start()
         {
-            // todo check all and stop on first connected
             foreach (var name in SerialPort.GetPortNames())
             {
                 var tryConnect = await TryConnect(name);
