@@ -15,13 +15,10 @@ using TeacherAssistant.Services;
 
 namespace TeacherAssistant.Pages.SettingsPage {
     public class SettingsPageModel : AbstractModel<SettingsPageModel> {
-
         public SettingsPageModel(AudioService service, LocalDbContext context) {
-            this.RefreshSubject.AsObservable().Subscribe(_ => {
-                this.Alarms.Clear();
-                this.Alarms.AddRange(context.Alarms
-                    .Select(alarm => new AlarmSettingsViewModel(alarm, service, context)).ToList());
-            });
+            this.Alarms.Clear();
+            this.Alarms.AddRange(context.Alarms
+                .Select(alarm => new AlarmSettingsViewModel(alarm, service, context)).ToList());
         }
 
         public ObservableCollection<AlarmSettingsViewModel> Alarms { get; set; } =
@@ -39,7 +36,7 @@ namespace TeacherAssistant.Pages.SettingsPage {
         public AlarmEntity Alarm { get; set; }
 
         public double Volume {
-            get => (double) this.Alarm.Volume ;
+            get => (double) this.Alarm.Volume;
             set {
                 this.Alarm.Volume = (decimal) value;
                 _context.ThrottleSave();

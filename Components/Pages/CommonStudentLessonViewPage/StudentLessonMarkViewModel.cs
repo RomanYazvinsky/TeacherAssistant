@@ -1,13 +1,11 @@
 using System;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Pages.RegistrationPage;
 using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
@@ -23,7 +21,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : Brushes.White;
             this.ToggleRegistrationHandler = ReactiveCommand.Create(() => {
                 studentLesson.IsRegistered = studentLesson.IsLessonMissed;
-                studentLesson.RegistrationTime = studentLesson.IsLessonMissed ? (DateTime?) null : DateTime.Now;
+                studentLesson.RegistrationTime = studentLesson.IsLessonMissed ? default : DateTime.Now;
                 this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : Brushes.White;
                 context.ThrottleSave();
             });

@@ -28,7 +28,7 @@
             <Setter Property="BorderBrush" Value="Black" />
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*" />
             <ColumnDefinition Width="3*" />

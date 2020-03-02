@@ -14,6 +14,7 @@ using TeacherAssistant.PageBase;
 using TeacherAssistant.Services;
 using TeacherAssistant.Services.Paging;
 using TeacherAssistant.StudentViewPage;
+using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class StudentLessonViewModel : ViewModelBase {
@@ -29,6 +30,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             new Dictionary<string, StudentLessonMarkViewModel>();
 
         private string _fullName;
+        private string _attestationSummary;
 
         public StudentLessonViewModel(
             StudentEntity student,
@@ -81,26 +83,26 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 .Values
                 .Where(model => model.StudentLesson.Lesson.LessonType == LessonType.Attestation)
                 .ToList();
+            foreach (var model in attestationModels) {
+                model.PropertyChanged += (sender, args) => {
+                    if (nameof(StudentLessonMarkViewModel.Mark).Equals(args.PropertyName)) {
+                        CalculateAttestationSummary(attestationModels);
+                    }
+                };
+            }
             CalculateAttestationSummary(attestationModels);
         }
 
         private void CalculateAttestationSummary(IEnumerable<StudentLessonMarkViewModel> markViewModels) {
             var attestationSummary = markViewModels
-                .Select(model => MarkAsNumber(model.Mark))
-                .Where(mark => mark.HasValue)
-                .Select(mark => mark.Value)
+                .Where(model => LessonUtil.IsValueValidMark(model.Mark))
+                .Select(model => double.Parse(model.Mark))
                 .DefaultIfEmpty(DefaultInvalidSummary)
                 .Average();
             this.AttestationSummary = attestationSummary.IsEqualWithTolerance(DefaultInvalidSummary)
                 ? string.Empty
                 : attestationSummary.ToString(CultureInfo.InvariantCulture);
         }
-
-        private double? MarkAsNumber(string mark) {
-            var isConverted = double.TryParse(mark, out var markAsNumber);
-            return isConverted ? markAsNumber : (double?) null;
-        }
-
 
         public string FullName {
             get => _fullName;
@@ -161,7 +163,14 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         public ICommand OpenStudentHandler { get; set; }
         public ICommand OpenImageHandler { get; set; }
 
-        public string AttestationSummary { get; set; }
+        public string AttestationSummary {
+            get => _attestationSummary;
+            set {
+                if (value == _attestationSummary) return;
+                _attestationSummary = value;
+                OnPropertyChanged();
+            }
+        }
 
         public bool IsPopupOpened {
             get => _isPopupOpened;

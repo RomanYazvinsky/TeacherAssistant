@@ -26,7 +26,6 @@ namespace TeacherAssistant.PageBase {
         private const int BufferizationTime = 300;
 
         public static LocalizationContainer Localization { get; } = LocalizationContainer.Localization;
-        protected BehaviorSubject<int> RefreshSubject { get; } = new BehaviorSubject<int>(0);
         protected Subject<Unit> DestroySubject { get; } = new Subject<Unit>();
 
         public ViewModelActivator Activator { get; }
@@ -51,18 +50,6 @@ namespace TeacherAssistant.PageBase {
                 Localization[key + _uniqueKey] = value;
                 this.RaisePropertyChanged("Item[]");
             }
-        }
-
-        protected ButtonConfig GetRefreshButtonConfig() {
-            return new ButtonConfig {
-                Icon = new ImageAwesome {
-                    Icon = EFontAwesomeIcon.Solid_Redo,
-                    Width = 12,
-                    Margin = new Thickness(1)
-                },
-                Tooltip = Localization["Refresh"],
-                Command = new CommandHandler(Refresh)
-            };
         }
 
         protected IObservable<IEnumerable<T>> WhenAdded<T>() where T : class
@@ -103,17 +90,12 @@ namespace TeacherAssistant.PageBase {
         }
 
         public virtual void Dispose() {
-            RefreshSubject.OnCompleted();
             this.DestroySubject.OnNext(Unit.Default);
             this.DestroySubject.Dispose();
             this.Activator.Dispose();
             foreach (var keyValuePair in Localization.Where(pair => pair.Key.EndsWith(_uniqueKey))) {
                 Localization.Remove(keyValuePair.Key);
             }
-        }
-
-        public void Refresh() {
-            RefreshSubject.OnNext(0);
         }
 
     }

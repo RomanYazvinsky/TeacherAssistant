@@ -23,18 +23,18 @@ using TeacherAssistant.Models;
 using TeacherAssistant.Models.Notes;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.PageHostProviders;
-using TeacherAssistant.Pages;
-using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Pages.PageController;
+using TeacherAssistant.Pages.RegistrationPage;
+using TeacherAssistant.Pages.StudentViewPage.Models;
 using TeacherAssistant.Services;
 using TeacherAssistant.StudentForm;
+using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
 using TeacherAssistant.ViewModels;
 
-namespace TeacherAssistant.StudentViewPage {
+namespace TeacherAssistant.Pages.StudentViewPage {
     public class StudentViewPageModel : AbstractModel<StudentViewPageModel> {
         private const string LocalizationKey = "page.student.view";
-        public const int MinAcceptableMark = 0;
-        public const int MaxAcceptableMark = 10;
         public const double AttestationCoeff = 0.4;
         public const double ExamCoeff = 0.6;
         private readonly TabPageHost _host;
@@ -214,10 +214,10 @@ namespace TeacherAssistant.StudentViewPage {
 
         private void Initialize([NotNull] StudentEntity student) {
             this.Student = _context.Students
-                               .Include(st => st.Groups)
-                               .Include(st => st.Notes)
-                               .Include(st => st.StudentLessons)
-                               .FirstOrDefault(s => s.Id == student.Id) ?? student;
+                .Include(st => st.Groups)
+                .Include(st => st.Notes)
+                .Include(st => st.StudentLessons)
+                .FirstOrDefault(s => s.Id == student.Id) ?? student;
             this.Groups = string.Join(", ", student.Groups?.Select(group => group.Name) ?? new string[] { });
             this.StudentGroups.Clear();
             this.StudentGroups.AddRange(student.Groups);
@@ -289,13 +289,12 @@ namespace TeacherAssistant.StudentViewPage {
         public ICommand OpenExternalLessonHandler { get; set; }
         public ICommand OpenStudentLessonHandler { get; set; }
 
-        private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student)
-        {
-            if (SelectedGroup == default)
-            {
+        private List<StudentLessonEntity> GetExternalLessons([NotNull] StudentEntity student) {
+            if (this.SelectedGroup == default) {
                 return _context.GetAllAdditionalLessons(student).ToList();
             }
-            return _context.GetAdditionalLessonsByGroup(student, SelectedGroup).ToList();
+
+            return _context.GetAdditionalLessonsByGroup(student, this.SelectedGroup).ToList();
         }
 
         protected override string GetLocalizationKey() {
@@ -331,13 +330,13 @@ namespace TeacherAssistant.StudentViewPage {
             }
 
             var allMarkCount = this.NumberMarkStatistics.Select(statistics => statistics.Occurrences).Sum();
-            var sum = this.NumberMarkStatistics.Select(statistics => statistics.MarkAsNumber * statistics.Occurrences).Sum();
+            var sum = this.NumberMarkStatistics.Select(statistics => statistics.MarkAsNumber * statistics.Occurrences)
+                .Sum();
             this.AverageMark = (double) sum / allMarkCount;
         }
 
         private List<ButtonConfig> GetControls() {
             var buttonConfigs = new List<ButtonConfig> {
-                GetRefreshButtonConfig(),
                 new ButtonConfig {
                     Command = ReactiveCommand.Create(() => {
                         _host.AddPageAsync(
@@ -360,34 +359,31 @@ namespace TeacherAssistant.StudentViewPage {
         }
 
         public void UpdateExamMark() {
-            var attestationAvg = this.StudentAttestations.Select(view =>
-            {
-                if (!int.TryParse(view.Mark, out var i) || i < MinAcceptableMark || i > MaxAcceptableMark)
-                {
-                    return -1;
-                }
-
-                return i;
-            })
-                .Where(i => i != -1)
+            var attestationAvg = this.StudentAttestations
+                .Where(view => LessonUtil.IsValueValidMark(view.Mark))
+                .Select(view => double.Parse(view.Mark))
                 .DefaultIfEmpty(-1)
                 .Average();
-            this.ResultAttestationMark = attestationAvg >= 0 ? attestationAvg.ToString()
+            var anyAttestations = attestationAvg >= 0;
+            this.ResultAttestationMark = anyAttestations
+                ? attestationAvg.ToString(CultureInfo.InvariantCulture)
                 : "";
 
             var exam = this.StudentExams.FirstOrDefault();
-            if (exam == null)
+            if (exam == null) {
                 return;
-            if (int.TryParse(exam.Mark, out var mark))
-            {
-                this.ResultMark =
-                    (attestationAvg >= 0
-                        ? Math.Round(mark * ExamCoeff + attestationAvg * AttestationCoeff)
-                        : mark)
-                    .ToString(CultureInfo.InvariantCulture);
             }
-            else
+
+            if (!LessonUtil.IsValueValidMark(exam.Mark)) {
                 this.ResultMark = exam.Mark;
+                return;
+            }
+            var mark = double.Parse(exam.Mark);
+            this.ResultMark =
+                (anyAttestations
+                    ? Math.Round(mark * ExamCoeff + attestationAvg * AttestationCoeff)
+                    : mark)
+                .ToString(CultureInfo.InvariantCulture);
         }
 
         private async Task AddAttestation() {
@@ -414,18 +410,20 @@ namespace TeacherAssistant.StudentViewPage {
             await _context.SaveChangesAsync();
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students?.Select
-                                            (
-                                                groupStudent => new StudentLessonEntity {
-                                                    Student = groupStudent,
-                                                    Lesson = lesson
-                                                }
-                                            )
-                                            .ToList() ?? new List<StudentLessonEntity>();
+                    (
+                        groupStudent => new StudentLessonEntity {
+                            Student = groupStudent,
+                            Lesson = lesson
+                        }
+                    )
+                    .ToList() ?? new List<StudentLessonEntity>();
                 _context.StudentLessons.AddRange(newStudentLessons);
 
                 var studentLessonEntity = newStudentLessons
-                    .FirstOrDefault(studentLesson => studentLesson.Student == this.Student && studentLesson.Lesson == lesson);
-                var studentAttestationExamView = new StudentAttestationExamView(studentLessonEntity,this,this.StudentAttestations.Count + 1);
+                    .FirstOrDefault(studentLesson =>
+                        studentLesson.Student == this.Student && studentLesson.Lesson == lesson);
+                var studentAttestationExamView =
+                    new StudentAttestationExamView(studentLessonEntity, this, this.StudentAttestations.Count + 1);
                 this.StudentAttestations.Add(studentAttestationExamView);
             }
 
@@ -438,18 +436,17 @@ namespace TeacherAssistant.StudentViewPage {
             var lesson = new LessonEntity();
             var now = DateTime.Now;
             var time = now.TimeOfDay;
-            var examSchedule =
-                schedules.OrderBy(model => model.Begin)
-                    .FirstOrDefault
-                    (
-                        schedule =>
-                            schedule.Begin > time || (schedule.Begin < time && schedule.End > time)
-                    );
+            var examSchedule = schedules
+                .OrderBy(model => model.Begin)
+                .FirstOrDefault(schedule =>
+                        schedule.Begin > time
+                        || (schedule.Begin < time && schedule.End > time)
+                );
             lesson.Schedule = examSchedule;
             lesson.Date = now;
             lesson.LessonType = LessonType.Exam;
             lesson.Stream = this.SelectedStream;
-            lesson.Group = this.SelectedGroup;
+            lesson._StreamId = this.SelectedStream.Id;
             lesson._Order = this.StudentExams.Count + 1;
             lesson.CreationDate = now;
             lesson._Checked = 0;
@@ -459,30 +456,20 @@ namespace TeacherAssistant.StudentViewPage {
 
             if (this.SelectedGroup != null) {
                 var newStudentLessons = this.SelectedGroup.Students?.Select
-                                            (
-                                                groupStudent => new StudentLessonEntity {
-                                                    Student =
-                                                        groupStudent,
-                                                    Lesson = lesson
-                                                }
-                                            )
-                                            .ToArray() ?? new StudentLessonEntity[] { };
+                    (
+                        groupStudent => new StudentLessonEntity {
+                            Student =
+                                groupStudent,
+                            Lesson = lesson
+                        }
+                    )
+                    .ToArray() ?? new StudentLessonEntity[] { };
                 _context.StudentLessons.AddRange(newStudentLessons);
 
-                this.StudentExams.Add
-                (
-                    new StudentAttestationExamView
-                    (
-                        newStudentLessons.FirstOrDefault
-                        (
-                            studentLesson =>
-                                studentLesson.Student == this.Student
-                                && studentLesson.Lesson == lesson
-                        ),
-                        this,
-                        0
-                    )
-                );
+                var studentLessonEntity = newStudentLessons.FirstOrDefault(studentLesson =>
+                    studentLesson.Student == this.Student && studentLesson.Lesson == lesson);
+                var studentAttestationExamView = new StudentAttestationExamView(studentLessonEntity, this, 0);
+                this.StudentExams.Add(studentAttestationExamView);
             }
 
             await _context.SaveChangesAsync();

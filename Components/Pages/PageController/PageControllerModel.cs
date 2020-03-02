@@ -41,13 +41,12 @@ using TeacherAssistant.StreamTable;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.StudentTable;
 using TeacherAssistant.Utils;
-using App = System.Windows.Application;
 using Control = System.Windows.Controls.Control;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using MenuItem = System.Windows.Controls.MenuItem;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
-namespace TeacherAssistant.Pages {
+namespace TeacherAssistant.Pages.PageController {
     public class PageControllerModel : AbstractModel<PageControllerModel> {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModuleActivator _activator;

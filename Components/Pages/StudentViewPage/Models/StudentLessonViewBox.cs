@@ -4,6 +4,7 @@ using ReactiveUI;
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
+using TeacherAssistant.Pages.StudentViewPage;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentLessonViewBox {

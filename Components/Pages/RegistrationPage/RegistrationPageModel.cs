@@ -27,9 +27,9 @@ using TeacherAssistant.Models.Notes;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.PageHostProviders;
-using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.LessonForm;
+using TeacherAssistant.Pages.PageController;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.ReaderPlugin;
 using TeacherAssistant.Services;
@@ -37,7 +37,7 @@ using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
 using TeacherAssistant.ViewModels;
 
-namespace TeacherAssistant.RegistrationPage {
+namespace TeacherAssistant.Pages.RegistrationPage {
     public class RegistrationPageModel : AbstractModel<RegistrationPageModel> {
         private readonly TabPageHost _tabPageHost;
         private readonly WindowPageHost _windowPageHost;
@@ -104,8 +104,8 @@ namespace TeacherAssistant.RegistrationPage {
             this.AllStudentsFilter = (o, s) => {
                 var student = ((IStudentViewModel) o).Student;
                 var alreadyAdded =
-                    IsStudentAlreadyRegistered(RegisteredStudents.Cast<StudentLessonInfoViewModel>(), student)
-                    || IsStudentAlreadyRegistered(LessonStudents.Cast<StudentLessonInfoViewModel>(), student);
+                    IsStudentAlreadyRegistered(this.RegisteredStudents.Cast<StudentLessonInfoViewModel>(), student)
+                    || IsStudentAlreadyRegistered(this.LessonStudents.Cast<StudentLessonInfoViewModel>(), student);
                 if (alreadyAdded) return false;
                 s = s.ToLowerInvariant();
                 return student.FirstName != null
@@ -202,7 +202,7 @@ namespace TeacherAssistant.RegistrationPage {
             });
             GetControls()
                 .ToObservable()
-                .TakeUntil(DestroySubject)
+                .TakeUntil(this.DestroySubject)
                 .Subscribe(controls => { reducer.Dispatch(new RegisterControlsAction(token, controls)); });
         }
 
@@ -295,7 +295,7 @@ namespace TeacherAssistant.RegistrationPage {
             var loadedStudentLessons = lesson.StudentLessons?.ToList() ?? new List<StudentLessonEntity>();
             AddMissingStudents(loadedStudentLessons, this.Lesson);
             _studentLessons = loadedStudentLessons
-                .Select(entity => new StudentLessonInfoViewModel(entity, AddStudentNote, ShowStudent)).ToList();
+                .Select(entity => new StudentLessonInfoViewModel(entity, this.AddStudentNote, this.ShowStudent)).ToList();
             var notRegisteredStudentLessons =
                 _studentLessons.Where(lessonModel => !(lessonModel.StudentLesson.IsRegistered ?? false)).ToList();
             this.LessonStudents.AddRange(notRegisteredStudentLessons);
@@ -314,7 +314,7 @@ namespace TeacherAssistant.RegistrationPage {
             var studentIds = studentModels.Select(model => model.Id);
             var studentLessonsThatAlreadyProcessed
                 = _db.StudentLessons
-                    .Where(model => model._LessonId == Lesson.Id
+                    .Where(model => model._LessonId == this.Lesson.Id
                                     && studentIds.Any(l => model._StudentId == l))
                     .ToList();
             studentLessonsThatAlreadyProcessed.ForEach(model => {
@@ -438,8 +438,8 @@ namespace TeacherAssistant.RegistrationPage {
                 Command = ReactiveCommand.Create(() =>
                     _windowPageHost.AddPageAsync(new NoteListFormToken(
                         "Заметки",
-                        () => new LessonNote {Lesson = Lesson, EntityId = Lesson.Id},
-                        Lesson.Notes
+                        () => new LessonNote {Lesson = this.Lesson, EntityId = this.Lesson.Id},
+                        this.Lesson.Notes
                     ))
                 ),
                 Text = "Заметки"
@@ -581,15 +581,15 @@ namespace TeacherAssistant.RegistrationPage {
 
         private void RegisterExtStudent(StudentEntity studentEntity) {
             var studentLessonModel = new StudentLessonEntity {
-                _LessonId = Lesson.Id,
-                Lesson = Lesson,
+                _LessonId = this.Lesson.Id,
+                Lesson = this.Lesson,
                 _StudentId = studentEntity.Id,
                 Student = studentEntity,
                 IsRegistered = true,
                 RegistrationTime = DateTime.Now
             };
             var studentLessonInfoViewModel =
-                new StudentLessonInfoViewModel(studentLessonModel, AddStudentNote, ShowStudent);
+                new StudentLessonInfoViewModel(studentLessonModel, this.AddStudentNote, this.ShowStudent);
             this.RegisteredStudents.Add(studentLessonInfoViewModel);
             _studentLessons.Add(studentLessonInfoViewModel);
             _db.StudentLessons.Add(studentLessonModel);
@@ -780,9 +780,9 @@ namespace TeacherAssistant.RegistrationPage {
 
         public string AdditionalLessonsInfo { get; set; } = "";
 
-        public string FullName => $@"{LastName}
-{FirstName}
-{SecondName}";
+        public string FullName => $@"{this.LastName}
+{this.FirstName}
+{this.SecondName}";
     }
 
     public class LessonInfoState {
@@ -804,13 +804,13 @@ namespace TeacherAssistant.RegistrationPage {
         public ICommand AddStudentNote { get; }
         public ICommand ShowStudent { get; }
 
-        public StudentEntity Student => StudentLesson.Student;
-        public DateTime? RegistrationTime => StudentLesson.RegistrationTime;
+        public StudentEntity Student => this.StudentLesson.Student;
+        public DateTime? RegistrationTime => this.StudentLesson.RegistrationTime;
 
         public StudentLessonInfoViewModel(StudentLessonEntity studentLesson, ICommand addNote, ICommand showStudent) {
-            StudentLesson = studentLesson;
-            AddStudentNote = addNote;
-            ShowStudent = showStudent;
+            this.StudentLesson = studentLesson;
+            this.AddStudentNote = addNote;
+            this.ShowStudent = showStudent;
             this.GroupText = string.Join(", ",
                 studentLesson.Student.Groups?.Select(entity => entity.Name) ?? new List<string>());
         }

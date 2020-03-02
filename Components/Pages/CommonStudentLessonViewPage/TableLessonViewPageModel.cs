@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -23,6 +24,7 @@ using TeacherAssistant.State;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class TableLessonViewPageModel : AbstractModel<TableLessonViewPageModel> {
+        private const int AttestationCountToCalculateAvg = 2;
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
         private readonly TabPageHost _host;
@@ -69,47 +71,59 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             Init(token.Lesson);
         }
 
-        private async void Init(LessonEntity lesson) {
+        private async Task Init(LessonEntity lesson) {
             _items.Clear();
             this.Columns.Clear();
             this.Columns.Add(BuildMissedLessonsColumn());
             _currentLesson = lesson;
             List<LessonEntity> lessonModels;
             if (lesson.Group == null) {
-                lessonModels = await _db.Lessons
-                    .Include(ls => ls.StudentLessons)
-                    .Where(model =>
-                        model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
-                    .ToListAsync();
-            } else {
-                lessonModels = await _db.Lessons
-                    .Include(ls => ls.StudentLessons)
-                    .Where(model => model._GroupId == lesson._GroupId
-                                    || (model._StreamId == lesson._StreamId
-                                        && !model._GroupId.HasValue))
-                    .ToListAsync();
+                lessonModels = await GetStreamLessonsAsync(lesson);
             }
+            else {
+                lessonModels = await GetGroupLessonsAsync(lesson);
+            }
+
             lessonModels.Sort(SortLessons);
-            if (lessonModels.Count(ls => ls.LessonType == LessonType.Attestation) >= 2) {
+            if (lessonModels.Count(ls => ls.LessonType == LessonType.Attestation) >= AttestationCountToCalculateAvg) {
                 this.Columns.Add(BuildAttestationSummaryColumn());
             }
+
             foreach (var lessonModel in lessonModels) {
                 var lessonId = IdGenerator.GenerateId();
-                this.Lessons.Add(lessonId, lessonModel);
+                this._lessons.Add(lessonId, lessonModel);
                 this.Columns.Add(BuildStudentLessonColumn(lessonId, lessonModel));
             }
 
             var studentModels = ((lesson.Group == null
-                                     ? lesson.Stream.Groups?.SelectMany(group => group.Students ?? new List<StudentEntity>())
-                                     : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
-                .Select(model => new StudentLessonViewModel(model, this.Lessons, _scope, _host, _db))
+                    ? lesson.Stream.Groups?.SelectMany(group =>
+                        group.Students ?? new List<StudentEntity>())
+                    : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
+                .Select(model => new StudentLessonViewModel(model, this._lessons, _scope, _host, _db))
                 .OrderBy(view => view.FullName).ToList();
             _items.AddRange(studentModels);
         }
 
         private LessonEntity _currentLesson;
 
-        private Dictionary<string, LessonEntity> Lessons { get; set; } = new Dictionary<string, LessonEntity>();
+        private Task<List<LessonEntity>> GetStreamLessonsAsync(LessonEntity lesson) {
+            return _db.Lessons
+                .Include(ls => ls.StudentLessons)
+                .Where(model =>
+                    model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
+                .ToListAsync();
+        }
+
+        private Task<List<LessonEntity>> GetGroupLessonsAsync(LessonEntity lesson) {
+            return _db.Lessons
+                .Include(ls => ls.StudentLessons)
+                .Where(model => model._GroupId == lesson._GroupId
+                                || (model._StreamId == lesson._StreamId
+                                    && !model._GroupId.HasValue))
+                .ToListAsync();
+        }
+
+        private readonly Dictionary<string, LessonEntity> _lessons = new Dictionary<string, LessonEntity>();
 
         [Reactive] public string FilterText { get; set; }
 
@@ -192,7 +206,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             dataGridTemplateColumn.HeaderStyle = _columnHeaderStyle;
             return dataGridTemplateColumn;
         }
-        
+
         private ContextMenu BuildLessonCellContextMenu(string id) {
             var menu = new ContextMenu();
             var toggleItem = new MenuItem();
@@ -213,26 +227,33 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 && lesson2.LessonType == LessonType.Attestation) {
                 return lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1;
             }
+
             if (lesson1.LessonType == LessonType.Attestation
                 && lesson2.LessonType == LessonType.Exam) {
                 return 1;
             }
+
             if (lesson1.LessonType == LessonType.Exam
                 && lesson2.LessonType == LessonType.Attestation) {
                 return -1;
             }
+
             if (lesson1.LessonType == LessonType.Attestation) {
                 return -1;
             }
+
             if (lesson1.LessonType == LessonType.Exam) {
                 return -1;
             }
+
             if (lesson2.LessonType == LessonType.Attestation) {
                 return 1;
             }
+
             if (lesson2.LessonType == LessonType.Exam) {
                 return 1;
             }
+
             return lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1;
         }
 

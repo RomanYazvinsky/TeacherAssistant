@@ -1,7 +1,6 @@
-﻿using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.PageBase;
+﻿using TeacherAssistant.PageBase;
 
-namespace TeacherAssistant.Pages {
+namespace TeacherAssistant.Pages.PageController {
     public class PageControllerBase : View<PageControllerToken, PageControllerModel> {
     }
 

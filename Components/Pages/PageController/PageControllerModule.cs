@@ -1,8 +1,7 @@
-using System.Windows.Controls;
 using Grace.DependencyInjection;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant.Pages {
+namespace TeacherAssistant.Pages.PageController {
     public class PageControllerModule : SimpleModule {
         public PageControllerModule() : base(typeof(PageController)) {
         }

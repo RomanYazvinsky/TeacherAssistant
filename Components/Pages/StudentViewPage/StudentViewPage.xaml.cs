@@ -2,6 +2,7 @@
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
+using TeacherAssistant.Pages.StudentViewPage;
 
 namespace TeacherAssistant.StudentViewPage {
     public class StudentViewPageToken : PageModuleToken<StudentViewPageModule> {

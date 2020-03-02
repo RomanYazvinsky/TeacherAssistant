@@ -16,7 +16,7 @@ using TeacherAssistant.Database;
 using TeacherAssistant.Helpers;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.RegistrationPage;
+using TeacherAssistant.Pages.RegistrationPage;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Pages.LessonForm {

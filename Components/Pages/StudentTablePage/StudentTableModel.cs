@@ -18,6 +18,7 @@ using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 using TeacherAssistant.Pages;
+using TeacherAssistant.Pages.PageController;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.Services;
 using TeacherAssistant.StudentViewPage;
@@ -76,23 +77,21 @@ namespace TeacherAssistant.StudentTable {
                     });
                 }
             );
-            this.RefreshSubject
-                .AsObservable()
-                .ObserveOnDispatcher(DispatcherPriority.Background)
-                .Subscribe(_ => {
-                    this.StudentTableConfig.TableItems.Clear();
-                    var studentEntities = context.Students
-                        .Include("Groups")
-                        .ToList();
-                    var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
-                    this.StudentTableConfig.TableItems.AddRange(studentViewModels);
-                });
+            Init();
             reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
+        }
+
+        private void Init() {
+            this.StudentTableConfig.TableItems.Clear();
+            var studentEntities = _context.Students
+                .Include(student => student.Groups)
+                .ToList();
+            var studentViewModels = studentEntities.Select(entity => new StudentViewModel(entity)).ToList();
+            this.StudentTableConfig.TableItems.AddRange(studentViewModels);
         }
 
         public List<ButtonConfig> GetControls() {
             var buttonConfigs = new List<ButtonConfig> {
-                GetRefreshButtonConfig(),
                 new ButtonConfig {
                     Command = ReactiveCommand.Create(async () => {
                         var items = await _context.Students.ToListAsync();

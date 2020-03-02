@@ -2,12 +2,11 @@
 using System.Windows;
 using Grace.DependencyInjection;
 using ReactiveUI;
-using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
-namespace TeacherAssistant.RegistrationPage {
+namespace TeacherAssistant.Pages.RegistrationPage {
     public class RegistrationPageToken : PageModuleToken<RegistrationPageModule> {
         public RegistrationPageToken(string title, LessonEntity lesson) :
             base(title) {

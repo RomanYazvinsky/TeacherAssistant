@@ -1,4 +1,6 @@
-﻿namespace TeacherAssistant.StudentViewPage {
+﻿using TeacherAssistant.Utils;
+
+namespace TeacherAssistant.Pages.StudentViewPage.Models {
     public class MarkStatistics {
         public MarkStatistics(string mark, int occurrences) {
             this.Mark = mark;
@@ -12,10 +14,13 @@
 
         public int MarkAsNumber {
             get {
-                if (!int.TryParse(this.Mark, out var markAsNumber))
+                if (!int.TryParse(this.Mark, out var markAsNumber)) {
                     return -1;
-                if (markAsNumber >= StudentViewPageModel.MinAcceptableMark && markAsNumber <= StudentViewPageModel.MaxAcceptableMark)
+                }
+
+                if (markAsNumber >= LessonUtil.MinimalMark && markAsNumber <= LessonUtil.MaximalMark) {
                     return markAsNumber;
+                }
 
                 return -1;
             }

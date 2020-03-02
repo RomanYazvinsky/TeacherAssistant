@@ -1,18 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reactive.Linq;
 using Containers;
 using Redux;
-using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.Reducers;
 using TeacherAssistant.Core.State;
 using TeacherAssistant.Utils;
 
-namespace TeacherAssistant.Pages {
+namespace TeacherAssistant.Pages.PageController {
     using GlobalState = ImmutableDictionary<string, object>;
 
     public class PageControllerState {
