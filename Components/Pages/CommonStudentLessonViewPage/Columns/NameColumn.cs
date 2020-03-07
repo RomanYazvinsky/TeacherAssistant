@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
 
-namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
+namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
     public class NameColumn : DataGridTemplateColumn {
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem) {
             var contentPresenter = new ContentPresenter();

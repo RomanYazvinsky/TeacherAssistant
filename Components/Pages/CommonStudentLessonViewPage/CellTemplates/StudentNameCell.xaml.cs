@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿﻿using System.Windows;
 using System.Windows.Controls;
 using TeacherAssistant.Components;
 using TeacherAssistant.Models;
@@ -25,7 +25,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates
                 return;
             }
 
-            if (!(this.DataContext is StudentLessonViewModel view))
+            if (!(this.DataContext is StudentRowViewModel view))
             {
                 return;
             }
@@ -43,7 +43,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates
 
         private void OpenStudent(object sender, RoutedEventArgs e)
         {
-            if (!(this.DataContext is StudentLessonViewModel view))
+            if (!(this.DataContext is StudentRowViewModel view))
             {
                 return;
             }

@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
+namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
     public class TextColumn : DataGridTextColumn {
 
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem) {

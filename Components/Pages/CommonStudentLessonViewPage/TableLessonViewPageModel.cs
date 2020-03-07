@@ -9,22 +9,29 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DynamicData;
 using DynamicData.Kernel;
+using FontAwesome5;
 using Grace.DependencyInjection;
 using JetBrains.Annotations;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Database;
+using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
+using TeacherAssistant.Models.Notes;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.State;
+using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns;
+using TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class TableLessonViewPageModel : AbstractModel<TableLessonViewPageModel> {
         private const int AttestationCountToCalculateAvg = 2;
+        private readonly WindowPageHost _windowPageHost;
         private readonly LocalDbContext _db;
         private readonly IExportLocatorScope _scope;
         private readonly TabPageHost _host;
@@ -38,12 +45,17 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     UriKind.RelativeOrAbsolute)
             };
 
-        private readonly ObservableCollection<StudentLessonViewModel> _items =
-            new ObservableCollection<StudentLessonViewModel>();
+        private readonly ObservableCollection<StudentRowViewModel> _items =
+            new ObservableCollection<StudentRowViewModel>();
 
         public TableLessonViewPageModel(
-            TableLessonViewToken token, LocalDbContext db, IExportLocatorScope scope, TabPageHost host
+            TableLessonViewToken token,
+            WindowPageHost windowPageHost,
+            LocalDbContext db,
+            IExportLocatorScope scope,
+            TabPageHost host
         ) {
+            _windowPageHost = windowPageHost;
             _db = db;
             _scope = scope;
             _host = host;
@@ -52,6 +64,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             };
             _studentLessonMarkCellStyle = DataGridResources["StudentLessonMarkCell"] as Style;
             _columnHeaderStyle = DataGridResources["ColumnHeaderStyle"] as Style;
+            RowStyle = DataGridResources["RowStyle"] as Style;
             this.WhenActivated(c => {
                 this.WhenAnyValue(model => model.FilterText)
                     .Throttle(TimeSpan.FromMilliseconds(300))
@@ -63,7 +76,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                         }
 
                         this.Items.View.Filter =
-                            o => o is StudentLessonViewModel item &&
+                            o => o is StudentRowViewModel item &&
                                  item.FullName.ToUpper().Contains(this.FilterText.ToUpper());
                     }).DisposeWith(c);
             });
@@ -76,30 +89,30 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             this.Columns.Clear();
             this.Columns.Add(BuildMissedLessonsColumn());
             _currentLesson = lesson;
-            List<LessonEntity> lessonModels;
+            List<LessonEntity> lessons;
             if (lesson.Group == null) {
-                lessonModels = await GetStreamLessonsAsync(lesson);
+                lessons = await GetStreamLessonsAsync(lesson);
             }
             else {
-                lessonModels = await GetGroupLessonsAsync(lesson);
+                lessons = await GetGroupLessonsAsync(lesson);
             }
 
-            lessonModels.Sort(SortLessons);
-            if (lessonModels.Count(ls => ls.LessonType == LessonType.Attestation) >= AttestationCountToCalculateAvg) {
+            lessons.Sort(SortLessons);
+            if (lessons.Count(ls => ls.LessonType == LessonType.Attestation) >= AttestationCountToCalculateAvg) {
                 this.Columns.Add(BuildAttestationSummaryColumn());
             }
 
-            foreach (var lessonModel in lessonModels) {
-                var lessonId = IdGenerator.GenerateId();
-                this._lessons.Add(lessonId, lessonModel);
-                this.Columns.Add(BuildStudentLessonColumn(lessonId, lessonModel));
+            var columnHelper = new StudentLessonColumnHelper();
+            foreach (var ls in lessons) {
+                this._lessons.Add(ls.Id, ls);
+                this.Columns.Add(BuildStudentLessonColumn(columnHelper, ls));
             }
 
             var studentModels = ((lesson.Group == null
                     ? lesson.Stream.Groups?.SelectMany(group =>
                         group.Students ?? new List<StudentEntity>())
                     : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
-                .Select(model => new StudentLessonViewModel(model, this._lessons, _scope, _host, _db))
+                .Select(model => new StudentRowViewModel(model, this._lessons, _scope, _host, _db))
                 .OrderBy(view => view.FullName).ToList();
             _items.AddRange(studentModels);
         }
@@ -109,6 +122,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private Task<List<LessonEntity>> GetStreamLessonsAsync(LessonEntity lesson) {
             return _db.Lessons
                 .Include(ls => ls.StudentLessons)
+                .Include(ls => ls.Notes)
                 .Where(model =>
                     model._StreamId == lesson._StreamId && (model._GroupId == null || model._GroupId == 0))
                 .ToListAsync();
@@ -117,15 +131,17 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private Task<List<LessonEntity>> GetGroupLessonsAsync(LessonEntity lesson) {
             return _db.Lessons
                 .Include(ls => ls.StudentLessons)
+                .Include(ls => ls.Notes)
                 .Where(model => model._GroupId == lesson._GroupId
                                 || (model._StreamId == lesson._StreamId
                                     && !model._GroupId.HasValue))
                 .ToListAsync();
         }
 
-        private readonly Dictionary<string, LessonEntity> _lessons = new Dictionary<string, LessonEntity>();
+        private readonly Dictionary<long, LessonEntity> _lessons = new Dictionary<long, LessonEntity>();
 
         [Reactive] public string FilterText { get; set; }
+        public Style RowStyle { get; set; }
 
         public CollectionViewSource Items { get; }
 
@@ -173,56 +189,64 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             }
         }
 
-        private DataGridColumn BuildStudentLessonColumn([NotNull] string id, [NotNull] LessonEntity entity) {
+        private DataGridColumn BuildStudentLessonColumn(
+            [NotNull] StudentLessonColumnHelper helper,
+            [NotNull] LessonEntity lesson
+        ) {
             var header = new Grid {
-                Background = GetLessonColumnHeaderBackgroundColor(entity),
+                Background = GetLessonColumnHeaderBackgroundColor(lesson),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch
             };
             header.Children.Add(new TextBlock {
-                Text = Localization["common.lesson.type." + entity.LessonType] + "\n " +
-                       entity.Date?.ToString("dd.MM"),
-                Foreground = entity.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black,
+                Text = Localization["common.lesson.type." + lesson.LessonType] + "\n " +
+                       lesson.Date?.ToString("dd.MM"),
+                Foreground = lesson.Id == _currentLesson.Id ? Brushes.Red : Brushes.Black,
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             });
-            var dataGridTemplateColumn =
-                new TextColumn {
-                    Width = new DataGridLength(90),
-                    MinWidth = 50,
-                    Header = header,
-                    Binding = new Binding {Path = new PropertyPath($"LessonToLessonMark[{id}].Mark")},
-                    CanUserSort = false
-                };
+            AddLessonNoteInfoToColumnHeader(header, lesson);
+            var dataGridTemplateColumn = new StudentLessonColumn(helper, lesson) {
+                Width = new DataGridLength(90),
+                MinWidth = 50,
+                Header = header,
+                CanUserSort = false
+            };
             var cellStyle = new Style {
                 BasedOn = _studentLessonMarkCellStyle,
                 TargetType = typeof(DataGridCell)
             };
-            var backGround = new Setter(Control.BackgroundProperty, new Binding($"LessonToLessonMark[{id}].Color"));
-            var menu = new Setter(FrameworkElement.ContextMenuProperty, BuildLessonCellContextMenu(id));
-            cellStyle.Setters.Add(backGround);
-            cellStyle.Setters.Add(menu);
             dataGridTemplateColumn.CellStyle = cellStyle;
             dataGridTemplateColumn.HeaderStyle = _columnHeaderStyle;
             return dataGridTemplateColumn;
         }
 
-        private ContextMenu BuildLessonCellContextMenu(string id) {
-            var menu = new ContextMenu();
-            var toggleItem = new MenuItem();
-            toggleItem.SetBinding(MenuItem.CommandProperty,
-                new Binding($"LessonToLessonMark[{id}].ToggleRegistrationHandler"));
-            toggleItem.Header = "Отметить/пропуск";
-            var openItem = new MenuItem();
-            openItem.SetBinding(MenuItem.CommandProperty,
-                new Binding($"LessonToLessonMark[{id}].OpenRegistrationHandler"));
-            openItem.Header = "Регистрация";
-            menu.Items.Add(toggleItem);
-            menu.Items.Add(openItem);
-            return menu;
+        private void AddLessonNoteInfoToColumnHeader(Panel columnHeader, LessonEntity lesson) {
+            var lessonNotes = lesson.Notes?.ToList();
+            var headerContextMenu = columnHeader.ContextMenu = new ContextMenu();
+            var openNotes = new MenuItem {
+                Command = BuildOpenLessonNotesCommand(lesson),
+                Header = Localization["Открыть заметки"]
+            };
+            headerContextMenu.Items.Add(openNotes);
+            if (!(lessonNotes?.Any() ?? false)) return;
+            var icon = new FontAwesome {
+                Icon = EFontAwesomeIcon.Solid_InfoCircle,
+                Background = Brushes.Transparent
+            };
+            columnHeader.Children.Add(icon);
         }
 
-        private int SortLessons(LessonEntity lesson1, LessonEntity lesson2) {
+        private ICommand BuildOpenLessonNotesCommand([NotNull] LessonEntity lesson) {
+            return ReactiveCommand.Create(() => {
+                _windowPageHost.AddPageAsync(new NoteListFormToken("Заметки", () => new LessonNote {
+                    Lesson = lesson,
+                    EntityId = lesson.Id
+                }, lesson.Notes));
+            });
+        }
+
+        private static int SortLessons(LessonEntity lesson1, LessonEntity lesson2) {
             if (lesson1.LessonType == LessonType.Attestation
                 && lesson2.LessonType == LessonType.Attestation) {
                 return lesson2.Date?.CompareTo(lesson1.Date.ValueOr(DateTime.MinValue)) ?? -1;

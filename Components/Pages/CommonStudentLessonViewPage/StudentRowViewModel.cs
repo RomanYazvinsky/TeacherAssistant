@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Grace.DependencyInjection;
@@ -17,24 +15,24 @@ using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class StudentLessonViewModel : ViewModelBase {
+    public class StudentRowViewModel : ViewModelBase {
         private const double DefaultInvalidSummary = -1;
-        private readonly Dictionary<string, LessonEntity> _lessonModels;
+        private readonly Dictionary<long, LessonEntity> _lessonModels;
         private readonly IPageHost _host;
         private readonly LocalDbContext _context;
         private int _missedLessons = 0;
         private BitmapImage _source;
         private bool _isPopupOpened;
 
-        private Dictionary<string, StudentLessonMarkViewModel> _lessonToLessonMark =
-            new Dictionary<string, StudentLessonMarkViewModel>();
+        private Dictionary<long, StudentLessonCellViewModel> _lessonToLessonMark =
+            new Dictionary<long, StudentLessonCellViewModel>();
 
         private string _fullName;
         private string _attestationSummary;
 
-        public StudentLessonViewModel(
+        public StudentRowViewModel(
             StudentEntity student,
-            Dictionary<string, LessonEntity> lessonModels,
+            Dictionary<long, LessonEntity> lessonModels,
             IExportLocatorScope serviceLocator,
             IPageHost host,
             LocalDbContext context
@@ -67,7 +65,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 }
 
                 this.LessonToLessonMark.Add(keyValuePair.Key,
-                    new StudentLessonMarkViewModel(studentLessonModel, _context, _host));
+                    new StudentLessonCellViewModel(studentLessonModel, _context, _host));
             }
 
             _context.ThrottleSave();
@@ -85,7 +83,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                 .ToList();
             foreach (var model in attestationModels) {
                 model.PropertyChanged += (sender, args) => {
-                    if (nameof(StudentLessonMarkViewModel.Mark).Equals(args.PropertyName)) {
+                    if (nameof(StudentLessonCellViewModel.Mark).Equals(args.PropertyName)) {
                         CalculateAttestationSummary(attestationModels);
                     }
                 };
@@ -93,7 +91,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             CalculateAttestationSummary(attestationModels);
         }
 
-        private void CalculateAttestationSummary(IEnumerable<StudentLessonMarkViewModel> markViewModels) {
+        private void CalculateAttestationSummary(IEnumerable<StudentLessonCellViewModel> markViewModels) {
             var attestationSummary = markViewModels
                 .Where(model => LessonUtil.IsValueValidMark(model.Mark))
                 .Select(model => double.Parse(model.Mark))
@@ -124,7 +122,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         public IExportLocatorScope ServiceLocator { get; }
 
-        public Dictionary<string, StudentLessonMarkViewModel> LessonToLessonMark {
+        public Dictionary<long, StudentLessonCellViewModel> LessonToLessonMark {
             get => _lessonToLessonMark;
             set {
                 if (Equals(value, _lessonToLessonMark)) return;

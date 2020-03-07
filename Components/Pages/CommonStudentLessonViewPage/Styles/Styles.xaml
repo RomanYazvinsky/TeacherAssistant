@@ -11,10 +11,9 @@
                 <Setter Property="Padding" Value="0" />
                 <Setter Property="BorderBrush" Value="Black" />
                 <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Foreground" Value="Black" />
-                    </Trigger>
                 </Style.Triggers>
+            </Style>
+            <Style x:Key="RowStyle" TargetType="DataGridRow">
             </Style>
             <Style x:Key="ColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
                 <Setter Property="materialDesign:DataGridAssist.ColumnHeaderPadding" Value="0" />

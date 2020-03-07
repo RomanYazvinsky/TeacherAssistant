@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TeacherAssistant.Pages.CommonStudentLessonViewPage"
     xmlns:cellTemplates="clr-namespace:TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates"
+    xmlns:columns="clr-namespace:TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns"
     mc:Ignorable="d"
     x:Name="LessonTable"
     d:DataContext="{d:DesignInstance local:TableLessonViewPageModel}"
@@ -17,18 +18,17 @@
             <Setter Property="BorderBrush" Value="Black" />
             <Setter Property="BorderThickness" Value="0, 0, 1, 0" />
         </Style>
-
     </UserControl.Resources>
     <Grid>
         <DataGrid x:Name="Table"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"
-                  VirtualizingPanel.CacheLength="15"
+                  VirtualizingPanel.CacheLength="10"
                   VirtualizingPanel.CacheLengthUnit="Item"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
-                  EnableColumnVirtualization="False"
+                  EnableColumnVirtualization="True"
                   EnableRowVirtualization="True"
                   FrozenColumnCount="1"
                   ItemsSource="{Binding Path=Items.View, IsAsync=True}"
@@ -39,7 +39,7 @@
                   RowHeight="30"
                   RowHeaderWidth="0">
             <DataGrid.Columns>
-                <local:NameColumn Width="300">
+                <columns:NameColumn Width="300">
                     <DataGridTemplateColumn.HeaderTemplate>
                         <DataTemplate>
                             <Grid>
@@ -64,7 +64,7 @@
                             <cellTemplates:StudentNameCell Margin="0" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
-                </local:NameColumn>
+                </columns:NameColumn>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

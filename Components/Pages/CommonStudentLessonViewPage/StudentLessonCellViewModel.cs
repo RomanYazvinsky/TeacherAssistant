@@ -9,16 +9,16 @@ using TeacherAssistant.Pages.RegistrationPage;
 using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
-    public class StudentLessonMarkViewModel : ViewModelBase {
+    public class StudentLessonCellViewModel : ViewModelBase {
         private readonly LocalDbContext _context;
         private Brush _color;
         private StudentLessonEntity _studentLesson;
 
 
-        public StudentLessonMarkViewModel(StudentLessonEntity studentLesson, LocalDbContext context, IPageHost pageHost) {
+        public StudentLessonCellViewModel(StudentLessonEntity studentLesson, LocalDbContext context, IPageHost pageHost) {
             _context = context;
             this.StudentLesson = studentLesson;
-            this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : Brushes.White;
+            this.Color = studentLesson.IsLessonMissed ? Brushes.LightPink : new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 255, 255, 255));
             this.ToggleRegistrationHandler = ReactiveCommand.Create(() => {
                 studentLesson.IsRegistered = studentLesson.IsLessonMissed;
                 studentLesson.RegistrationTime = studentLesson.IsLessonMissed ? default : DateTime.Now;

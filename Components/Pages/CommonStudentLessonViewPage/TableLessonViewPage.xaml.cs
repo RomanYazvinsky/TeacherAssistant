@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
@@ -69,6 +69,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     foreach (var dataGridColumn in columns) {
                         Table.Columns.Add(dataGridColumn);
                     }
+
+                    Table.RowStyle = this.ViewModel.RowStyle;
                 });
         }
     }

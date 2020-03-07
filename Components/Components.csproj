@@ -310,14 +310,16 @@
     <Compile Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml.cs">
       <DependentUpon>StudentNameCell.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonMarkViewModel.cs" />
-    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonViewModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\Helper\StudentLessonColumnHelper.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\NameColumn.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\StudentLessonColumn.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\TextColumn.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentLessonCellViewModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\StudentRowViewModel.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPage.xaml.cs">
       <DependentUpon>TableLessonViewPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPageModel.cs" />
-    <Compile Include="Pages\CommonStudentLessonViewPage\NameColumn.cs" />
-    <Compile Include="Pages\CommonStudentLessonViewPage\TextColumn.cs" />
     <Compile Include="Pages\DepartmentTablePage\DepartmentTable.xaml.cs">
       <DependentUpon>DepartmentTable.xaml</DependentUpon>
     </Compile>
