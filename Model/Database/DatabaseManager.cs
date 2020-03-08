@@ -14,7 +14,6 @@ namespace TeacherAssistant.Database {
     public class DatabaseManager : IDisposable {
         private readonly IEnumerable<IMigration> _migrations;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        public event EventHandler<string> DatabaseChanged;
         public string CurrentDatabasePath { get; private set; }
         [CanBeNull] public LocalDbContext Context { get; private set; }
 
@@ -81,7 +80,6 @@ namespace TeacherAssistant.Database {
             await Migrate(context);
             this.Context = context;
             this.CurrentDatabasePath = path;
-            DatabaseChanged?.Invoke(this, path);
         }
 
         private async Task Migrate([NotNull] LocalDbContext context) {

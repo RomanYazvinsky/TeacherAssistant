@@ -13,8 +13,6 @@ namespace TeacherAssistant.Models {
         private string _name;
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
         private const string ExpirationDateTime = "T00:00:00";
-        [Key, Column("id")] public long Id { get; set; }
-
 
         public GroupEntity() {
         }

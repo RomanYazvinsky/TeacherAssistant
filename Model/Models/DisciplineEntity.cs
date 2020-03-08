@@ -16,7 +16,6 @@ namespace TeacherAssistant.Models
         {
             Apply(discipline);
         }
-        [Key] [Column("id")] public long Id { get; set; }
 
         [Column("name")]
         public string Name { get; set; }

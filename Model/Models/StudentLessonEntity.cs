@@ -22,7 +22,6 @@ namespace TeacherAssistant.Models
         {
             Apply(entity);
         }
-        [Key] [Column("id")] public long Id { get; set; }
         [Column("student_id")]
         public long _StudentId { get; set; }
         [Column("lesson_id")]

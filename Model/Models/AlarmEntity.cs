@@ -21,7 +21,6 @@ namespace TeacherAssistant.Models
             Apply(alarm);
         }
 
-        [Key] [Column("id")] public long Id { get; set; }
         [Column("active")] public long? _Active { get; set; }
 
         [Column("time")]

@@ -8,7 +8,9 @@ using ReactiveUI;
 using TeacherAssistant.Core.Utils;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
+using TeacherAssistant.Models.Notes;
 using TeacherAssistant.PageBase;
+using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Services;
 using TeacherAssistant.Services.Paging;
 using TeacherAssistant.StudentViewPage;
@@ -19,7 +21,9 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
         private const double DefaultInvalidSummary = -1;
         private readonly Dictionary<long, LessonEntity> _lessonModels;
         private readonly IPageHost _host;
+        private readonly WindowPageHost _windowPageHost;
         private readonly LocalDbContext _context;
+        private readonly IEnumerable<StudentLessonNote> _notes;
         private int _missedLessons = 0;
         private BitmapImage _source;
         private bool _isPopupOpened;
@@ -35,11 +39,15 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             Dictionary<long, LessonEntity> lessonModels,
             IExportLocatorScope serviceLocator,
             IPageHost host,
-            LocalDbContext context
+            WindowPageHost windowPageHost,
+            LocalDbContext context,
+            IEnumerable<StudentLessonNote> notes
         ) {
             _lessonModels = lessonModels;
             _host = host;
+            _windowPageHost = windowPageHost;
             _context = context;
+            _notes = notes;
             OpenStudentHandler = ReactiveCommand.Create(OpenStudent);
             OpenImageHandler = ReactiveCommand.Create(LoadImage);
             this.Student = student;
@@ -50,25 +58,13 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         private void Init() {
             foreach (var keyValuePair in _lessonModels) {
-                var studentLessonModel =
-                    keyValuePair.Value.StudentLessons?.FirstOrDefault(model => model._StudentId == this.Student.Id) ??
-                    new StudentLessonEntity {
-                        _LessonId = keyValuePair.Value.Id,
-                        Lesson = keyValuePair.Value,
-                        Student = this.Student,
-                        _StudentId = this.Student.Id,
-                        IsRegistered = false,
-                        Mark = ""
-                    };
-                if (studentLessonModel.Id == default) {
-                    _context.StudentLessons.Add(studentLessonModel);
-                }
-
-                this.LessonToLessonMark.Add(keyValuePair.Key,
-                    new StudentLessonCellViewModel(studentLessonModel, _context, _host));
+                var studentLessons = keyValuePair.Value.StudentLessons;
+                var studentLesson = studentLessons?.FirstOrDefault(model => model._StudentId == this.Student.Id);
+                var notes = _notes.Where(note => note.EntityId == studentLesson?.Id);
+                var cell = new StudentLessonCellViewModel(studentLesson, _context, _host, _windowPageHost, notes);
+                this.LessonToLessonMark.Add(keyValuePair.Key, cell);
             }
 
-            _context.ThrottleSave();
             this.MissedLessons = this.LessonToLessonMark
                 .Values
                 .Select(model => model.StudentLesson.IsLessonMissed ? 1 : 0)
@@ -88,6 +84,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     }
                 };
             }
+
             CalculateAttestationSummary(attestationModels);
         }
 

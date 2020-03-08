@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,10 +10,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper {
     public class CellBindings {
         public BindingBase MarkBinding { get; }
         public BindingBase BackgroundBinding { get; }
-        public ContextMenu ContextMenu { get; }
+        public IEnumerable<MenuItem> ContextMenuItems { get; }
 
         public CellBindings(StudentLessonCellViewModel cell) {
-            this.ContextMenu = BuildLessonCellContextMenu(cell);
+            this.ContextMenuItems = BuildLessonCellContextMenu(cell);
             this.BackgroundBinding = new Binding {
                 Source = cell,
                 Path = new PropertyPath(nameof(StudentLessonCellViewModel.Color))
@@ -25,8 +25,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper {
         }
 
 
-        private static ContextMenu BuildLessonCellContextMenu(StudentLessonCellViewModel cell) {
-            var menu = new ContextMenu();
+        private static IEnumerable<MenuItem> BuildLessonCellContextMenu(StudentLessonCellViewModel cell) {
             var toggleItem = new MenuItem {
                 Command = cell.ToggleRegistrationHandler,
                 Header = "Отметить/пропуск"
@@ -36,11 +35,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper {
                 Header = "Регистрация"
             };
             var openNotesItem = new MenuItem {
-                Header = "Заметки"
+                Header = "Заметки",
+                Command = cell.OpenNotesFormHandler
             };
-            menu.Items.Add(toggleItem);
-            menu.Items.Add(openItem);
-            return menu;
+            return new[] {toggleItem, openItem, openNotesItem};
         }
     }
 
@@ -49,33 +47,38 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper {
             new Dictionary<StudentLessonCellViewModel, CellBindings>();
 
         public DependencyPropertyChangedEventHandler CreateAsyncHandler(
+            FrameworkElement cell,
             FrameworkElement textBlock,
+            FrameworkElement icon,
             long lessonId
         ) {
             void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs args) {
                 Application.Current.Dispatcher?.BeginInvoke(
-                    DispatcherPriority.Background,
-                    new Action<TextBlock>(
-                        x => { UpdateCellValue(x, args.NewValue as StudentRowViewModel, lessonId); }),
-                    textBlock);
+                    () => UpdateCellValue(cell, textBlock, icon, args.NewValue as StudentRowViewModel, lessonId),
+                    DispatcherPriority.Background
+                );
             }
 
             return OnDataContextChanged;
         }
 
         public DependencyPropertyChangedEventHandler CreateEagerHandler(
+            FrameworkElement cell,
             FrameworkElement textBlock,
+            FrameworkElement icon,
             long lessonId
         ) {
             void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs args) {
-                UpdateCellValue(textBlock, args.NewValue as StudentRowViewModel, lessonId);
+                UpdateCellValue(cell, textBlock, icon, args.NewValue as StudentRowViewModel, lessonId);
             }
 
             return OnDataContextChanged;
         }
 
         public void UpdateCellValue(
+            FrameworkElement cell,
             FrameworkElement block,
+            FrameworkElement icon,
             [CanBeNull] StudentRowViewModel row,
             long lessonId
         ) {
@@ -92,10 +95,21 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns.Helper {
             else {
                 bindings = _cellBindings[cellContext];
             }
-            
+
             block.SetBinding(TextBlock.TextProperty, bindings.MarkBinding);
-            block.SetBinding(TextBlock.BackgroundProperty, bindings.BackgroundBinding);
-            block.ContextMenu = bindings.ContextMenu;
+            cell.SetBinding(Panel.BackgroundProperty, bindings.BackgroundBinding);
+            if (cell.ContextMenu == null) {
+                cell.ContextMenu = new ContextMenu();
+            }
+
+            cell.ContextMenu.Items.Clear();
+            var items = bindings.ContextMenuItems;
+            (items.FirstOrDefault()?.Parent as ContextMenu)?.Items.Clear();
+            foreach (var menuItem in items) {
+                cell.ContextMenu.Items.Add(menuItem);
+            }
+
+            icon.Visibility = cellContext.ShowNotesInfo ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

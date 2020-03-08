@@ -1,10 +1,16 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using EntityFramework.Triggers;
 using JetBrains.Annotations;
 
 namespace TeacherAssistant.Helpers {
-    public abstract class ATrackable<T> where T: class {
+    public class Entity {
+        [Key] [Column("id")]
+        public virtual long Id { get; set; }
+    }
+    
+    public abstract class ATrackable<T>: Entity where T: Entity {
         [NotMapped] public DateTime Inserted { get; protected set; }
         [NotMapped] public DateTime Updated { get; protected set; }
         [NotMapped] public DateTime Deleted { get; protected set; }

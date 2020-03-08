@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -80,13 +81,13 @@ namespace TeacherAssistant.PageBase {
 
         protected abstract string GetLocalizationKey();
 
-        protected void RunInUiThread(Action updateAction) {
+        protected Task RunInUiThread(Action updateAction) {
             if (Thread.CurrentThread.ManagedThreadId.Equals(Application.Current?.Dispatcher?.Thread.ManagedThreadId))
             {
                 updateAction();
-                return;
+                return Task.CompletedTask;
             }
-            Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Background, updateAction);
+            return Application.Current?.Dispatcher?.BeginInvoke(DispatcherPriority.Background, updateAction).Task;
         }
 
         public virtual void Dispose() {

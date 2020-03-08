@@ -16,8 +16,6 @@ namespace TeacherAssistant.Models {
             Apply(entity);
         }
 
-        [Key] [Column("id")] public long Id { get; set; }
-
         [Column("card_uid")] public virtual string CardUid { get; set; }
 
         [Column("first_name")] public virtual string FirstName { get; set; }

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models
 {
   //  [Table("STUDENT_NOTIFICATION")]
-    public class StudentNotificationModel
+    public class StudentNotificationModel: Entity
     {
-        [Key]
-        public long id { get; set; }
 
         [ForeignKey("student_id")]
         public virtual StudentEntity student { get; set; }

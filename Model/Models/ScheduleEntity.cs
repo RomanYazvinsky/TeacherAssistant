@@ -1,14 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models {
     [Table("SCHEDULE")]
-    public class ScheduleEntity : IComparable {
-        private int _orderNumber;
-
-        [Key] [Column("id")] public long Id { get; set; }
-
+    public class ScheduleEntity : Entity, IComparable {
         [NotMapped]
         public TimeSpan? Begin {
             get {

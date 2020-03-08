@@ -12,7 +12,6 @@ namespace TeacherAssistant.Models {
     public class LessonEntity : ATrackable<LessonEntity> {
         #region Database mapping
 
-        [Key] [Column("id")] public long Id { get; set; }
         [Column("name")] public string Name { get; set; }
         [Column("description")] public string Description { get; set; }
         [Column("create_date")] public string _CreateDate { get; set; }

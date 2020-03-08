@@ -19,7 +19,7 @@
             <Setter Property="BorderThickness" Value="0, 0, 1, 0" />
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Margin="5">
         <DataGrid x:Name="Table"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"

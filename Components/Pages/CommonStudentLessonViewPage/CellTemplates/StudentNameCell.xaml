@@ -6,16 +6,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fa5="http://schemas.fontawesome.com/icons/"
     mc:Ignorable="d"
-    d:DesignHeight="450" d:DesignWidth="800">
+    d:DesignHeight="450" d:DesignWidth="800"
+    DataContextChanged="OnDataContextChanged"
+    >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0" />
             <ColumnDefinition Width="30" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Открыть" Click="OpenStudent" />
+                <MenuItem Header="Заметки" Click="OpenNotes" />
             </ContextMenu>
         </Grid.ContextMenu>
         <Popup MaxWidth="200" IsOpen="False" MaxHeight="300" Grid.Column="0" StaysOpen="False" x:Name="Popup">
@@ -25,5 +29,6 @@
             <fa5:ImageAwesome Icon="Solid_Portrait" Width="20" Height="20"/>
         </Button>
         <TextBlock Grid.Column="2" Text="{Binding Path=FullName}" />
+        <fa5:ImageAwesome Grid.Column="3" x:Name="NoteInfoIcon" Icon="Solid_InfoCircle" Width="20" Height="20"/>
     </Grid>
 </UserControl>

@@ -17,7 +17,6 @@ namespace TeacherAssistant.Models
     [Table("NOTE")]
     public class NoteEntity: ATrackable<NoteEntity>
     {
-        [Key] [Column("id")] public long Id { get; set; }
         // [Column("type")] public string _Type { get; set; }
 
         [Column("entity_id")]

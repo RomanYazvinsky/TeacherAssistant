@@ -81,43 +81,112 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                     }).DisposeWith(c);
             });
 
-            Init(token.Lesson);
+            Task.Run(async () => await Init(token.Lesson));
         }
 
         private async Task Init(LessonEntity lesson) {
-            _items.Clear();
-            this.Columns.Clear();
-            this.Columns.Add(BuildMissedLessonsColumn());
             _currentLesson = lesson;
-            List<LessonEntity> lessons;
-            if (lesson.Group == null) {
-                lessons = await GetStreamLessonsAsync(lesson);
+            this._lessons.Clear();
+            var lessonStudents = await GetLessonStudentsAsync(_db, lesson);
+            var lessons = await GetLessonsAsync(lesson);
+            var isStudentLessonsAdded = await AddMissedStudentToLessonEntitiesAsync(_db, lessons, lessonStudents);
+            if (isStudentLessonsAdded) {
+                lessons = await GetLessonsAsync(lesson);
             }
-            else {
-                lessons = await GetGroupLessonsAsync(lesson);
-            }
+
+            var showAttestationSummary = lessons.Count(ls => ls.LessonType == LessonType.Attestation) >=
+                                         AttestationCountToCalculateAvg;
 
             lessons.Sort(SortLessons);
-            if (lessons.Count(ls => ls.LessonType == LessonType.Attestation) >= AttestationCountToCalculateAvg) {
-                this.Columns.Add(BuildAttestationSummaryColumn());
-            }
 
             var columnHelper = new StudentLessonColumnHelper();
+
             foreach (var ls in lessons) {
                 this._lessons.Add(ls.Id, ls);
-                this.Columns.Add(BuildStudentLessonColumn(columnHelper, ls));
             }
 
-            var studentModels = ((lesson.Group == null
-                    ? lesson.Stream.Groups?.SelectMany(group =>
-                        group.Students ?? new List<StudentEntity>())
-                    : lesson.Group.Students?.ToList()) ?? new List<StudentEntity>())
-                .Select(model => new StudentRowViewModel(model, this._lessons, _scope, _host, _db))
-                .OrderBy(view => view.FullName).ToList();
-            _items.AddRange(studentModels);
+            var lessonIds = lessons.Select(ls => ls.Id);
+            var studentLessonNotes = await _db.StudentLessonNotes
+                .Where(note => lessonIds.Any(lsId => lsId == note.StudentLesson._LessonId))
+                .ToListAsync();
+            var students = lessonStudents
+                .Select(model => new StudentRowViewModel(
+                    model,
+                    this._lessons,
+                    _scope,
+                    _host,
+                    _windowPageHost,
+                    _db,
+                    studentLessonNotes))
+                .OrderBy(view => view.FullName)
+                .ToList();
+            await RunInUiThread(() => {
+                var columns = new List<DataGridColumn> {BuildMissedLessonsColumn()};
+                if (showAttestationSummary) {
+                    columns.Add(BuildAttestationSummaryColumn());
+                }
+
+                _items.Clear();
+                _items.AddRange(students);
+                columns.AddRange(lessons.Select(ls => BuildStudentLessonColumn(columnHelper, ls)));
+                this.Columns.Clear();
+                this.Columns.AddRange(columns);
+            });
+        }
+
+        private static async Task<bool> AddMissedStudentToLessonEntitiesAsync(
+            LocalDbContext db,
+            IEnumerable<LessonEntity> lessons,
+            IEnumerable<StudentEntity> students
+        ) {
+            var lessonsArray = lessons as LessonEntity[] ?? lessons.ToArray();
+            var studentsArray = students as StudentEntity[] ?? students.ToArray();
+            var studentLessonsToAdd = lessonsArray
+                .SelectMany(lesson => {
+                    var studentToAddToLesson = studentsArray
+                        .Where(student => lesson.StudentLessons?.All(stl => stl._StudentId != student.Id) ?? false)
+                        .ToArray();
+                    if (!studentToAddToLesson.Any()) {
+                        return Enumerable.Empty<StudentLessonEntity>();
+                    }
+
+                    return studentToAddToLesson.Select(student => new StudentLessonEntity {
+                        Lesson = lesson,
+                        _LessonId = lesson.Id,
+                        Student = student,
+                        _StudentId = student.Id,
+                        IsRegistered = false
+                    });
+                })
+                .ToArray();
+            if (!studentLessonsToAdd.Any()) {
+                return false;
+            }
+
+            db.StudentLessons.AddRange(studentLessonsToAdd);
+            await db.SaveChangesAsync();
+            return true;
+        }
+
+        private static Task<List<StudentEntity>> GetLessonStudentsAsync(LocalDbContext db, LessonEntity lesson) {
+            var lessonStudents = (lesson.Group == null
+                                     ? lesson.Stream.Groups?.SelectMany(group =>
+                                         group.Students ?? new List<StudentEntity>())
+                                     : lesson.Group.Students?.ToList()
+                                 )?.Select(st => st.Id)
+                                 ?? Enumerable.Empty<long>();
+            var enumerable = lessonStudents.ToArray();
+            return db.Students
+                .Include(nameof(StudentEntity.Notes))
+                .Where(s => enumerable.Contains(s.Id))
+                .ToListAsync();
         }
 
         private LessonEntity _currentLesson;
+
+        private Task<List<LessonEntity>> GetLessonsAsync(LessonEntity lesson) {
+            return lesson.Group == null ? GetStreamLessonsAsync(lesson) : GetGroupLessonsAsync(lesson);
+        }
 
         private Task<List<LessonEntity>> GetStreamLessonsAsync(LessonEntity lesson) {
             return _db.Lessons
@@ -149,14 +218,13 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
             new ObservableCollection<DataGridColumn>();
 
         private DataGridColumn BuildMissedLessonsColumn() {
-            var dataGridTemplateColumn =
-                new TextColumn {
-                    Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
-                    Header = new TextBlock {Text = Localization["Пропуски"]},
-                    Binding = new Binding("MissedLessons"),
-                    IsReadOnly = true,
-                    CanUserSort = false
-                };
+            var dataGridTemplateColumn = new TextColumn {
+                Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
+                Header = new TextBlock {Text = Localization["Пропуски"]},
+                Binding = new Binding("MissedLessons"),
+                IsReadOnly = true,
+                CanUserSort = false
+            };
             return dataGridTemplateColumn;
         }
 

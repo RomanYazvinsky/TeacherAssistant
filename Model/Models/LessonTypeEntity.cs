@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models {
     public enum LessonType : long {
@@ -12,10 +13,7 @@ namespace TeacherAssistant.Models {
     }
 
     [Table("LESSON_TYPE")]
-    public class LessonTypeEntity {
-        private string _name;
-        [Key] [Column("id")] public long Id { get; set; }
-
+    public class LessonTypeEntity : Entity {
         [Column("name")] public string Name { get; set; }
     }
 }
