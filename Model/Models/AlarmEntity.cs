@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using JetBrains.Annotations;
 using TeacherAssistant.Helpers;
@@ -7,7 +6,7 @@ using TeacherAssistant.Helpers;
 namespace TeacherAssistant.Models
 {
     [Table("ALARM")]
-    public class AlarmEntity : ATrackable<AlarmEntity>
+    public class AlarmEntity : TrackableEntity<AlarmEntity>
     {
         private string _discriminator;
         private string _resourceName;

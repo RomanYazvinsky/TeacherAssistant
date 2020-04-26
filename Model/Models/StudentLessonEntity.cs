@@ -11,7 +11,7 @@ using TeacherAssistant.Models.Notes;
 namespace TeacherAssistant.Models
 {
     [Table("STUDENT_LESSON")]
-    public class StudentLessonEntity: ATrackable<StudentLessonEntity>, IStudentViewModel
+    public class StudentLessonEntity: TrackableEntity<StudentLessonEntity>, IStudentViewModel
     {
         public StudentLessonEntity()
         {

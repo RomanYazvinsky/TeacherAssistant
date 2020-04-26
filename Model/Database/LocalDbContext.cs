@@ -18,6 +18,8 @@ namespace TeacherAssistant.Database {
         public const string DatabaseExtension = ".s3db";
         private readonly Subject<Unit> _delayedUpdateStart;
 
+        public LocalDbContext() {
+        }
         public LocalDbContext(DbConnection connection) : base(connection,true) {
             _delayedUpdateStart = new Subject<Unit>();
             _delayedUpdateStart
@@ -65,7 +67,7 @@ namespace TeacherAssistant.Database {
                 .Where
                 (
                     model => model.Group != null && model.Group.Id == group.Id
-                             || model.Stream.Groups.Any(streamGroup => streamGroup.Id == group.Id)
+                             || model.Stream.Groups.Select(entity => entity.Id).Contains(group.Id)
                 );
         }
 
@@ -145,6 +147,15 @@ namespace TeacherAssistant.Database {
                     : studentLesson.Lesson.Stream.Groups.All(
                         group => studentGroupsIds.All(studentGroupId => studentGroupId != group.Id)
                     ));
+        }
+
+        public IEnumerable<StudentEntity> GetLessonStudents(LessonEntity lesson) {
+            if (lesson.Group == null) {
+                return lesson.Stream.Groups?.SelectMany(group => group.Students ?? Enumerable.Empty<StudentEntity>())
+                       ?? Enumerable.Empty<StudentEntity>();
+            }
+
+            return lesson.Group.Students ?? Enumerable.Empty<StudentEntity>();
         }
 
         public void SetLessonOrder(LessonEntity entity) {

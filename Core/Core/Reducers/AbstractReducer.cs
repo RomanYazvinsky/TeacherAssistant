@@ -9,20 +9,24 @@ using Redux;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
 
-namespace TeacherAssistant.Core.Reducers {
+namespace TeacherAssistant.Core.Reducers
+{
     using GlobalState = ImmutableDictionary<string, object>;
 
-    public interface IReducer {
+    public interface IReducer
+    {
         GlobalState Reduce(GlobalState state, IAction action);
     }
 
-    public abstract class AbstractReducer<TState> : IReducer, IDisposable where TState : new() {
+    public abstract class AbstractReducer<TState> : IReducer, IDisposable where TState : new()
+    {
         private readonly string _id;
         protected readonly Storage Storage;
         private readonly Subject<Unit> _disposeSubject = new Subject<Unit>();
 
-        protected AbstractReducer(IModuleToken token, Storage storage) {
-            _id = token.Id;
+        protected AbstractReducer(IModuleActivation activation, Storage storage)
+        {
+            _id = activation.Id;
             Storage = storage;
             Storage.RegisterReducer(_id, this);
             InitializeState();
@@ -30,45 +34,56 @@ namespace TeacherAssistant.Core.Reducers {
 
         protected GlobalState Set<TMember>(Expression<Func<TState, TMember>> expression,
             ImmutableDictionary<string, object> state,
-            TMember value) {
+            TMember value)
+        {
             return state.SetItem(GetKey(expression), value);
         }
 
         protected GlobalState Set<TMember>(Expression<Func<TState, string>> expression,
             GlobalState state,
-            TMember value) {
+            TMember value)
+        {
             return state.SetItem(GetKey(expression), value);
         }
 
-        protected string GetKey<TMember>(Expression<Func<TState, TMember>> expression) {
+        protected string GetKey<TMember>(Expression<Func<TState, TMember>> expression)
+        {
             return _id + (expression.Body is MemberExpression member ? member.Member.Name : "");
         }
 
-        public IObservable<TMember> Select<TMember>(Expression<Func<TState, TMember>> expression) {
+        public IObservable<TMember> Select<TMember>(Expression<Func<TState, TMember>> expression)
+        {
             return Storage.CreateSelector<TMember>(GetKey(expression))().TakeUntil(_disposeSubject);
         }
 
-        public TMember SelectCurrentValue<TMember>(Expression<Func<TState, TMember>> expression, GlobalState state) {
+        public TMember SelectCurrentValue<TMember>(Expression<Func<TState, TMember>> expression, GlobalState state)
+        {
             return (TMember) state[GetKey(expression)];
         }
 
-        public TAction SetActionId<TAction>(TAction action) where TAction: ModuleScopeAction {
+        public TAction SetActionId<TAction>(TAction action) where TAction : ModuleScopeAction
+        {
             action.Id = _id;
             return action;
         }
-        public void Dispatch(IAction action) {
-            if (action is ModuleScopeAction moduleScopeAction) {
+
+        public void Dispatch(IAction action)
+        {
+            if (action is ModuleScopeAction moduleScopeAction)
+            {
                 moduleScopeAction.Id = _id;
             }
 
             Storage.Store.Dispatch(action);
         }
 
-        public void DispatchSetValueAction<TMember>(Expression<Func<TState, TMember>> expression, TMember value) {
+        public void DispatchSetValueAction<TMember>(Expression<Func<TState, TMember>> expression, TMember value)
+        {
             Dispatch(new Storage.SetValueAction(GetKey(expression), value));
         }
 
-        private void InitializeState() {
+        private void InitializeState()
+        {
             var localState = new TState();
             var state = Storage.Store.GetState();
             state = localState.GetType().GetProperties().Aggregate(state,
@@ -77,7 +92,8 @@ namespace TeacherAssistant.Core.Reducers {
             Dispatch(new Storage.SetupStateAction(state));
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             CleanupModuleData();
             _disposeSubject.OnNext(Unit.Default);
             _disposeSubject.OnCompleted();

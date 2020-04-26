@@ -231,10 +231,6 @@
       <HintPath>..\packages\ToastNotifications.2.5.1\lib\net40\ToastNotifications.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="WebcamControl, Version=3.3.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\WpfWebcamControl.3.3.1\lib\WebcamControl.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="Xceed.Wpf.AvalonDock, Version=3.8.0.0, Culture=neutral, PublicKeyToken=3e4669d2f30244f4">
       <HintPath>..\packages\Extended.Wpf.Toolkit.3.8.1\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
@@ -265,7 +261,7 @@
     <Compile Include="Components\TableFilter\TableFilter.xaml.cs">
       <DependentUpon>TableFilter.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Components\Webcam.xaml.cs">
+    <Compile Include="Components\Webcam\Webcam.xaml.cs">
       <DependentUpon>Webcam.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
@@ -310,6 +306,8 @@
     <Compile Include="Pages\CommonStudentLessonViewPage\CellTemplates\StudentNameCell.xaml.cs">
       <DependentUpon>StudentNameCell.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\Helper\CellBindings.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Columns\Helper\CellStyleExtensions.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\Columns\Helper\StudentLessonColumnHelper.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\Columns\NameColumn.cs" />
     <Compile Include="Pages\CommonStudentLessonViewPage\Columns\StudentLessonColumn.cs" />
@@ -320,6 +318,8 @@
       <DependentUpon>TableLessonViewPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\CommonStudentLessonViewPage\TableLessonViewPageModel.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Utils\DataGridLessonColumnBuilder.cs" />
+    <Compile Include="Pages\CommonStudentLessonViewPage\Utils\LessonComparator.cs" />
     <Compile Include="Pages\DepartmentTablePage\DepartmentTable.xaml.cs">
       <DependentUpon>DepartmentTable.xaml</DependentUpon>
     </Compile>
@@ -400,7 +400,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Components\TableFilter\TableStyle.xaml" />
-    <Page Include="Components\Webcam.xaml" />
+    <Page Include="Components\Webcam\Webcam.xaml" />
     <Page Include="Forms\DepartmentForm\DepartmentForm.xaml" />
     <Page Include="Forms\DisciplineForm\DisciplineForm.xaml" />
     <Page Include="Forms\GroupForm\GroupForm.xaml">
@@ -497,6 +497,10 @@
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{e17e2ae5-5531-498e-b686-87d654ff123d}</Project>
       <Name>Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Paging\Paging.csproj">
+      <Project>{f10ad40c-b41c-43b7-a0da-3abf410414be}</Project>
+      <Name>Paging</Name>
     </ProjectReference>
     <ProjectReference Include="..\Reader\Reader.csproj">
       <Project>{0E540879-8D37-495A-A02C-9DD4C202870A}</Project>

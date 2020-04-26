@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Redux;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.Reducers;
 using TeacherAssistant.Core.State;
 
@@ -7,7 +8,7 @@ namespace TeacherAssistant.Modules.MainModule
 {
     public class MainReducer : AbstractReducer<MainState>
     {
-        public MainReducer(MainModuleToken id, Storage storage) : base(id, storage)
+        public MainReducer(IModuleActivation activation, Storage storage) : base(activation, storage)
         {
         }
 

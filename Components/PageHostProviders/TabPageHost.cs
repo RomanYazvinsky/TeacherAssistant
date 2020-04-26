@@ -5,19 +5,19 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using TeacherAssistant.Core.Module;
-using TeacherAssistant.PageHostProviders;
+using TeacherAssistant.Core.Paging;
 using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant {
     class TabSubscriptionContainer : IDisposable {
         private readonly TabItem _item;
-        private readonly IModuleToken _token;
+        private readonly IModuleActivation _activation;
         public event EventHandler<ModuleDestroyEventArgs> Disposed;
 
-        public TabSubscriptionContainer(TabItem item, IModuleToken token) {
+        public TabSubscriptionContainer(TabItem item, IModuleActivation activation) {
             _item = item;
-            _token = token;
-            _token.Deactivated += DeactivationHandler;
+            _activation = activation;
+            _activation.Deactivated += DeactivationHandler;
             item.Unloaded += DeactivationHandler;
         }
         private void DeactivationHandler(object sender, EventArgs args) {
@@ -26,15 +26,15 @@ namespace TeacherAssistant {
 
         public void Dispose() {
             Application.Current.Dispatcher?.BeginInvoke(DispatcherPriority.Background, new Action(() => {
-                _token.Deactivated -= DeactivationHandler;
+                _activation.Deactivated -= DeactivationHandler;
                 _item.Unloaded -= DeactivationHandler;
-                Disposed?.Invoke(this, new ModuleDestroyEventArgs(_item, _token));
+                Disposed?.Invoke(this, new ModuleDestroyEventArgs(_item, _activation));
             }));
         }
     }
 
-    public class TabPageHost : AbstractPageHost<TabItem>, IDisposable {
-        private readonly IModuleToken _token;
+    public class TabComponentHost : AbstractComponentHost<TabItem>, IDisposable {
+        private readonly IModuleActivation _module;
         private readonly Subject<TabItem> _tabAdded = new Subject<TabItem>();
         private readonly Subject<TabItem> _tabRemoved = new Subject<TabItem>();
 
@@ -42,28 +42,28 @@ namespace TeacherAssistant {
             new Dictionary<string, TabSubscriptionContainer>();
 
 
-        public TabPageHost(IModuleToken token, ModuleActivator activator) : base(activator) {
-            _token = token;
+        public TabComponentHost(IModuleActivation module, ModuleActivator activator) : base(activator) {
+            _module = module;
         }
 
-        public override string Id => _token.Id;
-        public override PageHostType Type => PageHostType.Tab;
+        public override string Id => _module.Id;
+        public override ComponentHostType Type => ComponentHostType.Tab;
 
         public override void ClosePage(string id) {
             _tabRemoved.OnNext(Pages[id].Container);
             Pages.Remove(id);
         }
 
-        protected override void UnregisterHandlers(IModuleToken token) {
-            _tabRemoved.OnNext(Pages[token.Id].Container);
-            var tabSubscriptionContainer = _subscriptionContainers[token.Id];
+        protected override void UnregisterHandlers(IModuleActivation module) {
+            _tabRemoved.OnNext(Pages[module.Id].Container);
+            var tabSubscriptionContainer = _subscriptionContainers[module.Id];
             tabSubscriptionContainer.Disposed -= DestroyModule;
             tabSubscriptionContainer.Dispose();
-            _subscriptionContainers.Remove(token.Id);
+            _subscriptionContainers.Remove(module.Id);
         }
 
         public override TabItem BuildContainer<TActivation>(TActivation activation, Control control) {
-            var textBlock = new TextBlock {Text = activation.Title};
+            var textBlock = new TextBlock {Text = activation.GetToken().Title};
             var tabItem = new TabItem {
                 Header = textBlock,
                 Content = control,
@@ -81,8 +81,8 @@ namespace TeacherAssistant {
 
 
         private void DestroyModule(object sender, ModuleDestroyEventArgs args) {
-            ClosePage(args.Token.Id);
-            args.Token.Deactivate();
+            ClosePage(args.ModuleActivation.Id);
+            args.ModuleActivation.Deactivate();
         }
 
         /*

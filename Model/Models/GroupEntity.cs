@@ -8,7 +8,7 @@ using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models {
     [Table("GROUP")]
-    public class GroupEntity : ATrackable<GroupEntity> {
+    public class GroupEntity : TrackableEntity<GroupEntity> {
         private DepartmentEntity _department;
         private string _name;
         private const string ExpirationDateTemplate = "yyyy-MM-dd";

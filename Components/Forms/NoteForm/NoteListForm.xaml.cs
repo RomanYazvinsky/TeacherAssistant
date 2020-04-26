@@ -37,10 +37,10 @@ namespace TeacherAssistant.Forms.NoteForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<NoteListListForm>()
+            block.DeclareComponent<NoteListListForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
-            block.ExportModuleScope<NoteFormModel>();
+            block.DeclareComponent<NoteFormModel>();
         }
     }
 

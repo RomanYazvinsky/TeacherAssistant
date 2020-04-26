@@ -9,7 +9,7 @@ using TeacherAssistant.Helpers;
 
 namespace TeacherAssistant.Models {
     [Table("STREAM")]
-    public class StreamEntity : ATrackable<StreamEntity> {
+    public class StreamEntity : TrackableEntity<StreamEntity> {
         private const string ExpirationDateTemplate = "yyyy-MM-dd";
         private const string ExpirationDateTime = "T00:00:00";
 

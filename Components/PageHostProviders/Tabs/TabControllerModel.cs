@@ -73,7 +73,7 @@ namespace TeacherAssistant {
         public TabControllerModel(
             MainReducer reducer,
             PageControllerReducer controllerReducer,
-            TabPageHost host) {
+            TabComponentHost host) {
             reducer.Select(state => state.DragData).Subscribe(data => {
                 if (data == null) {
                     foreach (var tabItem in this.Tabs) {
@@ -112,7 +112,7 @@ namespace TeacherAssistant {
                         return;
                     }
                     controllerReducer.DispatchSetValueAction(state => state.SelectedPage,
-                        hostPage.Token);
+                        hostPage.Activation);
                 });
         }
 

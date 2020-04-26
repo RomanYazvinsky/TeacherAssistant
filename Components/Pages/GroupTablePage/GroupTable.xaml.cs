@@ -23,8 +23,8 @@ namespace TeacherAssistant.Pages.GroupTablePage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<GroupTableModel>();
-            block.ExportModuleScope<GroupTable>()
+            block.DeclareComponent<GroupTableModel>();
+            block.DeclareComponent<GroupTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

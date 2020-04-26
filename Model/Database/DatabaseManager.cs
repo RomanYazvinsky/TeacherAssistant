@@ -46,7 +46,7 @@ namespace TeacherAssistant.Database {
             LocalDbContext context;
             try {
                 context = new LocalDbContext(CreateConnection(path));
-                var exists = context.Database.Exists();
+                context.Database.Initialize(false);
             }
             catch (Exception e) {
                 Logger.Log(LogLevel.Info, "Failed to connect to database file: {0}", path);
@@ -62,13 +62,14 @@ namespace TeacherAssistant.Database {
             var isExist = CheckFileExist(path);
             if (!isExist) {
                 Logger.Log(LogLevel.Info, "Failed to connect to non-database file: {0}", path);
-                return;
+                throw new FileNotFoundException(path);
             }
 
             DisposeConnection();
             LocalDbContext context;
             try {
-                context = new LocalDbContext(CreateConnection(path));
+                var sqLiteConnection = CreateConnection(path);
+                context = new LocalDbContext(sqLiteConnection);
                 var exists = context.Database.Exists();
             }
             catch (Exception e) {

@@ -3,8 +3,8 @@ using System.Windows;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.Models.Notes;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Services;
+using TeacherAssistant.Services.Paging;
 using TeacherAssistant.StudentViewPage;
 
 namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
@@ -41,7 +41,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var tabPageHost = view.ServiceLocator.Locate<TabPageHost>();
+            var tabPageHost = view.ServiceLocator.Locate<TabComponentHost>();
             tabPageHost.AddPageAsync(new StudentViewPageToken("Студент", view.Student));
         }
 
@@ -50,7 +50,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.CellTemplates {
                 return;
             }
 
-            var windowPageHost = view.ServiceLocator.Locate<WindowPageHost>();
+            var windowPageHost = view.ServiceLocator.Locate<WindowComponentHost>();
             windowPageHost.AddPageAsync(new NoteListFormToken(
                 "Заметки",
                 () => new StudentNote {

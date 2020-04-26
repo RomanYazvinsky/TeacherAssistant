@@ -5,7 +5,7 @@ using TeacherAssistant.Helpers;
 namespace TeacherAssistant.Models
 {
     [Table("DISCIPLINE")]
-    public class DisciplineEntity: ATrackable<DisciplineEntity>
+    public class DisciplineEntity: TrackableEntity<DisciplineEntity>
     {
 
         public DisciplineEntity()

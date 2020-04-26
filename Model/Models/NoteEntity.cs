@@ -15,7 +15,7 @@ namespace TeacherAssistant.Models
     }
 
     [Table("NOTE")]
-    public class NoteEntity: ATrackable<NoteEntity>
+    public class NoteEntity: TrackableEntity<NoteEntity>
     {
         // [Column("type")] public string _Type { get; set; }
 

@@ -14,18 +14,18 @@ using DynamicData;
 using JetBrains.Annotations;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.Models.Notes;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages.CommonStudentLessonViewPage;
 using TeacherAssistant.Pages.LessonForm;
 using TeacherAssistant.Pages.RegistrationPage;
 using TeacherAssistant.Services.Paging;
 
-namespace TeacherAssistant.ComponentsImpl.SchedulePage
+namespace TeacherAssistant.Pages.SchedulePage
 {
     public class LessonScheduleView
     {
@@ -80,8 +80,8 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
 
     public class SchedulePageModel : AbstractModel<SchedulePageModel>
     {
-        private readonly WindowPageHost _windowPageHost;
-        private readonly IPageHost _currentHost;
+        private readonly WindowComponentHost _windowComponentHost;
+        private readonly IComponentHost _currentHost;
         private readonly LocalDbContext _context;
         private const string LocalizationKey = "page.schedule";
 
@@ -99,9 +99,9 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
 
         private static readonly ScheduleComboboxItem EmptyScheduleComboboxItem = new ScheduleComboboxItem {Id = -1};
 
-        public SchedulePageModel(WindowPageHost windowPageHost, IPageHost currentHost, LocalDbContext context)
+        public SchedulePageModel(WindowComponentHost windowComponentHost, IComponentHost currentHost, LocalDbContext context)
         {
-            _windowPageHost = windowPageHost;
+            _windowComponentHost = windowComponentHost;
             _currentHost = currentHost;
             _context = context;
             this.OpenRegistrationHandler = ReactiveCommand.Create(OpenRegistration);
@@ -277,7 +277,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
 
             var lesson = this.SelectedLesson.Lesson;
             var lessonFormModuleToken = new LessonFormToken("Lesson", lesson, _currentHost);
-            _windowPageHost.AddPageAsync<LessonFormModule, LessonFormToken>(lessonFormModuleToken);
+            _windowComponentHost.AddPageAsync(lessonFormModuleToken);
         }
 
         private void OpenRegistration()
@@ -350,7 +350,7 @@ namespace TeacherAssistant.ComponentsImpl.SchedulePage
             }
 
             var selectedLesson = this.SelectedLesson.Lesson;
-            _windowPageHost.AddPageAsync(new NoteListFormToken("Заметки", () => new LessonNote
+            _windowComponentHost.AddPageAsync(new NoteListFormToken("Заметки", () => new LessonNote
             {
                 Lesson = selectedLesson,
                 EntityId = selectedLesson.Id

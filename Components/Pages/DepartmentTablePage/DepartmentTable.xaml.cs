@@ -23,8 +23,8 @@ namespace TeacherAssistant.Pages.DepartmentTablePage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<DepartmentTableModel>();
-            block.ExportModuleScope<DepartmentTable>()
+            block.DeclareComponent<DepartmentTableModel>();
+            block.DeclareComponent<DepartmentTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

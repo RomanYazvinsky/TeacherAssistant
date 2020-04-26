@@ -6,10 +6,11 @@
                         xmlns:local="clr-namespace:TeacherAssistant.StudentTable"
                         xmlns:componentsImpl="clr-namespace:TeacherAssistant.ComponentsImpl"
                         xmlns:tableFilter="clr-namespace:TeacherAssistant.Components.TableFilter"
+                        xmlns:studentTablePage="clr-namespace:TeacherAssistant.Pages.StudentTablePage"
                         mc:Ignorable="d"
                         d:DesignHeight="450" d:DesignWidth="800" HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
-                        d:DataContext="{d:DesignInstance local:StudentTableModel}" x:Name="View">
+                        d:DataContext="{d:DesignInstance studentTablePage:StudentTableModel}" x:Name="View">
     <UserControl.Resources>
         <ContextMenu x:Key="lwMenu">
             <ContextMenu.Items>

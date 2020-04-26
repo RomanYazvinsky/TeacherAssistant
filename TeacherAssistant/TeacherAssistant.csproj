@@ -309,10 +309,6 @@
       <HintPath>..\packages\ToastNotifications.Messages.2.5.1\lib\net40\ToastNotifications.Messages.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="WebcamControl, Version=3.3.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\WpfWebcamControl.3.3.1\lib\WebcamControl.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />

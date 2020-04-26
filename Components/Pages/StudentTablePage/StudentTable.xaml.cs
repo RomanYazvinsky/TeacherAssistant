@@ -2,6 +2,7 @@
 using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.PageBase;
+using TeacherAssistant.Pages.StudentTablePage;
 
 namespace TeacherAssistant.StudentTable {
     public class StudentTableToken : PageModuleToken<StudentTableModule> {
@@ -19,8 +20,8 @@ namespace TeacherAssistant.StudentTable {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StudentTableModel>();
-            block.ExportModuleScope<StudentTable>()
+            block.DeclareComponent<StudentTableModel>();
+            block.DeclareComponent<StudentTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel)
                 ;

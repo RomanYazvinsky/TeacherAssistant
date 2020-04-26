@@ -25,10 +25,10 @@ namespace TeacherAssistant.Core.Module {
         {
             return this.Injector?.Locate(_entryType) as Control;
         }
-
-        [CanBeNull]
-        public virtual IModuleToken GetToken() {
-            return this.Injector?.Locate<IModuleToken>();
+        
+        [NotNull]
+        public IModuleActivation GetActivation() {
+            return this.Injector.Locate<IModuleActivation>();
         }
 
         public abstract void Configure(IExportRegistrationBlock registrationBlock);

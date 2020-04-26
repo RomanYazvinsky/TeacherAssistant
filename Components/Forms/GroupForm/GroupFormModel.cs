@@ -16,6 +16,7 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.Components.TableFilter;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
@@ -24,7 +25,7 @@ namespace TeacherAssistant.Forms.GroupForm
 {
     public class GroupFormModel : AbstractModel<GroupFormModel>
     {
-        private readonly GroupFormToken _token;
+        private readonly ModuleActivation<GroupFormToken> _activation;
         private readonly LocalDbContext _db;
         [NotNull] private List<StudentEntity> _students = new List<StudentEntity>();
 
@@ -33,10 +34,10 @@ namespace TeacherAssistant.Forms.GroupForm
             {"Name", ListSortDirection.Ascending}
         };
 
-        public GroupFormModel(GroupFormToken token, LocalDbContext db)
+        public GroupFormModel(ModuleActivation<GroupFormToken> activation, LocalDbContext db)
         {
             _db = db;
-            _token = token;
+            _activation = activation;
             this.StudentsTableConfig = new TableConfig
             {
                 Filter = FilterStudentNames,
@@ -84,7 +85,7 @@ namespace TeacherAssistant.Forms.GroupForm
                     .Subscribe(chief => this.Group.Chief = chief?.Student)
                     .DisposeWith(disposable);
             });
-            Init(token.Group);
+            Init(activation.Token.Group);
         }
 
 
@@ -232,7 +233,7 @@ namespace TeacherAssistant.Forms.GroupForm
             }
 
             await _db.SaveChangesAsync();
-            _token.Deactivate();
+            _activation.Deactivate();
         }
     }
 

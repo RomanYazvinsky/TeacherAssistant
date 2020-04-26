@@ -2,10 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:fa5="http://schemas.fontawesome.com/icons/"
                     xmlns:teacherAssistant="clr-namespace:TeacherAssistant"
-                    xmlns:schedulePage="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage">
+                    xmlns:schedulePage1="clr-namespace:TeacherAssistant.Pages.SchedulePage">
 
     <teacherAssistant:IsCollectionVisible x:Key="IsCollectionVisible" />
-    <DataTemplate x:Key="LessonTypeColumn" DataType="schedulePage:LessonScheduleView">
+    <DataTemplate x:Key="LessonTypeColumn" DataType="schedulePage1:LessonScheduleView">
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0, 2, 7, 2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -47,17 +47,17 @@
             </fa5:FontAwesome>
         </Grid>
     </DataTemplate>
-    <DataTemplate x:Key="DateColumn" DataType="schedulePage:LessonScheduleView">
+    <DataTemplate x:Key="DateColumn" DataType="schedulePage1:LessonScheduleView">
         <TextBlock
             Text="{Binding Lesson.Date, StringFormat=dd-MM-yyyy}" />
     </DataTemplate>
-    <DataTemplate x:Key="TimeColumn" DataType="schedulePage:LessonScheduleView">
+    <DataTemplate x:Key="TimeColumn" DataType="schedulePage1:LessonScheduleView">
         <TextBlock Text="{Binding Date}" />
     </DataTemplate>
-    <DataTemplate x:Key="StreamNameColumn" DataType="schedulePage:LessonScheduleView">
+    <DataTemplate x:Key="StreamNameColumn" DataType="schedulePage1:LessonScheduleView">
         <TextBlock Text="{Binding Lesson.Stream.Name}" />
     </DataTemplate>
-    <DataTemplate x:Key="GroupNamesColumn" DataType="schedulePage:LessonScheduleView">
+    <DataTemplate x:Key="GroupNamesColumn" DataType="schedulePage1:LessonScheduleView">
         <TextBlock HorizontalAlignment="Stretch"
                    TextAlignment="Left" Text="{Binding GroupNames}" />
     </DataTemplate>

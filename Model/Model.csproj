@@ -149,10 +149,11 @@
     <Compile Include="Database\DatabaseModule.cs" />
     <Compile Include="Database\LocalDbContext.cs" />
     <Compile Include="Database\ModelConfiguration\ModelConfiguration.cs" />
-    <Compile Include="Helpers\ATrackable.cs" />
+    <Compile Include="Helpers\TrackableEntity.cs" />
     <Compile Include="Helpers\Exceptions\SqliteInternalException.cs" />
     <Compile Include="Helpers\StudentEqualityComparer.cs" />
     <Compile Include="Helpers\ViewModels\IStudentViewModel.cs" />
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\IMigration.cs" />
     <Compile Include="Migrations\Migration0to1.cs" />
     <Compile Include="Models\AlarmEntity.cs" />

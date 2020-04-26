@@ -18,6 +18,7 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Abstractions;
 using ReactiveUI.Validation.Extensions;
 using TeacherAssistant.Components.TableFilter;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
@@ -28,18 +29,18 @@ using TeacherAssistant.Utils;
 namespace TeacherAssistant.StudentForm {
     public class StudentFormModel : AbstractModel<StudentFormModel>, IValidatableViewModel {
         public static readonly string LocalizationKey = "student.form";
-        private readonly StudentFormToken _token;
+        private readonly ModuleActivation<StudentFormToken> _activation;
         private PhotoService _photoService;
         private readonly LocalDbContext _context;
         private StudentEntity _persistantStudent;
 
         public StudentFormModel(
-            StudentFormToken token,
+            ModuleActivation<StudentFormToken> activation,
             PhotoService photoService,
             StudentCardService studentCardService,
             LocalDbContext context
         ) {
-            _token = token;
+            _activation = activation;
             _photoService = photoService;
             _context = context;
             this.ChosenGroupTableConfig = new TableConfig {
@@ -109,7 +110,7 @@ namespace TeacherAssistant.StudentForm {
                 this.WhenAnyValue(model => model.Email).Subscribe(s => this.Student.Email = s)
                     .DisposeWith(disposable);
             });
-            Initialize(token.Student);
+            Initialize(activation.Token.Student);
         }
 
         private void Initialize(StudentEntity entity) {
@@ -176,7 +177,7 @@ namespace TeacherAssistant.StudentForm {
             }
 
             await _context.SaveChangesAsync();
-            _token.Deactivate();
+            _activation.Deactivate();
         }
 
         private void SelectGroups() {

@@ -7,6 +7,7 @@ using NLog;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
@@ -16,14 +17,14 @@ namespace TeacherAssistant.Forms.DepartmentForm
     public class DepartmentFormModel : AbstractModel<DepartmentFormModel>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly DepartmentFormToken _token;
+        private readonly ModuleActivation<DepartmentFormToken> _activation;
         private readonly LocalDbContext _context;
         private DepartmentEntity _detachedEntity;
         private bool _isCreationMode = false;
 
-        public DepartmentFormModel(DepartmentFormToken token, LocalDbContext context)
+        public DepartmentFormModel(ModuleActivation<DepartmentFormToken> activation, LocalDbContext context)
         {
-            _token = token;
+            _activation = activation;
             _context = context;
             this.ValidationRule(
                 model => model.DepartmentName,
@@ -40,7 +41,7 @@ namespace TeacherAssistant.Forms.DepartmentForm
                 this.IsValid().Subscribe(valid => this.IsValid = valid).DisposeWith(c);
             });
             this.SaveHandler = ReactiveCommand.Create(SaveAsync);
-            Init(token.Department);
+            Init(activation.Token.Department);
         }
 
         private void Init([NotNull] DepartmentEntity discipline)
@@ -76,7 +77,7 @@ namespace TeacherAssistant.Forms.DepartmentForm
             }
 
             await _context.SaveChangesAsync();
-            _token.Deactivate();
+            _activation.Deactivate();
         }
 
         protected override string GetLocalizationKey()

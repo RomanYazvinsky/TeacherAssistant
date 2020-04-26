@@ -8,16 +8,16 @@ using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.LessonForm {
     public class LessonFormToken : PageModuleToken<LessonFormModule> {
-        public LessonFormToken(string title, LessonEntity lesson, IPageHost pageHost) :
+        public LessonFormToken(string title, LessonEntity lesson, IComponentHost componentHost) :
             base(title)
         {
             this.Lesson = lesson;
-            PageHost = pageHost;
+            this.ComponentHost = componentHost;
         }
 
         public LessonEntity Lesson { get; }
 
-        public IPageHost PageHost { get; }
+        public IComponentHost ComponentHost { get; }
         public override PageProperties PageProperties { get; }= new PageProperties {
             InitialHeight = 550,
             InitialWidth = 600
@@ -29,10 +29,10 @@ namespace TeacherAssistant.Pages.LessonForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<LessonForm>()
+            block.DeclareComponent<LessonForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
-            block.ExportModuleScope<LessonFormModel>();
+            block.DeclareComponent<LessonFormModel>();
         }
     }
 

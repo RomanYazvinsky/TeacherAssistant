@@ -23,8 +23,8 @@ namespace TeacherAssistant.StreamTable {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StreamTableModel>();
-            block.ExportModuleScope<StreamTable>()
+            block.DeclareComponent<StreamTableModel>();
+            block.DeclareComponent<StreamTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

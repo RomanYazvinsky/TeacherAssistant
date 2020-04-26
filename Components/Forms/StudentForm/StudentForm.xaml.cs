@@ -24,10 +24,10 @@ namespace TeacherAssistant.StudentForm {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<StudentForm>()
+            block.DeclareComponent<StudentForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
-            block.ExportModuleScope<StudentFormModel>();
+            block.DeclareComponent<StudentFormModel>();
         }
     }
 

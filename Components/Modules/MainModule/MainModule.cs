@@ -10,16 +10,14 @@ using System.Windows.Threading;
 using EntityFramework.Rx;
 using EntityFramework.Triggers;
 using Grace.DependencyInjection;
-using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Core.State;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.Notifications;
-using TeacherAssistant.PageHostProviders;
-using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.PageController;
+using TeacherAssistant.Pages.SchedulePage;
 using TeacherAssistant.Reader;
 using TeacherAssistant.Services;
 using TeacherAssistant.Services.Paging;
@@ -35,20 +33,14 @@ namespace TeacherAssistant.Modules.MainModule
     {
         private readonly Subject<Unit> _destroySubject = new Subject<Unit>();
 
-        public MainModule()
-            : base(typeof(WindowPageHost))
+        public MainModule() : base(typeof(WindowComponentHost))
         {
         }
 
 
         public override Control GetEntryComponent()
         {
-            var windowPageHost = this.Injector?.Locate<WindowPageHost>();
-            if (windowPageHost == null)
-            {
-                return null;
-            }
-
+            var windowPageHost = this.Injector.Locate<WindowComponentHost>();
             var pages = windowPageHost.CurrentPages.ToList();
             if (pages.Any())
             {
@@ -56,25 +48,23 @@ namespace TeacherAssistant.Modules.MainModule
             }
 
             ConfigureServices();
-            windowPageHost
-                .AddPageAsync<PageControllerModule, PageControllerToken>(
-                    new PageControllerToken(new ScheduleToken("Расписание")));
+            windowPageHost.AddPageAsync(new PageControllerToken(new ScheduleToken("Расписание")));
             return null;
         }
 
         public override void Configure(IExportRegistrationBlock block)
         {
-            block.ExportModuleScope<SimpleEffectsMiddleware<GlobalState>>();
-            block.ExportModuleScope<Storage>();
-            block.ExportModuleScope<MainReducer>();
-            block.ExportModuleScope<SerialUtil>();
-            block.ExportModuleScope<StudentCardService>();
-            block.ExportModuleScope<PhotoService>();
-            block.ExportModuleScope<AudioService>();
-            block.ExportModuleScope<ModuleActivator>();
-            block.ExportModuleScope<WindowPageHost>().As<IPageHost>();
-            block.ExportModuleScope<TimerService<LessonInterval, AlarmEvent>>();
-            block.ExportModuleScope<DatabaseBackupService>();
+            block.RequireService<SimpleEffectsMiddleware<GlobalState>>();
+            block.RequireService<Storage>();
+            block.RequireService<MainReducer>();
+            block.RequireService<SerialUtil>();
+            block.RequireService<StudentCardService>();
+            block.RequireService<PhotoService>();
+            block.RequireService<AudioService>();
+            block.RequireService<ModuleActivator>(false);
+            block.RequireService<WindowComponentHost>(false).As<IComponentHost>();
+            block.RequireService<TimerService<LessonInterval, AlarmEvent>>();
+            block.RequireService<DatabaseBackupService>();
             var notifier = new Notifier(configuration =>
             {
                 configuration.PositionProvider = new PrimaryScreenPositionProvider(Corner.BottomRight, 10, 10);
@@ -84,7 +74,7 @@ namespace TeacherAssistant.Modules.MainModule
                         MaximumNotificationCount.FromCount(5));
                 configuration.Dispatcher = Application.Current.Dispatcher;
             });
-            block.ExportInstance(notifier);
+            block.UseService(notifier);
         }
 
         private void ConfigureServices()

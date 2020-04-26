@@ -8,7 +8,7 @@ using TeacherAssistant.Models.Notes;
 
 namespace TeacherAssistant.Models {
     [Table("STUDENT")]
-    public class StudentEntity : ATrackable<StudentEntity> {
+    public class StudentEntity : TrackableEntity<StudentEntity> {
         public StudentEntity() {
         }
 

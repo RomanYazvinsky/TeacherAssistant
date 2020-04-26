@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reactive.Linq;
-using Containers;
 using Redux;
 using TeacherAssistant.Core.Effects;
 using TeacherAssistant.Core.Module;
@@ -17,12 +16,12 @@ namespace TeacherAssistant.Pages.PageController {
         public ImmutableDictionary<string, List<ButtonConfig>> Controls { get; } =
             new Dictionary<string, List<ButtonConfig>>().ToImmutableDictionary();
 
-        public IModuleToken SelectedPage { get; } = null;
+        public IModuleActivation SelectedPage { get; } = null;
     }
 
     public class PageControllerReducer : AbstractReducer<PageControllerState> {
-        public PageControllerReducer(PageControllerToken token, Storage storage)
-            : base(token, storage) {
+        public PageControllerReducer(IModuleActivation activation, Storage storage)
+            : base(activation, storage) {
         }
 
         public override GlobalState Reduce(GlobalState state, IAction action) {
@@ -47,12 +46,12 @@ namespace TeacherAssistant.Pages.PageController {
                         var config = currentConfig;
 
                         void Handle(object _, object __) {
-                            config.Remove(action.Token.Id);
-                            action.Token.Deactivated -= Handle;
+                            config.Remove(action.ModuleActivation.Id);
+                            action.ModuleActivation.Deactivated -= Handle;
                         }
 
-                        action.Token.Deactivated += Handle;
-                        currentConfig = currentConfig.SetItem(action.Token.Id, action.Configs);
+                        action.ModuleActivation.Deactivated += Handle;
+                        currentConfig = currentConfig.SetItem(action.ModuleActivation.Id, action.Configs);
                         return reducer.SetActionId(new SetControlsAction(currentConfig));
                     })
             );
@@ -61,10 +60,10 @@ namespace TeacherAssistant.Pages.PageController {
 
     public class RegisterControlsAction : ModuleScopeAction {
         public List<ButtonConfig> Configs { get; }
-        public IModuleToken Token { get; }
+        public IModuleActivation ModuleActivation { get; }
 
-        public RegisterControlsAction(IModuleToken token, List<ButtonConfig> configs) {
-            this.Token = token;
+        public RegisterControlsAction(IModuleActivation moduleActivation, List<ButtonConfig> configs) {
+            this.ModuleActivation = moduleActivation;
             this.Configs = configs;
         }
     }

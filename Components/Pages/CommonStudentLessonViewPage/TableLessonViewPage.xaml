@@ -29,7 +29,7 @@
                   VirtualizingPanel.IsContainerVirtualizable="True"
                   ScrollViewer.IsDeferredScrollingEnabled="False"
                   EnableColumnVirtualization="True"
-                  EnableRowVirtualization="True"
+                  EnableRowVirtualization="{Binding Virtualization}"
                   FrozenColumnCount="1"
                   ItemsSource="{Binding Path=Items.View, IsAsync=True}"
                   CanUserAddRows="False"

@@ -24,8 +24,8 @@ namespace TeacherAssistant.Pages.SettingsPage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<SettingsPageModel>();
-            block.ExportModuleScope<SettingsPage>()
+            block.DeclareComponent<SettingsPageModel>();
+            block.DeclareComponent<SettingsPage>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

@@ -12,13 +12,16 @@ using JetBrains.Annotations;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.TableFilter;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
 
-namespace TeacherAssistant.Forms.StreamForm {
-    public class StreamFormModel : AbstractModel<StreamFormModel> {
-        private readonly StreamFormToken _token;
+namespace TeacherAssistant.Forms.StreamForm
+{
+    public class StreamFormModel : AbstractModel<StreamFormModel>
+    {
+        private readonly ModuleActivation<StreamFormToken> _activation;
         private readonly LocalDbContext _context;
 
         private static DropDownItem<int> DefaultCourse =
@@ -29,31 +32,38 @@ namespace TeacherAssistant.Forms.StreamForm {
 
         [NotNull] private StreamEntity _entity;
 
-        public StreamFormModel(StreamFormToken token, LocalDbContext context) {
-            _token = token;
+        public StreamFormModel(ModuleActivation<StreamFormToken> activation, LocalDbContext context)
+        {
+            _activation = activation;
             _context = context;
             this.SaveHandler = ReactiveCommand.Create(Save);
             this.AddGroupsHandler = ReactiveCommand.Create(SelectGroups);
             this.RemoveGroupsHandler = ReactiveCommand.Create(DeselectGroups);
-            this.AvailableGroupTableConfig = new TableConfig {
+            this.AvailableGroupTableConfig = new TableConfig
+            {
                 Filter = GroupFilter,
                 Sorts = GroupSorts,
-                ColumnWidths = new[] {
+                ColumnWidths = new[]
+                {
                     new GridLength(1, GridUnitType.Star),
                 }
             };
-            this.ChosenGroupTableConfig = new TableConfig {
+            this.ChosenGroupTableConfig = new TableConfig
+            {
                 Filter = GroupFilter,
                 Sorts = GroupSorts,
-                ColumnWidths = new[] {
+                ColumnWidths = new[]
+                {
                     new GridLength(1, GridUnitType.Star),
                 }
             };
-            Initialize(token.Stream);
+            Initialize(activation.Token.Stream);
         }
 
-        private void Initialize(StreamEntity stream) {
-            if (stream == null) {
+        private void Initialize(StreamEntity stream)
+        {
+            if (stream == null)
+            {
                 return;
             }
 
@@ -113,23 +123,47 @@ namespace TeacherAssistant.Forms.StreamForm {
         public ObservableCollection<object> SelectedChosenGroups => this.ChosenGroupTableConfig.SelectedItems;
 
         private static Dictionary<string, ListSortDirection> GroupSorts { get; set; } =
-            new Dictionary<string, ListSortDirection> {
+            new Dictionary<string, ListSortDirection>
+            {
                 {"Name", ListSortDirection.Ascending}
             };
 
-        [Reactive] public DisciplineEntity SelectedDiscipline { get; set; }
-        [Reactive] [NotNull] public DepartmentEntity SelectedDepartment { get; set; } = DefaultDepartment;
+        [Reactive]
+        public DisciplineEntity SelectedDiscipline { get; set; }
 
-        [Reactive] [CanBeNull] public string StreamName { get; set; }
-        [Reactive] public bool IsActive { get; set; } = false;
-        [Reactive] public DateTime ExpirationDate { get; set; } = DateTime.Now;
-        [Reactive] [CanBeNull] public string Description { get; set; }
-        [Reactive] [NotNull] public DropDownItem<int> SelectedCourse { get; set; } = DefaultCourse;
-        [Reactive] public int LectureCount { get; set; } = 0;
-        [Reactive] public int PracticeCount { get; set; } = 0;
-        [Reactive] public int LaboratoryCount { get; set; } = 0;
+        [Reactive]
+        [NotNull]
+        public DepartmentEntity SelectedDepartment { get; set; } = DefaultDepartment;
 
-        private async Task Save() {
+        [Reactive]
+        [CanBeNull]
+        public string StreamName { get; set; }
+
+        [Reactive]
+        public bool IsActive { get; set; } = false;
+
+        [Reactive]
+        public DateTime ExpirationDate { get; set; } = DateTime.Now;
+
+        [Reactive]
+        [CanBeNull]
+        public string Description { get; set; }
+
+        [Reactive]
+        [NotNull]
+        public DropDownItem<int> SelectedCourse { get; set; } = DefaultCourse;
+
+        [Reactive]
+        public int LectureCount { get; set; } = 0;
+
+        [Reactive]
+        public int PracticeCount { get; set; } = 0;
+
+        [Reactive]
+        public int LaboratoryCount { get; set; } = 0;
+
+        private async Task Save()
+        {
             _entity.Name = this.StreamName;
             _entity.Groups = this.ChosenGroups.Cast<GroupEntity>().ToList();
             _entity.Discipline = this.SelectedDiscipline;
@@ -141,21 +175,24 @@ namespace TeacherAssistant.Forms.StreamForm {
             _entity.PracticalCount = this.PracticeCount;
             _entity.Description = this.Description;
             _entity.Course = this.SelectedCourse.Value == DefaultCourse.Value ? (int?) null : this.SelectedCourse.Value;
-            if (_entity.Id == default) {
+            if (_entity.Id == default)
+            {
                 _context.Streams.Add(_entity);
             }
 
             await _context.SaveChangesAsync();
-            _token.Deactivate();
+            _activation.Deactivate();
         }
 
-        private void SelectGroups() {
+        private void SelectGroups()
+        {
             var selected = this.SelectedAvailableGroups.ToList();
             this.ChosenGroups.AddRange(selected);
             this.AvailableGroups.RemoveMany(selected);
         }
 
-        private void DeselectGroups() {
+        private void DeselectGroups()
+        {
             var selected = this.SelectedChosenGroups.ToList();
             this.AvailableGroups.AddRange(selected);
             this.ChosenGroups.RemoveMany(selected);
@@ -164,7 +201,8 @@ namespace TeacherAssistant.Forms.StreamForm {
         private static Func<object, string, bool> GroupFilter = (item, searchValue) =>
             ((GroupEntity) item).Name?.ToUpper().Contains(searchValue) ?? false;
 
-        protected override string GetLocalizationKey() {
+        protected override string GetLocalizationKey()
+        {
             return "stream.form";
         }
     }

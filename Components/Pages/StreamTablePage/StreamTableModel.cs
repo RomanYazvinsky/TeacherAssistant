@@ -13,16 +13,15 @@ using TeacherAssistant.Database;
 using TeacherAssistant.Forms.StreamForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.StreamTable {
     public class StreamTableModel : AbstractModel<StreamTableModel> {
         private readonly LocalDbContext _db;
-        private readonly IPageHost _host;
+        private readonly IComponentHost _host;
         private static readonly string LocalizationKey = "page.stream.table";
 
-        public StreamTableModel(LocalDbContext db, WindowPageHost host) {
+        public StreamTableModel(LocalDbContext db, WindowComponentHost host) {
             _db = db;
             _host = host;
             this.DeleteHandler = ReactiveCommand.Create(DeleteStream);

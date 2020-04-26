@@ -12,16 +12,15 @@ using TeacherAssistant.Database;
 using TeacherAssistant.Forms.DepartmentForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Services.Paging;
 
 namespace TeacherAssistant.Pages.DepartmentTablePage {
     public class DepartmentTableModel : AbstractModel<DepartmentTableModel> {
         private readonly LocalDbContext _db;
-        private readonly IPageHost _host;
+        private readonly IComponentHost _host;
         private static readonly string LocalizationKey = "page.department.table";
 
-        public DepartmentTableModel(LocalDbContext db, WindowPageHost host) {
+        public DepartmentTableModel(LocalDbContext db, WindowComponentHost host) {
             _db = db;
             _host = host;
             this.DeleteMenuButtonConfig = new ButtonConfig {

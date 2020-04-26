@@ -5,19 +5,19 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Containers;
 using DynamicData;
 using NLog;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.Tabs;
+using TeacherAssistant.Components.Webcam;
 using TeacherAssistant.ComponentsImpl;
-using TeacherAssistant.ComponentsImpl.SchedulePage;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.DepartmentForm;
@@ -27,15 +27,16 @@ using TeacherAssistant.Forms.StreamForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages.DepartmentTablePage;
 using TeacherAssistant.Pages.DisciplineTablePage;
 using TeacherAssistant.Pages.GroupTablePage;
 using TeacherAssistant.Pages.LessonForm;
+using TeacherAssistant.Pages.SchedulePage;
 using TeacherAssistant.Pages.SettingsPage;
 using TeacherAssistant.Properties;
 using TeacherAssistant.Reader;
 using TeacherAssistant.Services;
+using TeacherAssistant.Services.Paging;
 using TeacherAssistant.State;
 using TeacherAssistant.StreamTable;
 using TeacherAssistant.StudentForm;
@@ -50,29 +51,29 @@ namespace TeacherAssistant.Pages.PageController {
     public class PageControllerModel : AbstractModel<PageControllerModel> {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModuleActivator _activator;
-        private readonly WindowPageHost _windowPageHost;
+        private readonly WindowComponentHost _windowComponentHost;
         private readonly DatabaseManager _databaseManager;
         private readonly DatabaseBackupService _databaseBackupService;
         private readonly SerialUtil _serialUtil;
-        private TabPageHost _host;
+        private TabComponentHost _host;
 
         public PageControllerModel(
-            PageControllerToken token,
+            ModuleActivation<PageControllerToken> activation,
             ModuleActivator activator,
             PageControllerReducer reducer,
             SerialUtil serialUtil,
             MainReducer mainReducer,
-            WindowPageHost windowPageHost,
+            WindowComponentHost windowComponentHost,
             DatabaseManager databaseManager,
             DatabaseBackupService databaseBackupService
         ) {
             _activator = activator;
-            _windowPageHost = windowPageHost;
+            _windowComponentHost = windowComponentHost;
             _databaseManager = databaseManager;
             _databaseBackupService = databaseBackupService;
             this._serialUtil = serialUtil;
             InitHandlers();
-            ActivateContent(token);
+            ActivateContent(activation.Token);
 
             this.WhenActivated((c) => {
                 mainReducer.Select(state => state.FullscreenMode)
@@ -162,14 +163,14 @@ namespace TeacherAssistant.Pages.PageController {
                     .ToObservable()
                     .ObserveOnDispatcher(DispatcherPriority.Background)
                     .Subscribe(module => {
-                        _host = module.Injector.Locate<TabPageHost>();
+                        _host = module.Injector.Locate<TabComponentHost>();
                         this.CentralControl = module.GetEntryComponent();
                         _host.AddPageAsync(token.ContentToken);
                     });
             }
             else {
                 var tabModule = _activator.Activate(tabControllerToken);
-                _host = tabModule.Injector.Locate<TabPageHost>();
+                _host = tabModule.Injector.Locate<TabComponentHost>();
                 this.CentralControl = tabModule.GetEntryComponent();
                 // _host.Attach(token.Content);
             }
@@ -181,6 +182,22 @@ namespace TeacherAssistant.Pages.PageController {
         [Reactive] public string ReaderMenuText { get; set; }
 
         public ICommand OpenScheduleHandler { get; set; }
+
+        public ICommand OpenCamera { get; set; } = ReactiveCommand.Create(() => {
+            var content = new Webcam {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            var grid = new Grid {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+            grid.Children.Add(content);
+            new Window {
+                Content = grid
+            }.Show();
+        });
+
         public ICommand OpenStudentsTableHandler { get; set; }
         public ICommand OpenGroupsTableHandler { get; set; }
         public ICommand OpenStreamsTableHandler { get; set; }
@@ -217,6 +234,7 @@ namespace TeacherAssistant.Pages.PageController {
                 Logger.Log(LogLevel.Error, e);
                 return;
             }
+
             Settings.Default.DatabasePath = dialog.FileName;
             Settings.Default.Save();
             foreach (var page in _host.Pages.ToList()) {
@@ -248,9 +266,11 @@ namespace TeacherAssistant.Pages.PageController {
         private void OpenStreams() {
             _host.AddPageAsync(new StreamTableToken("Потоки"));
         }
+
         private void OpenDisciplines() {
             _host.AddPageAsync(new DisciplineTableToken("Дисциплины"));
         }
+
         private void OpenDepartments() {
             _host.AddPageAsync(new DepartmentTableToken("Дисциплины"));
         }
@@ -267,25 +287,27 @@ namespace TeacherAssistant.Pages.PageController {
         }
 
         private void AddStudent_Click() {
-            _windowPageHost.AddPageAsync(new StudentFormToken("Добавить студента", new StudentEntity()));
+            _windowComponentHost.AddPageAsync(new StudentFormToken("Добавить студента", new StudentEntity()));
         }
 
         private void AddLesson_Click() {
-            _windowPageHost.AddPageAsync(new LessonFormToken("Добавить занятие", new LessonEntity(), _host));
+            _windowComponentHost.AddPageAsync(new LessonFormToken("Добавить занятие", new LessonEntity(), _host));
         }
 
         private void AddGroup_Click() {
-            _windowPageHost.AddPageAsync(new GroupFormToken("Добавить группу", new GroupEntity()));
+            _windowComponentHost.AddPageAsync(new GroupFormToken("Добавить группу", new GroupEntity()));
         }
 
         private void AddStream() {
-            _windowPageHost.AddPageAsync(new StreamFormToken("Добавить поток", new StreamEntity()));
+            _windowComponentHost.AddPageAsync(new StreamFormToken("Добавить поток", new StreamEntity()));
         }
+
         private void AddDiscipline() {
-            _windowPageHost.AddPageAsync(new DisciplineFormToken("Дисциплина"));
+            _windowComponentHost.AddPageAsync(new DisciplineFormToken("Дисциплина"));
         }
+
         private void AddDepartment() {
-            _windowPageHost.AddPageAsync(new DepartmentFormToken("Дисциплина"));
+            _windowComponentHost.AddPageAsync(new DepartmentFormToken("Дисциплина"));
         }
 
         private void OpenSettingsClick() {

@@ -143,8 +143,6 @@
     </Compile>
     <Compile Include="Services\AudioService.cs" />
     <Compile Include="Services\DatabaseBackupService.cs" />
-    <Compile Include="Services\Paging\AbstractPageHost.cs" />
-    <Compile Include="Services\Paging\IPageContainerProvider.cs" />
     <Compile Include="Services\PhotoService.cs" />
     <Compile Include="Services\StudentCardService.cs" />
     <Compile Include="Services\TimerService.cs" />

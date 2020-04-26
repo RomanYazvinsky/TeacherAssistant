@@ -11,8 +11,9 @@ using TeacherAssistant.ComponentsImpl;
 using TeacherAssistant.Core.Module;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
+ using TeacherAssistant.Pages.CommonStudentLessonViewPage.Utils;
 
-namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
+ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
     public class TableLessonViewToken : PageModuleToken<TableLessonViewModule> {
         public TableLessonViewToken(string title, LessonEntity lesson) :
             base(title) {
@@ -32,8 +33,8 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
 
         public override void Configure(IExportRegistrationBlock block) {
             block.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
-            block.ExportModuleScope<TableLessonViewPageModel>();
-            block.ExportModuleScope<TableLessonViewPage>()
+            block.DeclareComponent<TableLessonViewPageModel>();
+            block.DeclareComponent<TableLessonViewPage>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }
@@ -70,7 +71,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage {
                         Table.Columns.Add(dataGridColumn);
                     }
 
-                    Table.RowStyle = this.ViewModel.RowStyle;
+                    Table.RowStyle = DataGridLessonColumnBuilder.RowStyle;
                 });
         }
     }

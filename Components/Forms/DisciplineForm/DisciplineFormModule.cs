@@ -11,8 +11,8 @@ namespace TeacherAssistant.Forms.DisciplineForm
 
         public override void Configure(IExportRegistrationBlock registrationBlock)
         {
-            registrationBlock.ExportModuleScope<DisciplineFormModel>();
-            registrationBlock.ExportModuleScope<DisciplineForm>()
+            registrationBlock.DeclareComponent<DisciplineFormModel>();
+            registrationBlock.DeclareComponent<DisciplineForm>()
                 .ImportProperty(form => form.ViewModel)
                 .ImportProperty(form => form.ModuleToken);
         }

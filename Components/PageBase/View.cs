@@ -2,22 +2,23 @@
 using ReactiveUI;
 using TeacherAssistant.Core.Module;
 
-namespace TeacherAssistant.PageBase {
-    public interface IView : IViewFor {
-        IModuleToken ModuleToken { get; }
-    }
-
+namespace TeacherAssistant.PageBase
+{
     public abstract class View<TToken, TModel> : UserControl, IViewFor<TModel>
         where TModel : AbstractModel<TModel>
-        where TToken : class, IModuleToken {
-        private TToken _moduleToken;
+        where TToken : class, IModuleToken
+    {
+        private ModuleActivation<TToken> _moduleActivation;
         private TModel _viewModel;
 
-        public IModuleToken ModuleToken {
-            get => _moduleToken;
-            set {
-                _moduleToken = value as TToken;
-                if (value == null) {
+        public ModuleActivation<TToken> ModuleToken
+        {
+            get => _moduleActivation;
+            set
+            {
+                _moduleActivation = value;
+                if (value == null)
+                {
                     return;
                 }
 
@@ -25,14 +26,17 @@ namespace TeacherAssistant.PageBase {
             }
         }
 
-        object IViewFor.ViewModel {
+        object IViewFor.ViewModel
+        {
             get => this.ViewModel;
             set => this.ViewModel = (TModel) value;
         }
 
-        public TModel ViewModel {
+        public TModel ViewModel
+        {
             get => _viewModel;
-            set {
+            set
+            {
                 _viewModel = value;
                 value?.Activator.Activate();
                 this.DataContext = value;

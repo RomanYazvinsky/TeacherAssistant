@@ -13,6 +13,7 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI.Validation.Extensions;
 using ReactiveUI.Validation.Helpers;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
@@ -37,12 +38,13 @@ namespace TeacherAssistant.Forms.NoteForm {
     }
 
     public class NoteFormModel : AbstractModel<NoteFormModel> {
-        private readonly NoteListFormToken _token;
+        private readonly ModuleActivation<NoteListFormToken> _activation;
         private readonly LocalDbContext _context;
         private const string LocalizationKey = "note.form";
 
-        public NoteFormModel(NoteListFormToken token, LocalDbContext context) {
-            _token = token;
+        public NoteFormModel(ModuleActivation<NoteListFormToken> activation, LocalDbContext context) {
+            _activation = activation;
+            var token = activation.Token;
             _context = context;
             this.SaveButtonConfig = new ButtonConfig {
                 Command = ReactiveCommand.Create(Save, this.WhenAnyValue(model => model.IsValid)),
@@ -107,7 +109,7 @@ namespace TeacherAssistant.Forms.NoteForm {
 
 
         private void AddNote() {
-            var note = _token.NoteFactory();
+            var note = _activation.Token.NoteFactory();
             note.CreationDate = DateTime.Now;
             var noteViewModel = new NoteViewModel(note);
             this.Notes.Add(noteViewModel);
@@ -129,7 +131,7 @@ namespace TeacherAssistant.Forms.NoteForm {
                 noteViewModel.Note.Description = noteViewModel.Description;
             }
 
-            var removedIds = _token.Notes
+            var removedIds = _activation.Token.Notes
                 .Where(note => note.Id != default && Notes.All(model => model.Note.Id != note.Id))
                 .Select(entity => entity.Id)
                 .ToList();
@@ -147,7 +149,7 @@ namespace TeacherAssistant.Forms.NoteForm {
             var noteEntities = _context.Set<NoteEntity>().Where(entity => changedIds.Contains(entity.Id)).ToList();
             noteEntities.ForEach(entity => entity.Apply(changed[entity.Id]));
             await _context.SaveChangesAsync();
-            _token.Deactivate();
+            _activation.Deactivate();
         }
     }
 }

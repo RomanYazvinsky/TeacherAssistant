@@ -17,16 +17,17 @@ using JetBrains.Annotations;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Forms.NoteForm;
 using TeacherAssistant.Models;
 using TeacherAssistant.Models.Notes;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.PageHostProviders;
 using TeacherAssistant.Pages.PageController;
 using TeacherAssistant.Pages.RegistrationPage;
 using TeacherAssistant.Pages.StudentViewPage.Models;
 using TeacherAssistant.Services;
+using TeacherAssistant.Services.Paging;
 using TeacherAssistant.StudentForm;
 using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
@@ -37,21 +38,21 @@ namespace TeacherAssistant.Pages.StudentViewPage {
         private const string LocalizationKey = "page.student.view";
         public const double AttestationCoeff = 0.4;
         public const double ExamCoeff = 0.6;
-        private readonly TabPageHost _host;
-        private readonly WindowPageHost _windowPageHost;
+        private readonly TabComponentHost _host;
+        private readonly WindowComponentHost _windowComponentHost;
         private readonly PhotoService _photoService;
         private readonly LocalDbContext _context;
 
         public StudentViewPageModel(
-            StudentViewPageToken token,
+            ModuleActivation<StudentViewPageToken> activation,
             PageControllerReducer reducer,
-            TabPageHost host,
-            WindowPageHost windowPageHost,
+            TabComponentHost host,
+            WindowComponentHost windowComponentHost,
             PhotoService photoService,
             LocalDbContext context
         ) {
             _host = host;
-            _windowPageHost = windowPageHost;
+            _windowComponentHost = windowComponentHost;
             _photoService = photoService;
             _context = context;
             this.AddAttestationButtonConfig = new ButtonConfig {
@@ -72,7 +73,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
             });
             this.OpenStudentLessonHandler = ReactiveCommand.Create(() =>
                 OpenLesson(this.SelectedStudentLessonNote?.Note.StudentLesson.Lesson));
-            Initialize(token.Student);
+            Initialize(activation.Token.Student);
             this.WhenActivated(c => {
                 this.WhenAnyValue(model => model.Student)
                     .Where(LambdaHelper.NotNull)
@@ -106,7 +107,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
                     .ObserveOnDispatcher(DispatcherPriority.Background)
                     .Subscribe(_ => UpdateStudentNotes(this.Student)).DisposeWith(c);
             });
-            reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
+            reducer.Dispatch(new RegisterControlsAction(activation, GetControls()));
         }
 
         private void UpdateExternalLessons([NotNull] StudentEntity student) {
@@ -181,7 +182,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
             var groupLessons = await _context.GetGroupLessons(selectedGroup).ToListAsync();
             this.SelectedStream = _context.Streams
                 .Include(model => model.Discipline)
-                .FirstOrDefault(model => model.Groups.Any(groupModel => groupModel.Id == selectedGroup.Id));
+                .FirstOrDefault(model => model.Groups.Select(entity => entity.Id).Contains(selectedGroup.Id));
             var lessons = (await _context.StudentLessons
                     .Where(lessonModel => this.Student.Id == lessonModel.Student.Id)
                     .ToListAsync())
@@ -350,7 +351,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
                             Student = this.Student,
                             EntityId = this.Student.Id
                         }, _context.StudentNotes.Where(note => note.EntityId == this.Student.Id).ToList());
-                        _windowPageHost.AddPageAsync(noteListFormToken);
+                        _windowComponentHost.AddPageAsync(noteListFormToken);
                     }),
                     Text = "Заметки"
                 }
@@ -378,6 +379,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
                 this.ResultMark = exam.Mark;
                 return;
             }
+
             var mark = double.Parse(exam.Mark);
             this.ResultMark =
                 (anyAttestations
@@ -439,8 +441,8 @@ namespace TeacherAssistant.Pages.StudentViewPage {
             var examSchedule = schedules
                 .OrderBy(model => model.Begin)
                 .FirstOrDefault(schedule =>
-                        schedule.Begin > time
-                        || (schedule.Begin < time && schedule.End > time)
+                    schedule.Begin > time
+                    || (schedule.Begin < time && schedule.End > time)
                 );
             lesson.Schedule = examSchedule;
             lesson.Date = now;
@@ -502,7 +504,7 @@ namespace TeacherAssistant.Pages.StudentViewPage {
                 StudentLesson = studentLesson,
                 EntityId = studentLesson.Id
             }, _context.StudentLessonNotes.Where(note => note.EntityId == studentLesson.Id).ToList());
-            _windowPageHost.AddPageAsync(studentLessonNotes);
+            _windowComponentHost.AddPageAsync(studentLessonNotes);
         }
     }
 }

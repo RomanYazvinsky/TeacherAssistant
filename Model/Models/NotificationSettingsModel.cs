@@ -1,22 +1,33 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TeacherAssistant.Helpers;
 
-namespace TeacherAssistant.Models
-{
+namespace TeacherAssistant.Models {
     [Table("NOTIFICATION_SETTING")]
-    public class NotificationSettingsModel
-    {
-        [Key]
-        public long id { get; set; }
+    public sealed class NotificationSettingsModel : TrackableEntity<NotificationSettingsModel> {
+        public NotificationSettingsModel() {
+        }
 
-        public string type { get; set; }
+        public NotificationSettingsModel(NotificationSettingsModel other) {
+            Apply(other);
+        }
 
-        public int active { get; set; }
+        [Column("type")]
+        public string Type { get; set; }
+        [Column("active")]
+        public int DbActive { get; set; }
+        [Column("data")]
+        public string Data { get; set; }
+        [Column("volume")]
+        public decimal Volume { get; set; }
+        [Column("sound")]
+        public string DbSound { get; set; }
 
-        public string data { get; set; }
+        public override void Apply(NotificationSettingsModel trackable) {
+        }
 
-        public decimal volume { get; set; }
-
-        public string sound { get; set; }
+        public override NotificationSettingsModel Clone() {
+            return new NotificationSettingsModel(this);
+        }
     }
 }

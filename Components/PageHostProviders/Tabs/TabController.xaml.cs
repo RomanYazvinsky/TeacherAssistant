@@ -22,10 +22,10 @@ namespace TeacherAssistant.Components.Tabs {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<TabControllerModel>();
-            block.ExportModuleScope<TabPageHost>().As<IPageHost>();
-            block.ExportModuleScope<ModuleActivator>();
-            block.ExportModuleScope<TabController>()
+            block.DeclareComponent<TabControllerModel>();
+            block.DeclareComponent<TabComponentHost>().As<IComponentHost>();
+            block.DeclareComponent<ModuleActivator>();
+            block.DeclareComponent<TabController>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

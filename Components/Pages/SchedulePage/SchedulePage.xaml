@@ -1,15 +1,15 @@
-﻿<local:SchedulePageBase
-    x:Class="TeacherAssistant.ComponentsImpl.SchedulePage.SchedulePage"
+﻿<schedulePage:SchedulePageBase
+    x:Class="TeacherAssistant.Pages.SchedulePage.SchedulePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:TeacherAssistant.ComponentsImpl.SchedulePage"
     xmlns:label="clr-namespace:TeacherAssistant.Label"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:schedulePage="clr-namespace:TeacherAssistant.Pages.SchedulePage"
     mc:Ignorable="d"
     d:DesignHeight="720" d:DesignWidth="1280"
-    d:DataContext="{d:DesignInstance local:SchedulePageModel}">
+    d:DataContext="{d:DesignInstance schedulePage:SchedulePageModel}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -126,4 +126,4 @@
         </ListView>
 
     </Grid>
-</local:SchedulePageBase>
+</schedulePage:SchedulePageBase>

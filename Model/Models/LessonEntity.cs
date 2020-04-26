@@ -9,7 +9,7 @@ using TeacherAssistant.Models.Notes;
 
 namespace TeacherAssistant.Models {
     [Table("LESSON")]
-    public class LessonEntity : ATrackable<LessonEntity> {
+    public class LessonEntity : TrackableEntity<LessonEntity> {
         #region Database mapping
 
         [Column("name")] public string Name { get; set; }

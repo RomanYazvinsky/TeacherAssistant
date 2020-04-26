@@ -7,33 +7,31 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using Containers;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using TeacherAssistant.Components.TableFilter;
 using TeacherAssistant.ComponentsImpl;
+using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Models;
 using TeacherAssistant.PageBase;
-using TeacherAssistant.Pages;
 using TeacherAssistant.Pages.PageController;
 using TeacherAssistant.Pages.StudentTablePage.ViewModels;
 using TeacherAssistant.Services;
 using TeacherAssistant.StudentViewPage;
 using TeacherAssistant.Utils;
 
-namespace TeacherAssistant.StudentTable {
+namespace TeacherAssistant.Pages.StudentTablePage {
     public class StudentTableModel : AbstractModel<StudentTableModel> {
         private readonly LocalDbContext _context;
         private static readonly string LocalizationKey = "page.student.table";
 
         public StudentTableModel(
-            StudentTableToken token,
+            IModuleActivation activation,
             PageControllerReducer reducer,
             PhotoService photoService,
-            TabPageHost pageHost,
+            TabComponentHost componentHost,
             LocalDbContext context) {
             _context = context;
             this.PhotoService = photoService;
@@ -55,7 +53,7 @@ namespace TeacherAssistant.StudentTable {
                     }
 
                     var studentEntity = ((StudentViewModel) selectedItem).Student;
-                    pageHost.AddPageAsync(new StudentViewPageToken(studentEntity.LastName, studentEntity));
+                    componentHost.AddPageAsync(new StudentViewPageToken(studentEntity.LastName, studentEntity));
                 }
             );
             this.DeleteStudent = ReactiveCommand.Create
@@ -78,7 +76,7 @@ namespace TeacherAssistant.StudentTable {
                 }
             );
             Init();
-            reducer.Dispatch(new RegisterControlsAction(token, GetControls()));
+            reducer.Dispatch(new RegisterControlsAction(activation, GetControls()));
         }
 
         private void Init() {

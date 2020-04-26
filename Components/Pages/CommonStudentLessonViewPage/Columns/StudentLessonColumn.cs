@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Threading;
 using FontAwesome5;
 using TeacherAssistant.Models;
@@ -13,7 +14,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
         private readonly LessonEntity _lesson;
         private readonly bool _async;
 
-        public StudentLessonColumn(StudentLessonColumnHelper helper, LessonEntity lesson, bool async = true) {
+        public StudentLessonColumn(StudentLessonColumnHelper helper, LessonEntity lesson, bool async = false) {
             _helper = helper;
             _lesson = lesson;
             _async = async;
@@ -24,7 +25,10 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
         }
 
         protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem) {
-            var grid = new Grid();
+            var grid = new Grid {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Background = Brushes.Transparent
+            };
             grid.RowDefinitions.Add(new RowDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition());
             grid.ColumnDefinitions.Add(new ColumnDefinition {
@@ -37,6 +41,14 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 TextAlignment = TextAlignment.Center
             };
+            grid.SetBinding(Panel.BackgroundProperty, new Binding {
+                RelativeSource = new RelativeSource {
+                    Mode = RelativeSourceMode.FindAncestor,
+                    AncestorLevel = 1,
+                    AncestorType = typeof(DataGridCell)
+                },
+                Path = new PropertyPath(CellStyleExtensions.ContentBackgroundProperty)
+            });
             this.Dispatcher?.BeginInvoke(
                 DispatcherPriority.Background,
                 new Action<TextBlock>(x => {
@@ -53,7 +65,7 @@ namespace TeacherAssistant.Pages.CommonStudentLessonViewPage.Columns {
                 ? _helper.CreateAsyncHandler(grid, textBlock, notesIcon, _lesson.Id)
                 : _helper.CreateEagerHandler(grid, textBlock, notesIcon, _lesson.Id);
             cell.DataContext = dataItem;
-            _helper.UpdateCellValue(grid, textBlock, notesIcon, (StudentRowViewModel) dataItem, _lesson.Id);
+            _helper.UpdateCellValue(cell, grid, textBlock, notesIcon, (StudentRowViewModel) dataItem, _lesson.Id);
             return grid;
         }
     }

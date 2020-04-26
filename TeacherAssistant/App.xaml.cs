@@ -10,6 +10,7 @@ using TeacherAssistant.Core.Module;
 using TeacherAssistant.Database;
 using TeacherAssistant.Modules.MainModule;
 using TeacherAssistant.Properties;
+using LogManager = NLog.LogManager;
 
 namespace TeacherAssistant {
     using GlobalState = ImmutableDictionary<string, object>;
@@ -36,7 +37,6 @@ namespace TeacherAssistant {
             _container = containerBuilder;
             _container.Configure(block => {
                 block.AddModule(new DatabaseModule());
-                block.ExportModuleScope<ModuleActivator>();
             });
             var isConnected = await ConnectDatabase(_container, Settings.Default.DatabasePath);
             if (!isConnected) {
@@ -45,7 +45,7 @@ namespace TeacherAssistant {
                     throw new Exception("Cannot create new database!");
                 }
             }
-            var rootModuleLoader = _container.Locate<ModuleActivator>();
+            var rootModuleLoader = new ModuleActivator(_container);
             var mainModuleToken = new MainModuleToken("TeacherAssistant");
             var mainModule = await rootModuleLoader.ActivateAsync(mainModuleToken);
             mainModule.GetEntryComponent();

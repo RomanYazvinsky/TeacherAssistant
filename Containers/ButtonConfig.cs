@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using JetBrains.Annotations;
 
-namespace Containers
+namespace TeacherAssistant
 {
     public class ButtonConfig : INotifyPropertyChanged
     {

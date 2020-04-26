@@ -7,13 +7,13 @@ namespace TeacherAssistant.Pages.PageController {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<PageController>()
+            block.DeclareComponent<PageController>()
                 .ImportProperty(controller => controller.ModuleToken)
                 .ImportProperty(controller => controller.ViewModel);
-            block.ExportModuleScope<PageControllerModel>();
-            block.ExportModuleScope<PageControllerReducer>();
-            block.ExportModuleScope<PageControllerEffects>();
-            block.ExportModuleScope<ModuleActivator>();
+            block.DeclareComponent<PageControllerModel>();
+            block.DeclareComponent<PageControllerReducer>();
+            block.DeclareComponent<PageControllerEffects>();
+            block.DeclareComponent<ModuleActivator>();
         }
     }
 }

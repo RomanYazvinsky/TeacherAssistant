@@ -23,8 +23,8 @@ namespace TeacherAssistant.Pages.DisciplineTablePage {
         }
 
         public override void Configure(IExportRegistrationBlock block) {
-            block.ExportModuleScope<DisciplineTableModel>();
-            block.ExportModuleScope<DisciplineTable>()
+            block.DeclareComponent<DisciplineTableModel>();
+            block.DeclareComponent<DisciplineTable>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
         }

@@ -1,12 +1,16 @@
 using System;
 using System.Threading.Tasks;
 using Grace.DependencyInjection;
+using TeacherAssistant.State;
 
-namespace TeacherAssistant.Core.Module {
-    public class ModuleActivator {
+namespace TeacherAssistant.Core.Module
+{
+    public class ModuleActivator
+    {
         private readonly IInjectionScope _container;
 
-        public ModuleActivator(IInjectionScope container) {
+        public ModuleActivator(IInjectionScope container)
+        {
             _container = container;
         }
 
@@ -18,59 +22,91 @@ namespace TeacherAssistant.Core.Module {
         /// <returns></returns>
         /// <exception cref="ArgumentException">if token does not provide acceptable module type</exception>
         public Task<SimpleModule> ActivateAsync<TActivationToken>(TActivationToken token)
-            where TActivationToken : IModuleToken {
-
+            where TActivationToken : class, IModuleToken
+        {
             return Task.Run(() => Activate(token));
         }
 
         public SimpleModule Activate<TActivationToken>(TActivationToken token)
-            where TActivationToken : IModuleToken {
+            where TActivationToken : class, IModuleToken
+        {
             var type = token.ModuleType;
 
 
-            if (!type.IsSubclassOf(typeof(SimpleModule))) {
-                throw new ArgumentException("Token does not belong to any module");
-            }
+            // typeOf() => interface IModuleToken
+            // GetType() => class SomeModuleToken
+            var tokenType = token.GetType();
+            var genericType = typeof(ModuleActivation<>).MakeGenericType(tokenType);
+            var ctor = genericType.GetConstructor(new[] {typeof(string), tokenType});
+            var newModuleInstanceId = IdGenerator.GenerateId();
+            var activatedToken = (IModuleActivation) ctor.Invoke(new object[] {newModuleInstanceId, token});
+            var injectionScope = _container.CreateChildScope(block =>
+            {
+                block.ExportInstance(activatedToken)
+                    .As<IModuleActivation>()
+                    .As(genericType)
+                    .Lifestyle.SingletonPerNamedScope(newModuleInstanceId);
+                block.ActivateModule(type);
+            }, newModuleInstanceId);
 
-            var injectionScope = _container.CreateChildScope(block => {
-                    block.ExportInstance(token)
-                        .As<IModuleToken>()
-                        .As<TActivationToken>()
-                        .Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
-                    block.ExportModuleScope(type)
-                        .ImportProperty(nameof(SimpleModule.Injector));
-                }
-                , token.Id);
-
-            var lifecycleModule = (SimpleModule) injectionScope.Locate(type);
-            injectionScope.Configure(block => { block.AddModule(lifecycleModule); });
-            // var whatDoIHave = injectionScope.WhatDoIHave();
-            // Debug.WriteLine(whatDoIHave);
-            SetupDestructor(injectionScope, token);
-            return lifecycleModule;
+            var module = (SimpleModule) injectionScope.Locate(type);
+            injectionScope.Configure(block => { block.AddModule(module); });
+            SetupDestructor(injectionScope, activatedToken);
+            return module;
         }
 
-        private static void SetupDestructor(IDisposable scope, IModuleToken token) {
-            void Handler(object sender, object args) {
+        private static void SetupDestructor(IDisposable scope, IModuleActivation activated)
+        {
+            void Handler(object sender, object args)
+            {
                 scope.Dispose();
-                token.Deactivated -= Handler;
+                activated.Deactivated -= Handler;
             }
 
-            token.Deactivated += Handler;
+            activated.Deactivated += Handler;
         }
     }
 
-    public static class ExportExtensions {
-        public static IFluentExportStrategyConfiguration<T> ExportModuleScope<T>(
+    public static class ExportExtensions
+    {
+        public static IFluentExportInstanceConfiguration<T> UseService<T>(
+            this IExportRegistrationBlock block, T service
+        )
+        {
+            return block.ExportInstance(service).Lifestyle.Singleton();
+        }
+
+        public static IFluentExportStrategyConfiguration<T> RequireService<T>(
+            this IExportRegistrationBlock block, bool useExisting = true
+        )
+        {
+            return useExisting
+                ? block.Export<T>().As<T>().Lifestyle.Singleton().IfNotRegistered(typeof(T))
+                : block.DeclareComponent<T>();
+        }
+
+        public static IFluentExportStrategyConfiguration<T> DeclareComponent<T>(
             this IExportRegistrationBlock block
-        ) {
+        )
+        {
             return block.Export<T>().As<T>().Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
         }
 
-        public static IFluentExportStrategyConfiguration ExportModuleScope(
+        public static IFluentExportStrategyConfiguration DeclareComponent(
             this IExportRegistrationBlock block, Type type
-        ) {
+        )
+        {
             return block.Export(type).As(type).Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName);
+        }
+
+        public static IFluentExportStrategyConfiguration ActivateModule(
+            this IExportRegistrationBlock block, Type type
+        )
+        {
+            return block.Export(type)
+                .As(type)
+                .Lifestyle.SingletonPerNamedScope(block.OwningScope.ScopeName)
+                .ImportProperty(nameof(SimpleModule.Injector));
         }
     }
 }

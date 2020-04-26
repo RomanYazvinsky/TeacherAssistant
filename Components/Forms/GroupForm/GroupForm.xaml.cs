@@ -34,10 +34,10 @@ namespace TeacherAssistant.Forms.GroupForm
         public override void Configure(IExportRegistrationBlock registrationBlock)
         {
             registrationBlock.ExportInitialize<IInitializable>(initializable => initializable.Initialize());
-            registrationBlock.ExportModuleScope<GroupForm>()
+            registrationBlock.DeclareComponent<GroupForm>()
                 .ImportProperty(v => v.ModuleToken)
                 .ImportProperty(v => v.ViewModel);
-            registrationBlock.ExportModuleScope<GroupFormModel>();
+            registrationBlock.DeclareComponent<GroupFormModel>();
         }
     }
 
